@@ -24,7 +24,7 @@ from zope.testbrowser import interfaces
 
 
 class Browser(object):
-    """A Test Browser based on ``mechanize``."""
+    """A web user agent."""
     zope.interface.implements(interfaces.IBrowser)
 
     def __init__(self, url=None, mech_browser=None):

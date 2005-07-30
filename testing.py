@@ -77,7 +77,7 @@ class PublisherConnection(object):
         headers = self.response.header_output.headersl
         real_response = self.response._response
         status = real_response.getStatus()
-        reason = real_response._reason # XXX should add a getReason method
+        reason = real_response._reason # XXX add a getReason method
         output = (real_response.getHeaderText(real_response.getHeaders()) +
                   self.response.getBody())
         return PublisherResponse(output, status, reason)

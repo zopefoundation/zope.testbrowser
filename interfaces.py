@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Mechanize-based Functional Doctest interfaces
+"""Browser-like functional doctest interfaces
 
 $Id$
 """
