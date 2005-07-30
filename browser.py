@@ -203,13 +203,24 @@ class Control(object):
     def __init__(self, control):
         self.mech_control = control
 
+        # for some reason ClientForm thinks we shouldn't be able to modify
+        # hidden fields, but while testing it is sometimes very important
+        if self.mech_control.type == 'hidden':
+            self.mech_control.readonly = False
+
     def __getattr__(self, name):
         # See zope.testbrowser.interfaces.IControl
-        names = ['disabled', 'type', 'name', 'readonly', 'multiple']
+        names = ['disabled', 'type', 'name', 'multiple']
+        booleans = ['disabled', 'multiple']
         if name in names:
-            return getattr(self.mech_control, name, None)
+            result = getattr(self.mech_control, name, None)
         else:
             raise AttributeError(name)
+
+        if name in booleans:
+            result = bool(result)
+
+        return result
 
     @apply
     def value():
@@ -248,7 +259,7 @@ class Control(object):
             raise AttributeError('options')
 
     def __repr__(self):
-        return "Control(name='%s', type='%s')" %(self.name, self.type)
+        return "<Control name=%r type=%r>" %(self.name, self.type)
 
 
 class FormsMapping(object):

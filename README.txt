@@ -30,20 +30,16 @@ The contents of the current page are available:
         <h1>Simple Page</h1>
       </body>
     </html>
-    <BLANKLINE>
 
 Making assertions about page contents is easy.
 
-    >>> 'Simple Page' in browser.contents
+    >>> '<h1>Simple Page</h1>' in browser.contents
     True
 
-Utilizing the doctest facilities, it is better to do:
+Utilizing the doctest facilities, it also possible to do:
 
-    >>> print browser.contents
-    <html>
-    ...
-        <h1>Simple Page</h1>
-    ...
+    >>> browser.contents
+    '...<h1>Simple Page</h1>...'
 
 Note: Unfortunately, ellipsis (...) cannot be used at the beginning of the
 output.
@@ -108,7 +104,6 @@ The headers can be accesed as a string:
     Content-Type: text/html;charset=utf-8
     X-Content-Type-Warning: guessed from content
     X-Powered-By: Zope (www.zope.org), Python (www.python.org)
-    <BLANKLINE>
 
 Or as a mapping:
 
@@ -120,7 +115,7 @@ Navigation
 ----------
 
 If you want to simulate clicking on a link, there is a `click` method. In the
-`navigate.html` file there are several links setup to demonstrate the
+`navigate.html` file there are several links set up to demonstrate the
 capabilities of the `click` method. 
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
@@ -128,76 +123,53 @@ capabilities of the `click` method.
 The simplest is to access the link by the text value that is linked, in other
 words the linked text you would see in a browser:
 
-    >>> print browser.contents
-    <html>
-    ...
-    <a href="navigate.html?message=By+Link+Text">Link Text</a>
-    ...
+    >>> browser.contents
+    '...<a href="navigate.html?message=By+Link+Text">Link Text</a>...'
 
     >>> browser.click('Link Text')
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
-    >>> print browser.contents
-    <html>
-    ...
-    Message: <em>By Link Text</em>
-    ...
+    >>> browser.contents
+    '...Message: <em>By Link Text</em>...'
 
 You can also find the link by (1) its URL,
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> print browser.contents
-    <html>
-    ...
-    <a href="navigate.html?message=By+URL">Using the URL</a>
-    ...
+    >>> browser.contents
+    '...<a href="navigate.html?message=By+URL">Using the URL</a>...'
 
     >>> browser.click(url='\?message=By\+URL')
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html?message=By+URL'
-    >>> print browser.contents
-    <html>
-    ...
-    Message: <em>By URL</em>
-    ...
+    >>> browser.contents
+    '...Message: <em>By URL</em>...'
 
-and (2) its id:
+or (2) its id:
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> print browser.contents
-    <html>
-    ...
-    <a href="navigate.html?message=By+Id" id="anchorid">By Anchor Id</a>
-    ...
+    >>> browser.contents
+    '...<a href="navigate.html?message=By+Id" 
+    id="anchorid">By Anchor Id</a>...'
 
     >>> browser.click(id='anchorid')
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html?message=By+Id'
-    >>> print browser.contents
-    <html>
-    ...
-    Message: <em>By Id</em>
-    ...
+    >>> browser.contents
+    '...Message: <em>By Id</em>...'
 
 But there are more interesting cases. You can also use the `click` method to
 submit forms. You can either use the submit button's value by simply
 specifying the text:
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> print browser.contents
-    <html>
-    ...
-    <input type="submit" name="submit-form" value="Submit" />
-    ...
+    >>> browser.contents
+    '...<input type="submit" name="submit-form" value="Submit" />...'
 
     >>> browser.click('Submit')
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html'
-    >>> print browser.contents
-    <html>
-    ...
-    Message: <em>By Form Submit</em>
-    ...
+    >>> browser.contents
+    '...Message: <em>By Form Submit</em>...'
 
 Alternatively, you can specify the name of the control:
 
@@ -205,11 +177,8 @@ Alternatively, you can specify the name of the control:
     >>> browser.click(name='submit-form')
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html'
-    >>> print browser.contents
-    <html>
-    ...
-    Message: <em>By Form Submit</em>
-    ...
+    >>> browser.contents
+    '...Message: <em>By Form Submit</em>...'
 
 You thought we were done here? Not so quickly. The `click` method also
 supports image maps, though not by specifying the coordinates, but using the
@@ -219,11 +188,8 @@ area's title (or other tag attgributes):
     >>> browser.click(id='zope3')
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html?message=Zope+3+Name'
-    >>> print browser.contents
-    <html>
-    ...
-    Message: <em>Zope 3 Name</em>
-    ...
+    >>> browser.contents
+    '...Message: <em>Zope 3 Name</em>...'
 
 
 Other Navigation
@@ -267,14 +233,7 @@ You can look up a control's value from a mapping attribute:
     'Some Text'
 
 The key is matched against the value, id and name of the control. The
-`controls` mapping provides oterh functions too:
-
-  - Getting the value with a default option:
-
-      >>> browser.controls.get('text-value')
-      'Some Text'
-      >>> browser.controls.get('foo-value', 42)
-      42
+`controls` mapping provides other functions too:
 
   - Asking for existence:
 
@@ -282,6 +241,13 @@ The key is matched against the value, id and name of the control. The
       True
       >>> 'foo-value' in browser.controls
       False
+
+  - Getting the value with a default option:
+
+      >>> browser.controls.get('text-value')
+      'Some Text'
+      >>> browser.controls.get('foo-value', 42)
+      42
 
   - Setting an item to a new value:
 
@@ -314,14 +280,15 @@ Control Objects
 ~~~~~~~~~~~~~~~
 
 But the value of a control is not always everything that there is to know or
-interesting. In those cases, one can access the control object:
+that is interesting. In those cases, one can access the control object:
 
     >>> ctrl = browser.getControl('text-value')
     >>> ctrl
-    Control(name='text-value', type='text')
+    <Control name='text-value' type='text'>
 
 The string passed into the function will be matched against the value, id and
-name of the control. The control has several useful attributes:
+name of the control, just as when using the controll mapping. The control has
+several useful attributes:
 
   - the name as which the control is known to the form:
 
@@ -344,15 +311,10 @@ name of the control. The control has several useful attributes:
     >>> ctrl.disabled
     False
 
-  - another flag describing whether the value can be changed; this might seem
-    strange, but for example hidden field values cannot be modified:
-
-    >>> ctrl.readonly
-    False
-
   - there is a flag to tell us whether the control can have multiple values:
 
     >>> ctrl.multiple
+    False
 
   - and finally there is an attribute that provides all available value
     options. This is of course not sensible for a text input control and thus
@@ -377,15 +339,14 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('password-value')
     >>> ctrl
-    Control(name='password-value', type='password')
+    <Control name='password-value' type='password'>
     >>> ctrl.value
     'pass now'
     >>> ctrl.value = 'Password'
     >>> ctrl.disabled
     False
-    >>> ctrl.readonly
-    False
     >>> ctrl.multiple
+    False
     >>> ctrl.options
     Traceback (most recent call last):
     ...    
@@ -395,18 +356,14 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('hidden-value')
     >>> ctrl
-    Control(name='hidden-value', type='hidden')
+    <Control name='hidden-value' type='hidden'>
     >>> ctrl.value
     'Hidden'
     >>> ctrl.value = 'More Hidden'
-    Traceback (most recent call last):
-    ...    
-    AttributeError: control 'hidden-value' is readonly
     >>> ctrl.disabled
     False
-    >>> ctrl.readonly
-    True
     >>> ctrl.multiple
+    False
     >>> ctrl.options
     Traceback (most recent call last):
     ...    
@@ -416,15 +373,14 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('textarea-value')
     >>> ctrl
-    Control(name='textarea-value', type='textarea')
+    <Control name='textarea-value' type='textarea'>
     >>> ctrl.value
     '\n        Text inside\n        area!\n      '
     >>> ctrl.value = 'A lot of\n text.'
     >>> ctrl.disabled
     False
-    >>> ctrl.readonly
-    False
     >>> ctrl.multiple
+    False
     >>> ctrl.options
     Traceback (most recent call last):
     ...    
@@ -434,15 +390,14 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('file-value')
     >>> ctrl
-    Control(name='file-value', type='file')
+    <Control name='file-value' type='file'>
     >>> ctrl.value
     >>> import cStringIO
     >>> ctrl.value = cStringIO.StringIO('File contents')
     >>> ctrl.disabled
     False
-    >>> ctrl.readonly
-    False
     >>> ctrl.multiple
+    False
     >>> ctrl.options
     Traceback (most recent call last):
     ...    
@@ -452,13 +407,11 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('single-select-value')
     >>> ctrl
-    Control(name='single-select-value', type='select')
+    <Control name='single-select-value' type='select'>
     >>> ctrl.value
     ['1']
     >>> ctrl.value = ['2']
     >>> ctrl.disabled
-    False
-    >>> ctrl.readonly
     False
     >>> ctrl.multiple
     False
@@ -469,13 +422,11 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('multi-select-value')
     >>> ctrl
-    Control(name='multi-select-value', type='select')
+    <Control name='multi-select-value' type='select'>
     >>> ctrl.value
     []
     >>> ctrl.value = ['1', '2']
     >>> ctrl.disabled
-    False
-    >>> ctrl.readonly
     False
     >>> ctrl.multiple
     True
@@ -486,13 +437,11 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('single-unvalued-checkbox-value')
     >>> ctrl
-    Control(name='single-unvalued-checkbox-value', type='checkbox')
+    <Control name='single-unvalued-checkbox-value' type='checkbox'>
     >>> ctrl.value
     True
     >>> ctrl.value = False
     >>> ctrl.disabled
-    False
-    >>> ctrl.readonly
     False
     >>> ctrl.multiple
     True
@@ -503,13 +452,11 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('single-valued-checkbox-value')
     >>> ctrl
-    Control(name='single-valued-checkbox-value', type='checkbox')
+    <Control name='single-valued-checkbox-value' type='checkbox'>
     >>> ctrl.value
     ['1']
     >>> ctrl.value = []
     >>> ctrl.disabled
-    False
-    >>> ctrl.readonly
     False
     >>> ctrl.multiple
     True
@@ -520,13 +467,11 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('multi-checkbox-value')
     >>> ctrl
-    Control(name='multi-checkbox-value', type='checkbox')
+    <Control name='multi-checkbox-value' type='checkbox'>
     >>> ctrl.value
     ['1', '3']
     >>> ctrl.value = ['1', '2']
     >>> ctrl.disabled
-    False
-    >>> ctrl.readonly
     False
     >>> ctrl.multiple
     True
@@ -537,14 +482,13 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('image-value')
     >>> ctrl
-    Control(name='image-value', type='image')
+    <Control name='image-value' type='image'>
     >>> ctrl.value
     ''
     >>> ctrl.disabled
     False
-    >>> ctrl.readonly
-    False
     >>> ctrl.multiple
+    False
     >>> ctrl.options
     Traceback (most recent call last):
     ...    
@@ -554,14 +498,13 @@ There are various types of controls. They are demonstrated here.
 
     >>> ctrl = browser.getControl('submit-value')
     >>> ctrl
-    Control(name='submit-value', type='submit')
+    <Control name='submit-value' type='submit'>
     >>> ctrl.value
     'Submit'
     >>> ctrl.disabled
     False
-    >>> ctrl.readonly
-    True
     >>> ctrl.multiple
+    False
     >>> ctrl.options
     Traceback (most recent call last):
     ...    
@@ -666,7 +609,7 @@ Besides those attributes, you have also a couple of methods. Like for the
 browser, you can get control objects
 
     >>> form.getControl('text-value')
-    Control(name='text-value', type='text')
+    <Control name='text-value' type='text'>
 
 and submit the form:
 
@@ -700,12 +643,8 @@ with the `forms` mapping I can get to the second and third form as well:
     >>> form.controls['text-value']
     'Second Text'
     >>> form.submit('Submit')
-    >>> print browser.contents
-    <html>
-    ...
-    <em>Second Text</em>
-    ...
-    </html>
+    >>> browser.contents
+    '...<em>Second Text</em>...'
 
 The `forms` mapping also supports the check for containment
 
