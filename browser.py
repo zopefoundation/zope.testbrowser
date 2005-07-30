@@ -155,9 +155,9 @@ class Browser(object):
                 text_regex=text_regex, url_regex=url_regex)
         self._changed()
 
-    def getControl(self, text):
+    def getControl(self, text=None, id=None, name=None):
         """See zope.testbrowser.interfaces.IBrowser"""
-        form, control = self._findControl(text, text, text)
+        form, control = self._findControl(text, id, name)
         if control is None:
             raise ValueError('could not locate control: ' + text)
         return Control(control)
@@ -379,9 +379,9 @@ class Form(ControlsMapping):
             self.browser._clickSubmit(form, control, coord)
             self.browser._changed()
 
-    def getControl(self, text):
+    def getControl(self, text=None, id=None, name=None):
         """See zope.testbrowser.interfaces.IForm"""
-        form, control = self.browser._findControl(text, text, text,
+        form, control = self.browser._findControl(text, id, name,
                                                   form=self.mech_form)
         if control is None:
             raise ValueError('could not locate control: ' + text)

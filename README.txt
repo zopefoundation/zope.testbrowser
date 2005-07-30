@@ -282,7 +282,7 @@ Control Objects
 But the value of a control is not always everything that there is to know or
 that is interesting. In those cases, one can access the control object:
 
-    >>> ctrl = browser.getControl('text-value')
+    >>> ctrl = browser.getControl(name='text-value')
     >>> ctrl
     <Control name='text-value' type='text'>
 
@@ -337,7 +337,7 @@ There are various types of controls. They are demonstrated here.
 
   - Password Control
 
-    >>> ctrl = browser.getControl('password-value')
+    >>> ctrl = browser.getControl(name='password-value')
     >>> ctrl
     <Control name='password-value' type='password'>
     >>> ctrl.value
@@ -354,7 +354,7 @@ There are various types of controls. They are demonstrated here.
 
   - Hidden Control
 
-    >>> ctrl = browser.getControl('hidden-value')
+    >>> ctrl = browser.getControl(name='hidden-value')
     >>> ctrl
     <Control name='hidden-value' type='hidden'>
     >>> ctrl.value
@@ -371,7 +371,7 @@ There are various types of controls. They are demonstrated here.
     
   - Text Area Control
 
-    >>> ctrl = browser.getControl('textarea-value')
+    >>> ctrl = browser.getControl(name='textarea-value')
     >>> ctrl
     <Control name='textarea-value' type='textarea'>
     >>> ctrl.value
@@ -388,7 +388,7 @@ There are various types of controls. They are demonstrated here.
 
   - File Control
 
-    >>> ctrl = browser.getControl('file-value')
+    >>> ctrl = browser.getControl(name='file-value')
     >>> ctrl
     <Control name='file-value' type='file'>
     >>> ctrl.value
@@ -405,7 +405,7 @@ There are various types of controls. They are demonstrated here.
 
   - Selection Control (Single-Valued)
 
-    >>> ctrl = browser.getControl('single-select-value')
+    >>> ctrl = browser.getControl(name='single-select-value')
     >>> ctrl
     <Control name='single-select-value' type='select'>
     >>> ctrl.value
@@ -420,7 +420,7 @@ There are various types of controls. They are demonstrated here.
 
   - Selection Control (Multi-Valued)
 
-    >>> ctrl = browser.getControl('multi-select-value')
+    >>> ctrl = browser.getControl(name='multi-select-value')
     >>> ctrl
     <Control name='multi-select-value' type='select'>
     >>> ctrl.value
@@ -435,7 +435,7 @@ There are various types of controls. They are demonstrated here.
 
   - Checkbox Control (Single-Valued; Unvalued)
 
-    >>> ctrl = browser.getControl('single-unvalued-checkbox-value')
+    >>> ctrl = browser.getControl(name='single-unvalued-checkbox-value')
     >>> ctrl
     <Control name='single-unvalued-checkbox-value' type='checkbox'>
     >>> ctrl.value
@@ -450,7 +450,7 @@ There are various types of controls. They are demonstrated here.
 
   - Checkbox Control (Single-Valued, Valued)
 
-    >>> ctrl = browser.getControl('single-valued-checkbox-value')
+    >>> ctrl = browser.getControl(name='single-valued-checkbox-value')
     >>> ctrl
     <Control name='single-valued-checkbox-value' type='checkbox'>
     >>> ctrl.value
@@ -465,7 +465,7 @@ There are various types of controls. They are demonstrated here.
 
   - Checkbox Control (Multi-Valued)
 
-    >>> ctrl = browser.getControl('multi-checkbox-value')
+    >>> ctrl = browser.getControl(name='multi-checkbox-value')
     >>> ctrl
     <Control name='multi-checkbox-value' type='checkbox'>
     >>> ctrl.value
@@ -480,7 +480,7 @@ There are various types of controls. They are demonstrated here.
 
   - Image Control
 
-    >>> ctrl = browser.getControl('image-value')
+    >>> ctrl = browser.getControl(name='image-value')
     >>> ctrl
     <Control name='image-value' type='image'>
     >>> ctrl.value
@@ -496,7 +496,7 @@ There are various types of controls. They are demonstrated here.
 
   - Submit Control
 
-    >>> ctrl = browser.getControl('submit-value')
+    >>> ctrl = browser.getControl(name='submit-value')
     >>> ctrl
     <Control name='submit-value' type='submit'>
     >>> ctrl.value
@@ -608,7 +608,7 @@ The form exposes several attributes related to forms:
 Besides those attributes, you have also a couple of methods. Like for the
 browser, you can get control objects
 
-    >>> form.getControl('text-value')
+    >>> form.getControl(name='text-value')
     <Control name='text-value' type='text'>
 
 and submit the form:
