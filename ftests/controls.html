@@ -1,0 +1,83 @@
+<html>
+  <body>
+
+    <h1>Controls Tests</h1>
+
+    <form action="controls.html" method="post">
+
+      <em tal:condition="request/text-value|nothing"
+          tal:content="request/text-value" />
+      <input type="text" name="text-value" value="Some Text" />
+
+      <em tal:condition="request/password-value|nothing"
+          tal:content="request/password-value" />
+      <input type="password" name="password-value" value="Password" />
+      
+      <em tal:condition="request/hidden-value|nothing"
+          tal:content="request/hidden-value" />
+      <input type="hidden" name="hidden-value" value="Hidden" />
+
+      <em tal:condition="request/textarea-value|nothing"
+          tal:content="request/textarea-value" />
+      <textarea name="textarea-value">
+        Text inside
+        area!
+      </textarea>
+
+      <em tal:condition="request/file-value|nothing"
+          tal:content="request/file-value" />
+      <input type="file" name="file-value" />
+
+      <em tal:condition="request/single-select-value|nothing"
+          tal:content="request/single-select-value" />
+      <select name="single-select-value">
+        <option value="1">One</option>
+        <option value="2">Two</option>
+        <option value="3">Three</option>
+      </select>
+
+      <em tal:condition="request/multi-select-value|nothing"
+          tal:content="request/multi-select-value" />
+      <select name="multi-select-value" multiple="multiple">
+        <option value="1">One</option>
+        <option value="2">Two</option>
+        <option value="3">Three</option>
+      </select>
+      
+      <em tal:condition="request/single-unvalued-checkbox-value|nothing"
+          tal:content="request/single-unvalued-checkbox-value" />
+      <input type="checkbox" name="single-unvalued-checkbox-value" 
+             checked="checked" />
+
+      <em tal:condition="request/single-valued-checkbox-value|nothing"
+          tal:content="request/single-valued-checkbox-value" />
+      <input type="checkbox" name="single-valued-checkbox-value" 
+             value="1" checked="checked" />
+
+      <em tal:condition="request/multi-checkbox-value|nothing"
+          tal:content="request/multi-checkbox-value" />
+      <input type="checkbox" name="multi-checkbox-value" value="1" 
+             checked="checked" />
+      <input type="checkbox" name="multi-checkbox-value" value="2" />
+      <input type="checkbox" name="multi-checkbox-value" value="3" 
+             checked="checked" />
+
+      <em tal:condition="request/radio-value|nothing"
+          tal:content="request/radio-value" />
+      <radio name="radio-value" value="1" />
+      <radio name="radio-value" value="2" selected="selected" />
+      <radio name="radio-value" value="3" />
+
+      <em tal:condition="request/image-value.x|nothing"
+          tal:content="request/image-value.x" />
+      <em tal:condition="request/image-value.y|nothing"
+          tal:content="request/image-value.y" />
+      <input type="image" name="image-value" src="zope3logo.gif" />
+
+      <em tal:condition="request/submit-value|nothing"
+          tal:content="request/submit-value" />
+      <input type="submit" name="submit-value" value="Submit" />
+    </form>
+
+  </body>
+</html>
