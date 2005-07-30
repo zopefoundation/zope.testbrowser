@@ -138,7 +138,7 @@ You can also find the link by (1) its URL,
     >>> browser.contents
     '...<a href="navigate.html?message=By+URL">Using the URL</a>...'
 
-    >>> browser.click(url='\?message=By\+URL')
+    >>> browser.click(url='?message=By+URL')
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html?message=By+URL'
     >>> browser.contents

@@ -22,6 +22,7 @@ import zope.interface
 
 from zope.testbrowser import interfaces
 
+RegexType = type(re.compile(''))
 
 class Browser(object):
     """A web user agent."""
@@ -128,20 +129,25 @@ class Browser(object):
             self._changed()
             return
 
-        # if we get here, we didn't find a control to click, so we'll look for
-        # a regular link
+        # If we get here, we didn't find a control to click, so we'll look for
+        # a regular link.
 
         if id is not None:
             def predicate(link):
                 return dict(link.attrs).get('id') == id
             self.mech_browser.follow_link(predicate=predicate)
         else:
-            if text is not None:
-                text_regex = re.compile(text)
+            if isinstance(text, RegexType):
+                text_regex = text
+            elif text is not None:
+                text_regex = re.compile(re.escape(text), re.DOTALL)
             else:
                 text_regex = None
-            if url is not None:
-                url_regex = re.compile(url)
+
+            if isinstance(url, RegexType):
+                url_regex = url
+            elif url is not None:
+                url_regex = re.compile(re.escape(url), re.DOTALL)
             else:
                 url_regex = None
 
@@ -161,7 +167,7 @@ class Browser(object):
             if form is None or control_form == form:
                 if (((id is not None and control.id == id)
                 or (name is not None and control.name == name)
-                or (text is not None and re.search(text, str(control.value)))
+                or (text is not None and text in str(control.value))
                 ) and (type is None or control.type == type)):
                     self.mech_browser.form = control_form
                     return control_form, control
