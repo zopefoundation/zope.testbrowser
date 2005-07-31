@@ -42,13 +42,13 @@ Utilizing the doctest facilities, it also possible to do:
     '...<h1>Simple Page</h1>...'
 
 Note: Unfortunately, ellipsis (...) cannot be used at the beginning of the
-output.
+output (this is a limitation of doctest).
 
 
 Checking for HTML
 -----------------
 
-Not all URLs return HTML. Of course our simple page does:
+Not all URLs return HTML.  Of course our simple page does:
 
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.isHtml
@@ -89,8 +89,9 @@ Headers
 -------
 
 As you can see, the `contents` of the browser does not return any HTTP
-headers. The headers are accessible via a separate attribute, which is an
-``httplib.HTTPMessage`` instance:
+headers.  The headers are accessible via a separate attribute, which is an
+``httplib.HTTPMessage`` instance (httplib is a part of Python's standard
+library):
 
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.headers
@@ -114,15 +115,15 @@ Or as a mapping:
 Navigation
 ----------
 
-If you want to simulate clicking on a link, there is a `click` method. In the
+If you want to simulate clicking on a link, there is a `click` method.  In the
 `navigate.html` file there are several links set up to demonstrate the
 capabilities of the `click` method. 
 
+The simplest way to reffer to the link is via the anchor text.  In other words
+the text you would see in a browser (text and url searches are substring
+searches):
+
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-
-The simplest is to access the link by the text value that is linked, in other
-words the linked text you would see in a browser:
-
     >>> browser.contents
     '...<a href="navigate.html?message=By+Link+Text">Link Text</a>...'
 
@@ -157,8 +158,8 @@ or (2) its id:
     >>> browser.contents
     '...Message: <em>By Id</em>...'
 
-But there are more interesting cases. You can also use the `click` method to
-submit forms. You can either use the submit button's value by simply
+But there are more interesting cases.  You can also use the `click` method to
+submit forms.  You can either use the submit button's value by simply
 specifying the text:
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
@@ -180,7 +181,7 @@ Alternatively, you can specify the name of the control:
     >>> browser.contents
     '...Message: <em>By Form Submit</em>...'
 
-You thought we were done here? Not so quickly. The `click` method also
+You thought we were done here? Not so quickly.  The `click` method also
 supports image maps, though not by specifying the coordinates, but using the
 area's title (or other tag attgributes):
 
@@ -218,7 +219,7 @@ Controls
 --------
 
 One of the most important features of the browser is the ability to inspect
-and fill in values for the controls of input forms. To do so, let's first open
+and fill in values for the controls of input forms.  To do so, let's first open
 a page that has a bunch of controls:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
@@ -232,7 +233,7 @@ You can look up a control's value from a mapping attribute:
     >>> browser.controls['text-value']
     'Some Text'
 
-The key is matched against the value, id and name of the control. The
+The key is matched against the value, id and name of the control.  The
 `controls` mapping provides other functions too:
 
   - Asking for existence:
@@ -280,14 +281,14 @@ Control Objects
 ~~~~~~~~~~~~~~~
 
 But the value of a control is not always everything that there is to know or
-that is interesting. In those cases, one can access the control object:
+that is interesting.  In those cases, one can access the control object:
 
     >>> ctrl = browser.getControl(name='text-value')
     >>> ctrl
     <Control name='text-value' type='text'>
 
 The string passed into the function will be matched against the value, id and
-name of the control, just as when using the controll mapping. The control has
+name of the control, just as when using the controll mapping.  The control has
 several useful attributes:
 
   - the name as which the control is known to the form:
@@ -317,7 +318,7 @@ several useful attributes:
     False
 
   - and finally there is an attribute that provides all available value
-    options. This is of course not sensible for a text input control and thus
+    options.  This is of course not sensible for a text input control and thus
     not available:
 
     >>> ctrl.options
@@ -329,7 +330,7 @@ several useful attributes:
 Various Controls
 ~~~~~~~~~~~~~~~~
 
-There are various types of controls. They are demonstrated here. 
+There are various types of controls.  They are demonstrated here. 
 
   - Text Control
 
@@ -605,7 +606,7 @@ The form exposes several attributes related to forms:
     >>> form.controls['text-value']
     'First Text'
 
-Besides those attributes, you have also a couple of methods. Like for the
+Besides those attributes, you have also a couple of methods.  Like for the
 browser, you can get control objects
 
     >>> form.getControl(name='text-value')
@@ -621,9 +622,9 @@ and submit the form:
     ...
     </html>
 
-Okay, that's it about forms. Now let me show you briefly that looking up forms
-is sometimes important. In the `forms.html` template, we have three forms all
-having a text control named `text-value`. Now, if I use the browser's
+Okay, that's it about forms.  Now let me show you briefly that looking up forms
+is sometimes important.  In the `forms.html` template, we have three forms all
+having a text control named `text-value`.  Now, if I use the browser's
 `controls` attribute and `click` method,
 
     >>> browser.controls['text-value']
@@ -636,7 +637,7 @@ having a text control named `text-value`. Now, if I use the browser's
     ...
     </html>
 
-I can every only get to the first form, making the others unreachable. But
+I can every only get to the first form, making the others unreachable.  But
 with the `forms` mapping I can get to the second and third form as well:
 
     >>> form = browser.forms['2']
@@ -671,9 +672,9 @@ application errors, such as invalid URLs:
     HTTPError: HTTP Error 404: Not Found
 
 Note that the above error was thrown by ``urllib2`` and not by the
-publisher. For debugging purposes, however, it can be very useful to see the
-original exception caused by the application. In those cases you can set the
-``handleErrors`` property of the browser to ``False``. It is defaulted to
+publisher.  For debugging purposes, however, it can be very useful to see the
+original exception caused by the application.  In those cases you can set the
+``handleErrors`` property of the browser to ``False``.  It is defaulted to
 ``True``:
 
     >>> browser.handleErrors
