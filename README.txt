@@ -11,9 +11,9 @@ simulates a web browser similar to Mozilla Firefox or IE.
 
 The browser can `open` web pages:
 
-   >>> browser.open('http://localhost/@@/testbrowser/simple.html')
-   >>> browser.url
-   'http://localhost/@@/testbrowser/simple.html'
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.url
+    'http://localhost/@@/testbrowser/simple.html'
 
 
 Page Contents
