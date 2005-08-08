@@ -155,12 +155,20 @@ class Browser(object):
                 text_regex=text_regex, url_regex=url_regex)
         self._changed()
 
-    def getControl(self, text=None, id=None, name=None):
+    def getControl(self, search=None, text=None, id=None, name=None):
         """See zope.testbrowser.interfaces.IBrowser"""
+        if search is not None:
+            if text is not None or id is not None or name is not None:
+                raise ValueError(
+                    'May not pass both search value and any of '
+                    'text, id, or name')
+            text = id = name = search
         form, control = self._findControl(text, id, name)
         if control is None:
-            raise ValueError('could not locate control: ' + text)
-        return Control(control)
+            raise ValueError(
+                'could not locate control: text %r, id %r, name %r' %
+                (text, id, name))
+        return controlFactory(control)
 
     def _findControl(self, text, id, name, type=None, form=None):
         for control_form, control in self._controls:
@@ -253,20 +261,49 @@ class Control(object):
     def clear(self):
         self.mech_control.clear()
 
+    def __repr__(self):
+        return "<%s name=%r type=%r>" % (
+            self.__class__.__name__, self.name, self.type)
+
+class ListControl(Control):
+    zope.interface.implements(interfaces.IListControl)
+
+    @apply
+    def displayValue():
+        """See zope.testbrowser.interfaces.IListControl"""
+        # not implemented for anything other than select;
+        # would be nice if ClientForm implemented for checkbox and radio.
+        # attribute error for all others.
+
+        def fget(self):
+            return self.mech_control.get_value_by_label()
+
+        def fset(self, value):
+            self.mech_control.set_value_by_label(value)
+
+        return property(fget, fset)
+
+    @property
+    def displayOptions(self):
+        """See zope.testbrowser.interfaces.IListControl"""
+        # not implemented for anything other than select;
+        # would be nice if ClientForm implemented for checkbox and radio.
+        # attribute error for all others.
+        return self.mech_control.possible_items(by_label=True)
+
     @property
     def options(self):
-        """See zope.testbrowser.interfaces.IControl"""
+        """See zope.testbrowser.interfaces.IListControl"""
         if (self.type == 'checkbox'
         and self.mech_control.possible_items() == ['on']):
             return [True]
-        try:
-            return self.mech_control.possible_items()
-        except:
-            raise AttributeError('options')
+        return self.mech_control.possible_items()
 
-    def __repr__(self):
-        return "<Control name=%r type=%r>" %(self.name, self.type)
-
+def controlFactory(control):
+    if control.type in ('checkbox', 'select', 'radio'):
+        return ListControl(control)
+    else:
+        return Control(control)
 
 class FormsMapping(object):
     """All forms on the page of the browser."""
@@ -313,7 +350,7 @@ class ControlsMapping(object):
                                                   form=self.mech_form)
         if control is None:
             raise KeyError(key)
-        return Control(control).value
+        return controlFactory(control).value
 
     def get(self, key, default=None):
         """See zope.interface.common.mapping.IReadMapping"""
@@ -336,7 +373,7 @@ class ControlsMapping(object):
         form, control = self.browser._findControl(key, key, key)
         if control is None:
             raise KeyError(key)
-        Control(control).value = value
+        controlFactory(control).value = value
 
     def update(self, mapping):
         """See zope.testbrowser.interfaces.IControlsMapping"""
@@ -379,10 +416,17 @@ class Form(ControlsMapping):
             self.browser._clickSubmit(form, control, coord)
             self.browser._changed()
 
-    def getControl(self, text=None, id=None, name=None):
+
+    def getControl(self, search=None, text=None, id=None, name=None):
         """See zope.testbrowser.interfaces.IForm"""
+        if search is not None:
+            if text is not None or id is not None or name is not None:
+                raise ValueError(
+                    'May not pass both search value and any of '
+                    'text, id, or name')
+            text = id = name = search
         form, control = self.browser._findControl(text, id, name,
                                                   form=self.mech_form)
         if control is None:
             raise ValueError('could not locate control: ' + text)
-        return Control(control)
+        return controlFactory(control)

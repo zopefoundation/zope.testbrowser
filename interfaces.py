@@ -55,23 +55,10 @@ class IControl(zope.interface.Interface):
         values=['text', 'password', 'hidden', 'submit', 'checkbox', 'select',
                 'radio', 'image', 'file'],
         required=True)
-
-    options = zope.schema.List(
-        title=u"Options",
-        description=u"A list of possible values for the control.",
-        required=False)
         
     disabled = zope.schema.Bool(
         title=u"Disabled",
         description=u"Describes whether a control is disabled.",
-        default=False,
-        required=False)
-
-    readonly = zope.schema.Bool(
-        title=u"Readonly",
-        description=u"Describes whether a new value can be assigned to the "
-                    u"control. For example, the hidden input field is "
-                    u"read-only.",
         default=False,
         required=False)
 
@@ -83,7 +70,29 @@ class IControl(zope.interface.Interface):
 
     def clear():
         """Clear the value of the control."""
-        
+
+class IListControl(IControl):
+    """A radio button, checkbox, or select control"""
+
+    options = zope.schema.List(
+        title=u"Options",
+        description=u"""\
+        A list of possible values for the control.""",
+        required=True)
+
+    displayOptions = zope.schema.List(
+        # TODO: currently only implemented for select by ClientForm
+        title=u"Options",
+        description=u"""\
+        A list of possible display values for the control.""",
+        required=True)
+
+    displayValue = zope.schema.Field(
+        # TODO: currently only implemented for select by ClientForm
+        title=u"Value",
+        description=u"The value of the control, as rendered by the display",
+        default=None,
+        required=True)
 
 class IFormsMapping(zope.interface.common.mapping.IReadMapping):
     """A mapping of all forms in a page."""
