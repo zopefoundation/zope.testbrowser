@@ -142,7 +142,7 @@ searches):
     >>> browser.contents
     '...Message: <em>By Link Text</em>...'
 
-You can also find the link by (1) its URL,
+You can also find the link by its URL,
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
@@ -154,7 +154,7 @@ You can also find the link by (1) its URL,
     >>> browser.contents
     '...Message: <em>By URL</em>...'
 
-or (2) its id:
+or its id:
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
@@ -167,32 +167,9 @@ or (2) its id:
     >>> browser.contents
     '...Message: <em>By Id</em>...'
 
-But there are more interesting cases.  You can also use the `click` method to
-submit forms.  You can either use the submit button's value by simply
-specifying the text:
-
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.contents
-    '...<input type="submit" name="submit-form" value="Submit" />...'
-
-    >>> browser.click('Submit')
-    >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.html'
-    >>> browser.contents
-    '...Message: <em>By Form Submit</em>...'
-
-Alternatively, you can specify the name of the control:
-
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.click(name='submit-form')
-    >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.html'
-    >>> browser.contents
-    '...Message: <em>By Form Submit</em>...'
-
 You thought we were done here? Not so quickly.  The `click` method also
 supports image maps, though not by specifying the coordinates, but using the
-area's title (or other tag attgributes):
+area's id:
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.click(id='zope3')
@@ -233,107 +210,114 @@ a page that has a bunch of controls:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
 
+Obtaining a Control
+~~~~~~~~~~~~~~~~~~~
 
-Control Mappings
-~~~~~~~~~~~~~~~~
+You look up browser controls with the 'get' method.  The default first argument
+is 'label', and looks up the form on the basis of any associated label.
 
-You can look up a control's value from a mapping attribute:
+    >>> browser.get('Text Control')
+    <Control name='text-value' type='text'>
+    >>> browser.get(label='Text Control') # equivalent
+    <Control name='text-value' type='text'>
 
-    >>> browser.controls['text-value']
-    'Some Text'
+If you request a control that doesn't exist, the code raises a LookupError:
 
-The key is matched against the value, id and name of the control.  The
-`controls` mapping provides other functions too:
-
-  - Asking for existence:
-
-      >>> 'text-value' in browser.controls
-      True
-      >>> 'foo-value' in browser.controls
-      False
-
-  - Getting the value with a default option:
-
-      >>> browser.controls.get('text-value')
-      'Some Text'
-      >>> browser.controls.get('foo-value', 42)
-      42
-
-  - Setting an item to a new value:
-
-    >>> browser.controls['text-value'] = 'Some other Text'
-    >>> browser.controls['text-value']
-    'Some other Text'
-
-  - Updating a lot of values at once:
-
-    >>> browser.controls['password-value']
-    'Password'
-
-    >>> browser.controls.update({'text-value': 'More Text',
-    ...                          'password-value': 'pass now'})
-
-    >>> browser.controls['text-value']
-    'More Text'
-    >>> browser.controls['password-value']
-    'pass now'
-
-If we request a control that doesn't exist, an exception is raised.
-
-    >>> browser.controls['does_not_exist']
+    >>> browser.get('Does Not Exist')
     Traceback (most recent call last):
     ...
-    KeyError: 'does_not_exist'
+    LookupError: label 'Does Not Exist'
 
+If you request a control with an ambiguous lookup, the code raises an 
+AmbiguityError.
+
+    >>> browser.get('Ambiguous Control')
+    Traceback (most recent call last):
+    ...
+    AmbiguityError: label 'Ambiguous Control'
+
+Ambiguous controls may be specified using an index value.  We use the control's
+value attribute to show the two controls; this attribute is properly introduced 
+below.
+
+    >>> browser.get('Ambiguous Control', index=0)
+    <Control name='ambiguous-control-name' type='text'>
+    >>> browser.get('Ambiguous Control', index=0).value
+    'First'
+    >>> browser.get('Ambiguous Control', index=1).value
+    'Second'
+
+The label search uses a whitespace-normalized version of the label, and does
+a substring search, but case is honored.
+
+    >>> browser.get('Label Needs Whitespace Normalization')
+    <Control name='label-needs-normalization' type='text'>
+    >>> browser.get('label needs whitespace normalization')
+    Traceback (most recent call last):
+    ...
+    LookupError: label 'label needs whitespace normalization'
+
+Multiple labels can refer to the same control (simply because that is possible
+in the HTML 4.0 spec).
+
+    >>> browser.get('Multiple labels really')
+    <Control name='two-labels' type='text'>
+    >>> browser.get('really are possible')
+    <Control name='two-labels' type='text'>
+    >>> browser.get('really') # OK: ambiguous labels, but not ambiguous control
+    <Control name='two-labels' type='text'>
+
+Get also accepts two other arguments, 'name' and 'value'.  Only one of 'label',
+'name', and 'value' may be used at a time.
+
+The 'name' keyword searches form field names.
+
+    >>> browser.get(name='text-value')
+    <Control name='text-value' type='text'>
+    >>> browser.get(name='ambiguous-control-name')
+    Traceback (most recent call last):
+    ...
+    AmbiguityError: name 'ambiguous-control-name'
+    >>> browser.get(name='does-not-exist')
+    Traceback (most recent call last):
+    ...
+    LookupError: name 'does-not-exist'
+    >>> browser.get(name='ambiguous-control-name', index=1).value
+    'Second'
+
+Combining any of 'label', and 'name' raises a ValueError, as does
+supplying none of them.
+
+    >>> browser.get(label='Ambiguous Control', name='ambiguous-control-name')
+    Traceback (most recent call last):
+    ...
+    ValueError: Supply one and only one of 'label' and 'name' arguments
+    >>> browser.get()
+    Traceback (most recent call last):
+    ...
+    ValueError: Supply one and only one of 'label' and 'name' arguments
+
+Radio and checkbox fields are unusual in that their labels and names may point
+to different objects: names point to logical collections of radio buttons or
+checkboxes, but labels may only be used for individual choices within the
+logical collection.  This means that obtaining a radio button by label gets a
+different object than obtaining the radio collection by name.
+
+    >>> browser.get(name='radio-value')
+    <ListControl name='radio-value' type='radio'>
+    >>> browser.get('Zwei')
+    <Subcontrol name='radio-value' type='radio' index=1>
+
+Characteristics of controls and subcontrols are discussed below.
 
 Control Objects
 ~~~~~~~~~~~~~~~
 
-But the value of a control is not always everything that there is to know or
-that is interesting.  In those cases, one can access the control object.  The
-string passed into the function will be matched against the value, id and name
-of the control, just as when using the control mapping.
-
-    >>> ctrl = browser.getControl('text-value')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-    >>> ctrl = browser.getControl('text-value-id')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-    >>> ctrl = browser.getControl('More Text')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-
-If you want to search explicitly by name, value, and/or id, you may also use
-keyword arguments 'name', 'text', and 'id'.
-
-    >>> ctrl = browser.getControl(name='text-value')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-    >>> ctrl = browser.getControl(id='text-value-id')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-    >>> ctrl = browser.getControl(text='More Text')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-    >>> ctrl = browser.getControl(
-    ...     id='text-value-id', name='text-value', text='More Text')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-    >>> ctrl = browser.getControl(
-    ...     id='does not exist', name='does not exist', text='More Text')
-    >>> ctrl
-    <Control name='text-value' type='text'>
-
-You may not use both the default argument and any of the other named arguments.
-
-    >>> ctrl = browser.getControl('text-value', name='text-value')
-    Traceback (most recent call last):
-    ...    
-    ValueError: ...
-
 Controls provide IControl.
 
+    >>> ctrl = browser.get('Text Control')
+    >>> ctrl
+    <Control name='text-value' type='text'>
     >>> from zope.interface.verify import verifyObject
     >>> from zope.testbrowser import interfaces
     >>> verifyObject(interfaces.IControl, ctrl)
@@ -346,11 +330,13 @@ They have several useful attributes:
     >>> ctrl.name
     'text-value'
 
-  - the value of the control; this attribute can also be set, of course:
+  - the value of the control, which may also be set:
 
     >>> ctrl.value
+    'Some Text'
+    >>> ctrl.value = 'More Text'
+    >>> ctrl.value
     'More Text'
-    >>> ctrl.value = 'Some Text'
 
   - the type of the control:
 
@@ -362,16 +348,15 @@ They have several useful attributes:
     >>> ctrl.disabled
     False
 
-  - and there is a flag to tell us whether the control can have multiple
-    values:
+  - and a flag to tell us whether the control can have multiple values:
 
     >>> ctrl.multiple
     False
 
 Additionally, controllers for select, radio, and checkbox provide IListControl.
-These fields have three other attributes (at least in theory--see below):
+These fields have three other attributes:
 
-    >>> ctrl = browser.getControl('multi-select-value')
+    >>> ctrl = browser.get('Multiple Select Control')
     >>> ctrl
     <ListControl name='multi-select-value' type='select'>
     >>> ctrl.disabled
@@ -404,14 +389,43 @@ These fields have three other attributes (at least in theory--see below):
     >>> ctrl.value
     ['1', '2']
 
-Unfortunately, radio fields and checkbox fields do not yet implement
-displayOptions and displayValue, although we hope to support them eventually
-(i.e., basing off of label tags).
+Finally, submit controls provide ISubmitControl, and image controls provide
+IImageSubmitControl, which extents ISubmitControl.  These both simply add a
+'click' method.  For image submit controls, you may also provide a coordinates
+argument, which is a tuple of (x, y).  These submit the forms, and are
+demonstrated below as we examine each control individually.
+
+Subcontrol Objects
+~~~~~~~~~~~~~~~~~~
+
+As introduced briefly above, using labels to obtain elements of a logical
+radio button or checkbox collection returns subcontrols, rather than controls.
+Manipulating the value of the subcontrols affects the parent control.
+
+    >>> browser.get(name='radio-value').value
+    ['2']
+    >>> browser.get('Zwei').value
+    True
+    >>> verifyObject(interfaces.ISubcontrol, browser.get('Zwei'))
+    True
+    >>> browser.get('Ein').value = True
+    >>> browser.get('Ein').value
+    True
+    >>> browser.get('Zwei').value
+    False
+    >>> browser.get(name='radio-value').value
+    ['1']
+    >>> browser.get('Ein').value = False
+    >>> browser.get(name='radio-value').value
+    []
+    >>> browser.get('Zwei').value = True
+
+Checkbox collections behave similarly, as shown below.
 
 Various Controls
 ~~~~~~~~~~~~~~~~
 
-There are various types of controls.  They are demonstrated here. 
+The various types of controls are demonstrated here. 
 
   - Text Control
 
@@ -419,14 +433,16 @@ There are various types of controls.  They are demonstrated here.
 
   - Password Control
 
-    >>> ctrl = browser.getControl('password-value')
+    >>> ctrl = browser.get('Password Control')
     >>> ctrl
     <Control name='password-value' type='password'>
     >>> verifyObject(interfaces.IControl, ctrl)
     True
     >>> ctrl.value
+    'Password'
+    >>> ctrl.value = 'pass now'
+    >>> ctrl.value
     'pass now'
-    >>> ctrl.value = 'Password'
     >>> ctrl.disabled
     False
     >>> ctrl.multiple
@@ -434,7 +450,7 @@ There are various types of controls.  They are demonstrated here.
 
   - Hidden Control
 
-    >>> ctrl = browser.getControl('hidden-value')
+    >>> ctrl = browser.get(name='hidden-value')
     >>> ctrl
     <Control name='hidden-value' type='hidden'>
     >>> verifyObject(interfaces.IControl, ctrl)
@@ -449,7 +465,7 @@ There are various types of controls.  They are demonstrated here.
     
   - Text Area Control
 
-    >>> ctrl = browser.getControl('textarea-value')
+    >>> ctrl = browser.get('Text Area Control')
     >>> ctrl
     <Control name='textarea-value' type='textarea'>
     >>> verifyObject(interfaces.IControl, ctrl)
@@ -464,7 +480,7 @@ There are various types of controls.  They are demonstrated here.
 
   - File Control
 
-    >>> ctrl = browser.getControl('file-value')
+    >>> ctrl = browser.get('File Control')
     >>> ctrl
     <Control name='file-value' type='file'>
     >>> verifyObject(interfaces.IControl, ctrl)
@@ -479,7 +495,7 @@ There are various types of controls.  They are demonstrated here.
 
   - Selection Control (Single-Valued)
 
-    >>> ctrl = browser.getControl('single-select-value')
+    >>> ctrl = browser.get('Single Select Control')
     >>> ctrl
     <ListControl name='single-select-value' type='select'>
     >>> verifyObject(interfaces.IListControl, ctrl)
@@ -509,12 +525,10 @@ There are various types of controls.  They are demonstrated here.
 
   - Checkbox Control (Single-Valued; Unvalued)
 
-    >>> ctrl = browser.getControl('single-unvalued-checkbox-value')
+    >>> ctrl = browser.get(name='single-unvalued-checkbox-value')
     >>> ctrl
     <ListControl name='single-unvalued-checkbox-value' type='checkbox'>
-    >>> interfaces.IListControl.providedBy(ctrl)
-    True
-    >>> verifyObject(interfaces.IControl, ctrl) # IListControl when implemented
+    >>> verifyObject(interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     True
@@ -525,27 +539,32 @@ There are various types of controls.  They are demonstrated here.
     True
     >>> ctrl.options
     [True]
-    >>> ctrl.displayOptions # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue = ['One'] # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
+    >>> ctrl.displayOptions
+    ['Single Unvalued Checkbox']
+    >>> ctrl.displayValue
+    []
+    >>> verifyObject(
+    ...     interfaces.ISubcontrol, browser.get('Single Unvalued Checkbox'))
+    True
+    >>> browser.get('Single Unvalued Checkbox').value
+    False
+    >>> ctrl.displayValue = ['Single Unvalued Checkbox']
+    >>> ctrl.displayValue
+    ['Single Unvalued Checkbox']
+    >>> browser.get('Single Unvalued Checkbox').value
+    True
+    >>> browser.get('Single Unvalued Checkbox').value = False
+    >>> browser.get('Single Unvalued Checkbox').value
+    False
+    >>> ctrl.displayValue
+    []
 
   - Checkbox Control (Single-Valued, Valued)
 
-    >>> ctrl = browser.getControl('single-valued-checkbox-value')
+    >>> ctrl = browser.get(name='single-valued-checkbox-value')
     >>> ctrl
     <ListControl name='single-valued-checkbox-value' type='checkbox'>
-    >>> interfaces.IListControl.providedBy(ctrl)
-    True
-    >>> verifyObject(interfaces.IControl, ctrl) # IListControl when implemented
+    >>> verifyObject(interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     ['1']
@@ -556,27 +575,32 @@ There are various types of controls.  They are demonstrated here.
     True
     >>> ctrl.options
     ['1']
-    >>> ctrl.displayOptions # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue = ['One'] # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
+    >>> ctrl.displayOptions
+    ['Single Valued Checkbox']
+    >>> ctrl.displayValue
+    []
+    >>> verifyObject(
+    ...     interfaces.ISubcontrol, browser.get('Single Valued Checkbox'))
+    True
+    >>> browser.get('Single Valued Checkbox').value
+    False
+    >>> ctrl.displayValue = ['Single Valued Checkbox']
+    >>> ctrl.displayValue
+    ['Single Valued Checkbox']
+    >>> browser.get('Single Valued Checkbox').value
+    True
+    >>> browser.get('Single Valued Checkbox').value = False
+    >>> browser.get('Single Valued Checkbox').value
+    False
+    >>> ctrl.displayValue
+    []
 
   - Checkbox Control (Multi-Valued)
 
-    >>> ctrl = browser.getControl('multi-checkbox-value')
+    >>> ctrl = browser.get(name='multi-checkbox-value')
     >>> ctrl
     <ListControl name='multi-checkbox-value' type='checkbox'>
-    >>> interfaces.IListControl.providedBy(ctrl)
-    True
-    >>> verifyObject(interfaces.IControl, ctrl) # IListControl when implemented
+    >>> verifyObject(interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     ['1', '3']
@@ -587,27 +611,37 @@ There are various types of controls.  They are demonstrated here.
     True
     >>> ctrl.options
     ['1', '2', '3']
-    >>> ctrl.displayOptions # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue = ['One'] # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
+    >>> ctrl.displayOptions
+    ['One', 'Two', 'Three']
+    >>> ctrl.displayValue
+    ['One', 'Two']
+    >>> ctrl.displayValue = ['Two']
+    >>> ctrl.value
+    ['2']
+    >>> browser.get('Two').value
+    True
+    >>> verifyObject(interfaces.ISubcontrol, browser.get('Two'))
+    True
+    >>> browser.get('Three').value = True
+    >>> browser.get('Three').value
+    True
+    >>> browser.get('Two').value
+    True
+    >>> ctrl.value
+    ['2', '3']
+    >>> browser.get('Two').value = False
+    >>> ctrl.value
+    ['3']
+    >>> browser.get('Three').value = False
+    >>> ctrl.value
+    []
 
   - Radio Control
 
-    >>> ctrl = browser.getControl('radio-value')
+    >>> ctrl = browser.get(name='radio-value')
     >>> ctrl
     <ListControl name='radio-value' type='radio'>
-    >>> interfaces.IListControl.providedBy(ctrl)
-    True
-    >>> verifyObject(interfaces.IControl, ctrl) # IListControl when implemented
+    >>> verifyObject(interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     ['2']
@@ -620,25 +654,22 @@ There are various types of controls.  They are demonstrated here.
     False
     >>> ctrl.options
     ['1', '2', '3']
-    >>> ctrl.displayOptions # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
-    >>> ctrl.displayValue = ['One'] # we wish this would work!
-    Traceback (most recent call last):
-    ...    
-    NotImplementedError: ...
+    >>> ctrl.displayOptions
+    ['Ein', 'Zwei', 'Drei']
+    >>> ctrl.displayValue
+    []
+    >>> ctrl.displayValue = ['Ein']
+    >>> ctrl.displayValue
+    ['Ein']
+
+  The radio control subcontrols were illustrated above.
 
   - Image Control
 
-    >>> ctrl = browser.getControl('image-value')
+    >>> ctrl = browser.get(name='image-value')
     >>> ctrl
-    <Control name='image-value' type='image'>
-    >>> verifyObject(interfaces.IControl, ctrl)
+    <ImageControl name='image-value' type='image'>
+    >>> verifyObject(interfaces.IImageSubmitControl, ctrl)
     True
     >>> ctrl.value
     ''
@@ -649,67 +680,73 @@ There are various types of controls.  They are demonstrated here.
 
   - Submit Control
 
-    >>> ctrl = browser.getControl('submit-value')
+    >>> ctrl = browser.get(name='submit-value')
     >>> ctrl
-    <Control name='submit-value' type='submit'>
-    >>> verifyObject(interfaces.IControl, ctrl)
+    <SubmitControl name='submit-value' type='submit'>
+    >>> browser.get('Submit This') # value of submit button is a label
+    <SubmitControl name='submit-value' type='submit'>
+    >>> browser.get('Standard Submit Control') # label tag is legal
+    <SubmitControl name='submit-value' type='submit'>
+    >>> browser.get('Submit') # multiple labels, but control is not ambiguous
+    <SubmitControl name='submit-value' type='submit'>
+    >>> verifyObject(interfaces.ISubmitControl, ctrl)
     True
     >>> ctrl.value
-    'Submit'
+    'Submit This'
     >>> ctrl.disabled
     False
     >>> ctrl.multiple
     False
-
 
 Using Submitting Controls
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Both, the submit and image type, should be clickable and submit the form:
 
-    >>> browser.controls['text-value'] = 'Other Text'
-    >>> browser.click('Submit')
+    >>> browser.get('Text Control').value = 'Other Text'
+    >>> browser.get('Submit').click()
     >>> print browser.contents
     <html>
     ...
     <em>Other Text</em>
-    <input type="text" name="text-value" id="text-value-id" value="Some Text" />
+    <input type="text" name="text-value" id="text-value" value="Some Text" />
     ...
-    <em>Submit</em>
-    <input type="submit" name="submit-value" value="Submit" />
+    <em>Submit This</em>
+    <input type="submit" name="submit-value" id="submit-value" value="Submit This" />
     ...
     </html>
 
 And also with the image value:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
-    >>> browser.controls['text-value'] = 'Other Text'
-    >>> browser.click(name='image-value')
+    >>> browser.get('Text Control').value = 'Other Text'
+    >>> browser.get(name='image-value').click()
     >>> print browser.contents
     <html>
     ...
     <em>Other Text</em>
-    <input type="text" name="text-value" id="text-value-id" value="Some Text" />
+    <input type="text" name="text-value" id="text-value" value="Some Text" />
     ...
     <em>1</em>
     <em>1</em>
-    <input type="image" name="image-value" src="zope3logo.gif" />
+    <input type="image" name="image-value" id="image-value"
+           src="zope3logo.gif" />
     ...
     </html>
 
 But when sending an image, you can also specify the coordinate you clicked:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
-    >>> browser.click(name='image-value', coord=(50,25))
+    >>> browser.get(name='image-value').click((50,25))
     >>> print browser.contents
     <html>
     ...
     <em>50</em>
     <em>25</em>
-    <input type="image" name="image-value" src="zope3logo.gif" />
+    <input type="image" name="image-value" id="image-value"
+           src="zope3logo.gif" />
     ...
     </html>
-
 
 Forms
 -----
@@ -749,20 +786,13 @@ The form exposes several attributes related to forms:
     >>> form.enctype
     'multipart/form-data'
 
-  - The controls for this specific form are also available:
-
-    >>> form.controls
-    <zope.testbrowser.browser.ControlsMapping object at ...>
-    >>> form.controls['text-value']
-    'First Text'
-
 Besides those attributes, you have also a couple of methods.  Like for the
-browser, you can get control objects
+browser, you can get control objects, but limited to the current form...
 
-    >>> form.getControl('text-value')
+    >>> form.get(name='text-value')
     <Control name='text-value' type='text'>
 
-and submit the form:
+...and submit the form.
 
     >>> form.submit('Submit')
     >>> print browser.contents
@@ -772,30 +802,39 @@ and submit the form:
     ...
     </html>
 
-Okay, that's it about forms.  Now let me show you briefly that looking up forms
-is sometimes important.  In the `forms.html` template, we have three forms all
-having a text control named `text-value`.  Now, if I use the browser's
-`controls` attribute and `click` method,
+Submitting also works without specifying a control, as shown below, which is
+it's primary reason for existing in competition with the control submission
+discussed above.
 
-    >>> browser.controls['text-value']
-    'First Text'
-    >>> browser.click('Submit')
-    >>> print browser.contents
-    <html>
-    ...
-    <em>First Text</em>
-    ...
-    </html>
+Now let me show you briefly that looking up forms is sometimes important.  In
+the `forms.html` template, we have four forms all having a text control named
+`text-value`.  Now, if I use the browser's `get` method,
 
-I can every only get to the first form, making the others unreachable.  But
-with the `forms` mapping I can get to the second and third form as well:
+    >>> browser.get(name='text-value')
+    Traceback (most recent call last):
+    ...
+    AmbiguityError: name 'text-value'
+    >>> browser.get('Text Control')
+    Traceback (most recent call last):
+    ...
+    AmbiguityError: label 'Text Control'
+
+I'll always get an ambiguous form field.  I can use the index argument, or
+with the `forms` mapping I can disambiguate by searching only within a given
+form:
 
     >>> form = browser.forms['2']
-    >>> form.controls['text-value']
+    >>> form.get(name='text-value').value
     'Second Text'
     >>> form.submit('Submit')
     >>> browser.contents
     '...<em>Second Text</em>...'
+    >>> form = browser.forms['2']
+    >>> form.get('Submit').click()
+    >>> browser.contents
+    '...<em>Second Text</em>...'
+    >>> browser.forms['3'].get('Text Control').value
+    'Third Text'
 
 The `forms` mapping also supports the check for containment
 
@@ -809,6 +848,26 @@ and retrievel with optional default value:
     >>> browser.forms.get('invalid', 42)
     42
 
+The last form on the page does not have a name, an id, or a submit button.
+Working with it is still easy, thanks to a values attribute that guarantees
+order.  (Forms without submit buttons are sometimes useful for JavaScript.)
+
+    >>> form = browser.forms.values()[3]
+    >>> form.submit()
+    >>> browser.contents
+    '...<em>Fourth Text</em>...'
+
+Other mapping attributes for the forms collection remain unimplemented.
+If useful, contributors implementing these would be welcome.
+
+    >>> browser.forms.items()
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'FormsMapping' object has no attribute 'items'
+    >>> browser.forms.keys()
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'FormsMapping' object has no attribute 'keys'
 
 Handling Errors
 ---------------

@@ -17,7 +17,9 @@ $Id$
 """
 __docformat__ = "reStructuredText"
 import re
+import StringIO
 import mechanize
+import pullparser
 import zope.interface
 
 from zope.testbrowser import interfaces
@@ -50,11 +52,6 @@ class Browser(object):
     def title(self):
         """See zope.testbrowser.interfaces.IBrowser"""
         return self.mech_browser.title()
-
-    @property
-    def controls(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return ControlsMapping(self)
 
     @property
     def forms(self):
@@ -117,21 +114,8 @@ class Browser(object):
         """See zope.testbrowser.interfaces.IBrowser"""
         self.mech_browser.addheaders.append( (key, value) )
 
-    def click(self, text=None, url=None, id=None, name=None, coord=(1,1)):
+    def click(self, text=None, url=None, id=None):
         """See zope.testbrowser.interfaces.IBrowser"""
-        # Determine whether the click is a form submit and click the submit
-        # button if this is the case.
-        form, control = self._findControl(text, id, name, type='submit')
-        if control is None:
-            form, control = self._findControl(text, id, name, type='image')
-        if control is not None:
-            self._clickSubmit(form, control, coord)
-            self._changed()
-            return
-
-        # If we get here, we didn't find a control to click, so we'll look for
-        # a regular link.
-
         if id is not None:
             def predicate(link):
                 return dict(link.attrs).get('id') == id
@@ -155,32 +139,69 @@ class Browser(object):
                 text_regex=text_regex, url_regex=url_regex)
         self._changed()
 
-    def getControl(self, search=None, text=None, id=None, name=None):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        if search is not None:
-            if text is not None or id is not None or name is not None:
-                raise ValueError(
-                    'May not pass both search value and any of '
-                    'text, id, or name')
-            text = id = name = search
-        form, control = self._findControl(text, id, name)
-        if control is None:
-            raise ValueError(
-                'could not locate control: text %r, id %r, name %r' %
-                (text, id, name))
-        return controlFactory(control)
+    def _findByLabel(self, label, form=None, include_subcontrols=False):
+        # form is None or a mech_form
+        ids = [id for id, l in self._label_tags if label in l]
+        found = []
+        for f in self.mech_browser.forms():
+            if form is None or form == f:
+                for control in f.controls:
+                    if control.type in ('radio', 'checkbox'):
+                        if include_subcontrols:
+                            for ix, attrs in enumerate(control._attrs_list):
+                                sub_id = attrs.get('id')
+                                if sub_id is not None and sub_id in ids:
+                                    found.append(((control, ix), f))
+                    elif (control.id in ids or (
+                        control.type in ('button', 'submit') and
+                        label in str(control.value))):
+                        # the str(control.value) is a hack to get
+                        # string-in-string behavior when the value is a list.
+                        # maybe should be revisited.
+                        found.append((control, f))
+        return found
 
-    def _findControl(self, text, id, name, type=None, form=None):
-        for control_form, control in self._controls:
-            if form is None or control_form == form:
-                if (((id is not None and control.id == id)
-                or (name is not None and control.name == name)
-                or (text is not None and text in str(control.value))
-                ) and (type is None or control.type == type)):
-                    self.mech_browser.form = control_form
-                    return control_form, control
-    
-        return None, None
+    def _findByName(self, name, form=None):
+        found = []
+        for f in self.mech_browser.forms():
+            if form is None or form == f:
+                for control in f.controls:
+                    if control.name==name:
+                        found.append((control, f))
+        return found
+
+    def get(self, label=None, name=None, index=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        intermediate, msg = self._get_all(
+            label, name, include_subcontrols=True)
+        control, form = self._disambiguate(intermediate, msg, index)
+        return controlFactory(control, form, self)
+
+    def _get_all(self, label, name, form=None, include_subcontrols=False):
+        if not ((label is not None) ^ (name is not None)):
+            raise ValueError(
+                "Supply one and only one of 'label' and 'name' arguments")
+        if label is not None:
+            res = self._findByLabel(label, form, include_subcontrols)
+            msg = 'label %r' % label
+        elif name is not None:
+            res = self._findByName(name, form)
+            msg = 'name %r' % name
+        return res, msg
+
+    def _disambiguate(self, intermediate, msg, index):
+        if intermediate:
+            if index is None:
+                if len(intermediate) > 1:
+                    raise interfaces.AmbiguityError(msg)
+                else:
+                    return intermediate[0]
+            else:
+                try:
+                    return intermediate[index]
+                except KeyError:
+                    msg = '%s index %d' % (msg, index)
+        raise LookupError(msg)
         
     def _findForm(self, id, name, action):
         for form in self.mech_browser.forms():
@@ -196,26 +217,50 @@ class Browser(object):
         self.mech_browser.open(form.click(
                     id=control.id, name=control.name, coord=coord))
 
-    __controls = None
+    # I'd like a different solution for the caching.  Later.
+
     @property
-    def _controls(self):
-        if self.__controls is None:
-            self.__controls = []
-            for form in self.mech_browser.forms():
-                for control in form.controls:
-                    self.__controls.append( (form, control) )
-        return self.__controls
+    def _label_tags(self): # [(id, label)]
+        cache = []
+        p = pullparser.PullParser(StringIO.StringIO(self.contents))
+        for token in p.tags('label'):
+            if token.type=='starttag':
+                cache.append((dict(token.attrs).get('for'),
+                             p.get_compressed_text(
+                                endat=("endtag", "label"))))
+        self.__dict__['_label_tags'] = cache
+        return cache
+
+    @property
+    def _label_tags_mapping(self):
+        cache = {}
+        for i, l in self._label_tags:
+            found = cache.get(i)
+            if found is None:
+                found = cache[i] = []
+            found.append(l)
+        self.__dict__['_label_tags_mapping'] = cache
+        return cache
 
     def _changed(self):
-        self.__controls = None
+        try:
+            del self.__dict__['_label_tags']
+            del self.__dict__['_label_tags_mapping'] # this depends on
+            # _label_tags, so combining them in the same block should be fine,
+            # as long as _label_tags is first.
+        except KeyError:
+            pass
+        
 
 
 class Control(object):
     """A control of a form."""
     zope.interface.implements(interfaces.IControl)
 
-    def __init__(self, control):
+    def __init__(self, control, form, browser):
         self.mech_control = control
+        self.mech_form = form
+        self.browser = browser
 
         # for some reason ClientForm thinks we shouldn't be able to modify
         # hidden fields, but while testing it is sometimes very important
@@ -265,6 +310,24 @@ class Control(object):
         return "<%s name=%r type=%r>" % (
             self.__class__.__name__, self.name, self.type)
 
+def _getLabel(attr, mapping):
+    label = None
+    attr_id = attr.get('id')
+    if attr_id is not None:
+        labels = mapping.get(attr_id, ())
+        for label in labels:
+            if label: # get the first one with text
+                break
+    return label
+
+def _isSelected(mech_control, ix):
+    if mech_control.type == 'radio':
+        # we don't have precise ordering, so we have to guess
+        attr = mech_control._attrs_list[ix]
+        return attr.get('value', 'on') == mech_control._selected
+    else:
+        return mech_control._selected[ix]
+
 class ListControl(Control):
     zope.interface.implements(interfaces.IListControl)
 
@@ -276,34 +339,176 @@ class ListControl(Control):
         # attribute error for all others.
 
         def fget(self):
-            return self.mech_control.get_value_by_label()
+            try:
+                return self.mech_control.get_value_by_label()
+            except NotImplementedError:
+                mapping = self.browser._label_tags_mapping
+                res = []
+                for ix in range(len(self.mech_control.possible_items())):
+                    if _isSelected(self.mech_control, ix):
+                        attr = self.mech_control._attrs_list[ix]
+                        res.append(_getLabel(attr, mapping))
+                        if self.mech_control.type == 'radio':
+                            return res
+                            # this is not simply an optimization,
+                            # unfortunately.  We don't have easy access to
+                            # the precise index of the selected radio button,
+                            # but merely the current value.  Therefore, if
+                            # two or more radio buttons of the same name
+                            # have the same value, we can't easily tell which
+                            # is actually checked.  Rather than returning
+                            # all of them, which would arguably be confusing,
+                            # we return the first.
+                return res
+                    
 
         def fset(self, value):
-            self.mech_control.set_value_by_label(value)
+            try:
+                self.mech_control.set_value_by_label(value)
+            except NotImplementedError:
+                mapping = self.browser._label_tags_mapping
+                res = []
+                for v in value:
+                    found = []
+                    for attr in self.mech_control._attrs_list:
+                        attr_value = attr.get('value', 'on')
+                        if attr_value not in found:
+                            attr_id = attr.get('id')
+                            if attr_id is not None:
+                                labels = mapping.get(attr_id, ())
+                                for l in labels:
+                                    if v in l:
+                                        found.append(attr_value)
+                                        break
+                    if not found:
+                        raise LookupError(v)
+                    elif len(found) > 1:
+                        raise interfaces.AmbiguityError(v)
+                    res.extend(found)
+                self.value = res
 
         return property(fget, fset)
 
     @property
     def displayOptions(self):
         """See zope.testbrowser.interfaces.IListControl"""
-        # not implemented for anything other than select;
-        # would be nice if ClientForm implemented for checkbox and radio.
-        # attribute error for all others.
-        return self.mech_control.possible_items(by_label=True)
+        try:
+            return self.mech_control.possible_items(by_label=True)
+        except NotImplementedError:
+            mapping = self.browser._label_tags_mapping
+            res = []
+            for attr in self.mech_control._attrs_list:
+                res.append(_getLabel(attr, mapping))
+            return res
 
     @property
     def options(self):
         """See zope.testbrowser.interfaces.IListControl"""
         if (self.type == 'checkbox'
-        and self.mech_control.possible_items() == ['on']):
+            and self.mech_control.possible_items() == ['on']):
             return [True]
         return self.mech_control.possible_items()
 
-def controlFactory(control):
-    if control.type in ('checkbox', 'select', 'radio'):
-        return ListControl(control)
+    #@property
+    #def subcontrols(self):
+        # XXX
+
+class SubmitControl(Control):
+    zope.interface.implements(interfaces.ISubmitControl)
+
+    def click(self):
+        self.browser._clickSubmit(self.mech_form, self.mech_control, (1,1))
+        self.browser._changed()
+
+class ImageControl(Control):
+    zope.interface.implements(interfaces.IImageSubmitControl)
+
+    def click(self, coord=(1,1)):
+        self.browser._clickSubmit(self.mech_form, self.mech_control, coord)
+        self.browser._changed()
+
+class Subcontrol(object):
+    zope.interface.implements(interfaces.ISubcontrol)
+
+    def __init__(self, control, index, form, browser):
+        self.mech_control = control
+        self.index = index
+        self.mech_form = form
+        self.browser = browser
+
+    @property
+    def control(self):
+        res = controlFactory(self.mech_control, self.mech_form, self.browser)
+        self.__dict__['control'] = res
+        return res
+
+    @property
+    def disabled(self):
+        return bool(self.mech_control._attrs_list[self.index].get('disabled'))
+
+    @apply
+    def value():
+        """See zope.testbrowser.interfaces.IControl"""
+
+        def fget(self):
+            # if a set of radio buttons of the same name have choices
+            # that are the same value, and a radio button is selected for
+            # one of the identical values, radio buttons will always return 
+            # True simply on the basis of whether their value is equal to
+            # the control's current value.  An arguably pathological case.
+            return _isSelected(self.mech_control, self.index)
+
+        def fset(self, value):
+            # if a set of checkboxes of the same name have choices
+            # that are the same value, and a checkbox is selected for
+            # one of the identical values, the first checkbox will be the one
+            # changed in all cases.  An arguably pathological case.
+            if not self.disabled: # TODO is readonly an option?
+                attrs = self.mech_control._attrs_list[self.index]
+                option_value = attrs.get('value', 'on')
+                current = self.mech_control.value
+                if value:
+                    if option_value not in current:
+                        if self.mech_control.multiple:
+                            current.append(option_value)
+                        else:
+                            current = [option_value]
+                        self.mech_control.value = current
+                else:
+                    try:
+                        current.remove(option_value)
+                    except ValueError:
+                        pass
+                    else:
+                        self.mech_control.value = current
+            else:
+                raise AttributeError("control %r, index %d, is disabled" %
+                                     (self.mech_control.name, self.index))
+        return property(fget, fset)
+
+    #def click(self):
+        # XXX
+
+    def __repr__(self):
+        return "<%s name=%r type=%r index=%d>" % (
+            self.__class__.__name__, self.mech_control.name,
+            self.mech_control.type, self.index)
+
+def controlFactory(control, form, browser):
+    if isinstance(control, tuple):
+        # it is a subcontrol
+        control, index = control
+        return Subcontrol(control, index, form, browser)
     else:
-        return Control(control)
+        t = control.type
+        if t in ('checkbox', 'select', 'radio'):
+            return ListControl(control, form, browser)
+        elif t=='submit':
+            return SubmitControl(control, form, browser)
+        elif t=='image':
+            return ImageControl(control, form, browser)
+        else:
+            return Control(control, form, browser)
 
 class FormsMapping(object):
     """All forms on the page of the browser."""
@@ -330,60 +535,23 @@ class FormsMapping(object):
         """See zope.interface.common.mapping.IReadMapping"""
         return self.browser._findForm(key, key, None) is not None
 
+    def values(self):
+        return [Form(self.browser, form) for form in
+                self.browser.mech_browser.forms()]
 
-class ControlsMapping(object):
-    """A mapping of all controls in a form or a page."""
-    zope.interface.implements(interfaces.IControlsMapping)
 
-    def __init__(self, browser, form=None):
-        """Initialize the ControlsMapping
-        
+class Form(object):
+    """HTML Form"""
+    zope.interface.implements(interfaces.IForm)
+
+    def __init__(self, browser, form):
+        """Initialize the Form
+
         browser - a Browser instance
         form - a ClientForm instance
         """
         self.browser = browser
         self.mech_form = form
-
-    def __getitem__(self, key):
-        """See zope.testbrowser.interfaces.IControlsMapping"""
-        form, control = self.browser._findControl(key, key, key,
-                                                  form=self.mech_form)
-        if control is None:
-            raise KeyError(key)
-        return controlFactory(control).value
-
-    def get(self, key, default=None):
-        """See zope.interface.common.mapping.IReadMapping"""
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-    def __contains__(self, item):
-        """See zope.testbrowser.interfaces.IControlsMapping"""
-        try:
-            self[item]
-        except KeyError:
-            return False
-        else:
-            return True
-
-    def __setitem__(self, key, value):
-        """See zope.testbrowser.interfaces.IControlsMapping"""
-        form, control = self.browser._findControl(key, key, key)
-        if control is None:
-            raise KeyError(key)
-        controlFactory(control).value = value
-
-    def update(self, mapping):
-        """See zope.testbrowser.interfaces.IControlsMapping"""
-        for k, v in mapping.items():
-            self[k] = v
-
-
-class Form(ControlsMapping):
-    """HTML Form"""
-    zope.interface.implements(interfaces.IForm)
     
     def __getattr__(self, name):
         # See zope.testbrowser.interfaces.IForm
@@ -398,35 +566,28 @@ class Form(ControlsMapping):
         """See zope.testbrowser.interfaces.IForm"""
         return self.mech_form.attrs.get('id')
 
-    @property
-    def controls(self):
+    def submit(self, label=None, name=None, index=None, coord=(1,1)):
         """See zope.testbrowser.interfaces.IForm"""
-        return ControlsMapping(browser=self.browser, form=self.mech_form)
-
-    def submit(self, text=None, id=None, name=None, coord=(1,1)):
-        """See zope.testbrowser.interfaces.IForm"""
-        form, control = self.browser._findControl(
-            text, id, name, type='submit', form=self.mech_form)
-
-        if control is None:
-            form, control = self.browser._findControl(
-                text, id, name, type='image', form=self.mech_form)
-
-        if control is not None:
+        form = self.mech_form
+        if label is not None or name is not None:
+            intermediate, msg = self.browser._get_all(label, name, form)
+            intermediate = [
+                (control, form) for (control, form) in intermediate if
+                control.type in ('submit', 'image')]
+            control, form = self.browser._disambiguate(
+                intermediate, msg, index)
             self.browser._clickSubmit(form, control, coord)
-            self.browser._changed()
-
-
-    def getControl(self, search=None, text=None, id=None, name=None):
-        """See zope.testbrowser.interfaces.IForm"""
-        if search is not None:
-            if text is not None or id is not None or name is not None:
+        else: # JavaScript sort of submit
+            if index is not None or coord != (1,1):
                 raise ValueError(
-                    'May not pass both search value and any of '
-                    'text, id, or name')
-            text = id = name = search
-        form, control = self.browser._findControl(text, id, name,
-                                                  form=self.mech_form)
-        if control is None:
-            raise ValueError('could not locate control: ' + text)
-        return controlFactory(control)
+                    'May not use index or coord without a control')
+            request = self.mech_form.click()
+            self.browser.mech_browser.open(request)
+        self.browser._changed()
+
+    def get(self, label=None, name=None, index=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        intermediate, msg = self.browser._get_all(
+            label, name, self.mech_form, include_subcontrols=True)
+        control, form = self.browser._disambiguate(intermediate, msg, index)
+        return controlFactory(control, form, self.browser)

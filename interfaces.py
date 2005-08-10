@@ -20,20 +20,8 @@ __docformat__ = "reStructuredText"
 import zope.interface
 import zope.schema
 
-class IControlsMapping(zope.interface.common.mapping.IReadMapping):
-    """A mapping of all controls of a page.
-
-    If there are multiple controls matching the key, the first one is
-    picked. This can often happen when multiple forms are used on one page. In
-    those cases use the ``IFormMapping`` and ``IForm`` interfaces instead. 
-    """
-    
-    def __setitem__(key, value):
-        """Set the value of a control."""
-
-    def update(mapping):
-        """Update several control values at once."""
-
+class AmbiguityError(Exception):
+    pass
 
 class IControl(zope.interface.Interface):
     """A control (input field) of a page."""
@@ -94,6 +82,37 @@ class IListControl(IControl):
         default=None,
         required=True)
 
+class ISubmitControl(IControl):
+
+    def click():
+        "click the submit button"
+
+class IImageSubmitControl(ISubmitControl):
+
+    def click(coord=(1,1,)):
+        "click the submit button with optional coordinates"
+
+class ISubcontrol(zope.interface.Interface):
+    """a radio button or checkbox within a larger multiple-choice control"""
+
+    control = zope.schema.Object(
+        title=u"Control",
+        description=(u"The parent control element."),
+        schema=IControl,
+        required=True)
+        
+    disabled = zope.schema.Bool(
+        title=u"Disabled",
+        description=u"Describes whether a subcontrol is disabled.",
+        default=False,
+        required=False)
+
+    value = zope.schema.Bool(
+        title=u"Value",
+        description=u"Whether the subcontrol is selected",
+        default=None,
+        required=True)
+
 class IFormsMapping(zope.interface.common.mapping.IReadMapping):
     """A mapping of all forms in a page."""
 
@@ -129,22 +148,29 @@ class IForm(zope.interface.Interface):
                     u"if specified.",
         required=True)
 
-    controls = zope.schema.Object(
-        title=u"Controls",
-        description=(u"A mapping of control elements of the form. The key is "
-                     u"actually quiet flexible and searches the text, id, and "
-                     u"name of the control."),
-        schema=IControlsMapping,
-        required=True)
+    def get(label=None, name=None, index=None):
+        """Get a control in the page.
 
-    def getControl(self, text):
-        """Get a control of the form."""
+        Only one of ``label`` and ``name`` may be provided.  ``label``
+        searches form labels (including submit button values, per the HTML 4.0
+        spec), and ``name`` searches form field names.
 
-    def submit(text=None, id=None, name=None, coord=(1,1)):
+        If no values are found, the code raises a LookupError.
+
+        If ``index`` is None (the default) and more than one field matches the
+        search, the code raises an AmbiguityError.  If an index is provided,
+        it is used to choose the index from the ambiguous choices.  If the
+        index does not exist, the code raises a LookupError.
+        """
+
+    def submit(label=None, name=None, index=None, coord=(1,1)):
         """Submit this form.
 
         The `text`, `id`, and `name` arguments select the submit button to use
-        to submit the form.
+        to submit the form.  You may use zero or one of them.
+
+        The control code works identically to 'get' except that searches are
+        filtered to find only submit and image controls.
         """
     
 
@@ -175,14 +201,6 @@ class IBrowser(zope.interface.Interface):
         title=u"Title",
         description=u"Title of the displayed page",
         required=False)
-
-    controls = zope.schema.Object(
-        title=u"Controls",
-        description=(u"A mapping of control elements on the page. The key is "
-                     u"actually quiet flexible and searches the text, id, and "
-                     u"name of the control."),
-        schema=IControlsMapping,
-        required=True)
 
     forms = zope.schema.Object(
         title=u"Forms",
@@ -220,7 +238,10 @@ class IBrowser(zope.interface.Interface):
         """
 
     def reload():
-        """Reload the current page."""
+        """Reload the current page.
+        
+        Like a browser reload, if the past request included a form submission,
+        the form data will be resubmitted."""
 
     def goBack(count=1):
         """Go back in history by a certain amount of visisted pages.
@@ -229,7 +250,7 @@ class IBrowser(zope.interface.Interface):
         default.
         """
 
-    def click(text=None, url=None, id=None, name=None, coord=(1,1)):
+    def click(text=None, url=None, id=None):
         """Click on a link in the page.
 
         This method opens a new URL that is behind the link. The link itself
@@ -243,23 +264,19 @@ class IBrowser(zope.interface.Interface):
             ``href`` attribute of an anchor tag or the action of a form.
 
           o ``id`` -- The id attribute of the anchor tag submit button.
-
-          o ``name`` -- The name attribute of the anchor tag submit button.
-
-          o ``coord`` -- This is a 2-tuple that describes the coordinates of
-            the mouse cursor on an image map when the mouse button is clicked.
         """
 
-    def getControl(text, type=None, form=None):
+    def get(label=None, name=None, index=None):
         """Get a control in the page.
 
-        This method returns a control object for a particular input field in
-        the page. By default all forms are searched and the first successful
-        hit is returned.
+        Only one of ``label`` and ``name`` may be provided.  ``label``
+        searches form labels (including submit button values, per the HTML 4.0
+        spec), and ``name`` searches form field names.
 
-        When the ``type`` is specified, only input fields of that type will be
-        searched.
+        If no values are found, the code raises a LookupError.
 
-        The ``form`` specifies a specific form on the page that is searched
-        for a control. The argument must be a form of the ``forms`` mapping.
+        If ``index`` is None (the default) and more than one field matches the
+        search, the code raises an AmbiguityError.  If an index is provided,
+        it is used to choose the index from the ambiguous choices.  If the
+        index does not exist, the code raises a LookupError.
         """
