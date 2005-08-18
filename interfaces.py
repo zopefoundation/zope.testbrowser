@@ -20,8 +20,8 @@ __docformat__ = "reStructuredText"
 import zope.interface
 import zope.schema
 
-class AmbiguityError(Exception):
-    pass
+class ExpiredError(Exception):
+    """The browser page to which this was attached is no longer active"""
 
 class IControl(zope.interface.Interface):
     """A control (input field) of a page."""
@@ -82,6 +82,17 @@ class IListControl(IControl):
         default=None,
         required=True)
 
+    def getControl(label=None, value=None, index=None):
+        """return subcontrol for given label or value, disambiguated by index
+        if given.  Label value is searched as case-sensitive whole words within
+        the labels for each item--that is, a search for 'Add' will match
+        'Add a contact' but not 'Address'.  A word is defined as one or more
+        alphanumeric characters or the underline."""
+
+    controls = zope.interface.Attribute(
+        """a list of subcontrols for the control.  mutating list has no effect
+        on control (although subcontrols may be changed as usual).""")
+
 class ISubmitControl(IControl):
 
     def click():
@@ -92,7 +103,7 @@ class IImageSubmitControl(ISubmitControl):
     def click(coord=(1,1,)):
         "click the submit button with optional coordinates"
 
-class ISubcontrol(zope.interface.Interface):
+class IItemControl(zope.interface.Interface):
     """a radio button or checkbox within a larger multiple-choice control"""
 
     control = zope.schema.Object(
@@ -107,15 +118,45 @@ class ISubcontrol(zope.interface.Interface):
         default=False,
         required=False)
 
-    value = zope.schema.Bool(
-        title=u"Value",
+    selected = zope.schema.Bool(
+        title=u"Selected",
         description=u"Whether the subcontrol is selected",
         default=None,
         required=True)
 
+    optionValue = zope.schema.TextLine(
+        title=u"Value",
+        description=u"The value of the subcontrol",
+        default=None,
+        required=False)
+
+class ILink(zope.interface.Interface):
+
+    def click():
+        """click the link, going to the URL referenced"""
+
+    url = zope.schema.TextLine(
+        title=u"URL",
+        description=u"The normalized URL of the link",
+        required=False)
+
+    attrs = zope.schema.Dict(
+        title=u'Attributes',
+        description=u'The attributes of the link tag',
+        required=False)
+
+    text = zope.schema.TextLine(
+        title=u'Text',
+        description=u'The contained text of the link',
+        required=False)
+
+    tag = zope.schema.TextLine(
+        title=u'Tag',
+        description=u'The tag name of the link (a or area, typically)',
+        required=True)
+
 class IFormsMapping(zope.interface.common.mapping.IReadMapping):
     """A mapping of all forms in a page."""
-
 
 class IForm(zope.interface.Interface):
     """An HTML form of the page."""
@@ -148,12 +189,17 @@ class IForm(zope.interface.Interface):
                     u"if specified.",
         required=True)
 
-    def get(label=None, name=None, index=None):
+    def getControl(label=None, name=None, index=None):
         """Get a control in the page.
 
         Only one of ``label`` and ``name`` may be provided.  ``label``
         searches form labels (including submit button values, per the HTML 4.0
         spec), and ``name`` searches form field names.
+
+        Label value is searched as case-sensitive whole words within
+        the labels for each control--that is, a search for 'Add' will match
+        'Add a contact' but not 'Address'.  A word is defined as one or more
+        alphanumeric characters or the underline.
 
         If no values are found, the code raises a LookupError.
 
@@ -166,8 +212,14 @@ class IForm(zope.interface.Interface):
     def submit(label=None, name=None, index=None, coord=(1,1)):
         """Submit this form.
 
-        The `text`, `id`, and `name` arguments select the submit button to use
-        to submit the form.  You may use zero or one of them.
+        The `label`, `name`, and `index` arguments select the submit button to
+        use to submit the form.  You may label or name, with index to
+        disambiguate.  
+
+        Label value is searched as case-sensitive whole words within
+        the labels for each control--that is, a search for 'Add' will match
+        'Add a contact' but not 'Address'.  A word is defined as one or more
+        alphanumeric characters or the underline.
 
         The control code works identically to 'get' except that searches are
         filtered to find only submit and image controls.
@@ -250,11 +302,11 @@ class IBrowser(zope.interface.Interface):
         default.
         """
 
-    def click(text=None, url=None, id=None):
-        """Click on a link in the page.
+    def getLink(text=None, url=None, id=None):
+        """Return an ILink from the page.
 
-        This method opens a new URL that is behind the link. The link itself
-        is described by the arguments of the method:
+        The link is found by the arguments of the method.  One or more may be
+        used together.
 
           o ``text`` -- A regular expression trying to match the link's text,
             in other words everything between <a> and </a> or the value of the
@@ -266,12 +318,17 @@ class IBrowser(zope.interface.Interface):
           o ``id`` -- The id attribute of the anchor tag submit button.
         """
 
-    def get(label=None, name=None, index=None):
+    def getControl(label=None, name=None, index=None):
         """Get a control in the page.
 
         Only one of ``label`` and ``name`` may be provided.  ``label``
         searches form labels (including submit button values, per the HTML 4.0
         spec), and ``name`` searches form field names.
+
+        Label value is searched as case-sensitive whole words within
+        the labels for each control--that is, a search for 'Add' will match
+        'Add a contact' but not 'Address'.  A word is defined as one or more
+        alphanumeric characters or the underline.
 
         If no values are found, the code raises a LookupError.
 

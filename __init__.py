@@ -16,4 +16,17 @@
 
 $Id$
 """
+
+# TODO this should be removed once John J. Lee releases the new version of
+# ClientForm that has the code we rely on here.  At that point we should also
+# remove ClientForm.py from this directory.
+import sys
+from zope.testbrowser import ClientForm
+
+if 'ClientForm' not in sys.modules:
+    sys.modules['ClientForm'] = ClientForm
+else:
+    assert sys.modules['ClientForm'] is ClientForm
+# end TODO
+
 from testing import Browser
