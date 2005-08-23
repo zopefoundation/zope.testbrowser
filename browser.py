@@ -16,15 +16,15 @@
 $Id$
 """
 __docformat__ = "reStructuredText"
+from zope.testbrowser import interfaces
+import ClientForm
+import mechanize
+import operator
+import pullparser
 import re
 import StringIO
 import urllib2
-import mechanize
-import pullparser
-import ClientForm
 import zope.interface
-
-from zope.testbrowser import interfaces
 
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
@@ -43,6 +43,33 @@ def disambiguate(intermediate, msg, index):
             except KeyError:
                 msg = '%s index %d' % (msg, index)
     raise LookupError(msg)
+
+def controlFactory(control, form, browser):
+    if isinstance(control, ClientForm.Item):
+        # it is a subcontrol
+        return ItemControl(control, form, browser)
+    else:
+        t = control.type
+        if t in ('checkbox', 'select', 'radio'):
+            return ListControl(control, form, browser)
+        elif t in ('submit', 'submitbutton'):
+            return SubmitControl(control, form, browser)
+        elif t=='image':
+            return ImageControl(control, form, browser)
+        else:
+            return Control(control, form, browser)
+
+def onlyOne(items, description):
+    total = sum([bool(i) for i in items])
+    if total == 0 or total > 1:
+        raise ValueError(
+            "Supply one and only one of %s as arguments" % description)
+
+def zeroOrOne(items, description):
+    if sum([bool(i) for i in items]) > 1:
+        raise ValueError(
+            "Supply no more than one of %s as arguments" % description)
+
 
 class Browser(object):
     """A web user agent."""
@@ -70,11 +97,6 @@ class Browser(object):
     def title(self):
         """See zope.testbrowser.interfaces.IBrowser"""
         return self.mech_browser.title()
-
-    @property
-    def forms(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return FormsMapping(self)
 
     @property
     def contents(self):
@@ -193,9 +215,8 @@ class Browser(object):
         return controlFactory(control, form, self)
 
     def _get_all_controls(self, label, name, forms, include_subcontrols=False):
-        if not ((label is not None) ^ (name is not None)):
-            raise ValueError(
-                "Supply one and only one of 'label' and 'name' arguments")
+        onlyOne([label, name], '"label" and "name"')
+
         if label is not None:
             res = self._findByLabel(label, forms, include_subcontrols)
             msg = 'label %r' % label
@@ -204,15 +225,20 @@ class Browser(object):
             msg = 'name %r' % name
         return res, msg
         
-    def _findForm(self, id, name, action):
+    def getForm(self, id=None, name=None, action=None, index=None):
+        zeroOrOne([id, name, action], '"id", "name", and "action"')
+
+        matching_forms = []
         for form in self.mech_browser.forms():
             if ((id is not None and form.attrs.get('id') == id)
             or (name is not None and form.name == name)
-            or (action is not None and re.search(action, str(form.action)))):
-                self.mech_browser.form = form
-                return form
+            or (action is not None and re.search(action, str(form.action)))
+            or id == name == action == None):
+                matching_forms.append(form)
 
-        return None
+        form = disambiguate(matching_forms, '', index)
+        self.mech_browser.form = form
+        return Form(self, form)
         
     def _clickSubmit(self, form, control, coord):
         self.mech_browser.open(form.click(
@@ -220,6 +246,7 @@ class Browser(object):
 
     def _changed(self):
         self._counter += 1
+
 
 class Link(object):
     zope.interface.implements(interfaces.ILink)
@@ -254,6 +281,7 @@ class Link(object):
     def __repr__(self):
         return "<%s text=%r url=%r>" % (
             self.__class__.__name__, self.text, self.url)
+
 
 class Control(object):
     """A control of a form."""
@@ -317,6 +345,7 @@ class Control(object):
         return "<%s name=%r type=%r>" % (
             self.__class__.__name__, self.name, self.type)
 
+
 class ListControl(Control):
     zope.interface.implements(interfaces.IListControl)
 
@@ -372,9 +401,9 @@ class ListControl(Control):
     def getControl(self, label=None, value=None, index=None):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        if not ((label is not None) ^ (value is not None)):
-            raise ValueError(
-                "Supply one and only one of 'label' and 'value' arguments")
+
+        onlyOne([label, value], '"label" and "value"')
+
         if label is not None:
             options = self.mech_control.items_from_label(label)
             msg = 'label %r' % label
@@ -386,6 +415,7 @@ class ListControl(Control):
         res.__dict__['control'] = self
         return res
 
+
 class SubmitControl(Control):
     zope.interface.implements(interfaces.ISubmitControl)
 
@@ -395,6 +425,7 @@ class SubmitControl(Control):
         self.browser._clickSubmit(self.mech_form, self.mech_control, (1,1))
         self.browser._changed()
 
+
 class ImageControl(Control):
     zope.interface.implements(interfaces.IImageSubmitControl)
 
@@ -403,6 +434,7 @@ class ImageControl(Control):
             raise interfaces.ExpiredError
         self.browser._clickSubmit(self.mech_form, self.mech_control, coord)
         self.browser._changed()
+
 
 class ItemControl(object):
     zope.interface.implements(interfaces.IItemControl)
@@ -453,57 +485,6 @@ class ItemControl(object):
         return "<%s name=%r type=%r optionValue=%r>" % (
             self.__class__.__name__, self.mech_item.control.name,
             self.mech_item.control.type, self.optionValue)
-
-def controlFactory(control, form, browser):
-    if isinstance(control, ClientForm.Item):
-        # it is a subcontrol
-        return ItemControl(control, form, browser)
-    else:
-        t = control.type
-        if t in ('checkbox', 'select', 'radio'):
-            return ListControl(control, form, browser)
-        elif t in ('submit', 'submitbutton'):
-            return SubmitControl(control, form, browser)
-        elif t=='image':
-            return ImageControl(control, form, browser)
-        else:
-            return Control(control, form, browser)
-
-class FormsMapping(object):
-    """All forms on the page of the browser."""
-    zope.interface.implements(interfaces.IFormsMapping)
-    
-    def __init__(self, browser):
-        self.browser = browser
-        self._browser_counter = self.browser._counter
-
-    def __getitem__(self, key):
-        """See zope.interface.common.mapping.IItemMapping"""
-        if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
-        form = self.browser._findForm(key, key, None)
-        if form is None:
-            raise KeyError(key)
-        return Form(self.browser, form)
-
-    def get(self, key, default=None):
-        """See zope.interface.common.mapping.IReadMapping"""
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-    def __contains__(self, key):
-        """See zope.interface.common.mapping.IReadMapping"""
-        if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
-        return self.browser._findForm(key, key, None) is not None
-
-    def values(self):
-        if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
-        return [Form(self.browser, form) for form in
-                self.browser.mech_browser.forms()]
 
 
 class Form(object):

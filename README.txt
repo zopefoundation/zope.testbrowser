@@ -336,11 +336,11 @@ them.
     >>> browser.getControl(label='Ambiguous Control', name='ambiguous-control-name')
     Traceback (most recent call last):
     ...
-    ValueError: Supply one and only one of 'label' and 'name' arguments
+    ValueError: Supply one and only one of "label" and "name" as arguments
     >>> browser.getControl()
     Traceback (most recent call last):
     ...
-    ValueError: Supply one and only one of 'label' and 'name' arguments
+    ValueError: Supply one and only one of "label" and "name" as arguments
 
 Radio and checkbox fields are unusual in that their labels and names may point
 to different objects: names point to logical collections of radio buttons or
@@ -869,7 +869,7 @@ be used to do so.  The key value is the form's name or id.  If more than one
 form has the same name or id, the first one will be returned.
 
     >>> browser.open('http://localhost/@@/testbrowser/forms.html')
-    >>> form = browser.forms['one']
+    >>> form = browser.getForm(name='one')
 
 The form exposes several attributes related to forms:
 
@@ -932,54 +932,36 @@ the `forms.html` template, we have four forms all having a text control named
     AmbiguityError: label 'Text Control'
 
 I'll always get an ambiguous form field.  I can use the index argument, or
-with the `forms` mapping I can disambiguate by searching only within a given
+with the `getForm` method I can disambiguate by searching only within a given
 form:
 
-    >>> form = browser.forms['2']
+    >>> form = browser.getForm('2')
     >>> form.getControl(name='text-value').value
     'Second Text'
     >>> form.submit('Submit')
     >>> browser.contents
     '...<em>Second Text</em>...'
-    >>> form = browser.forms['2']
+    >>> form = browser.getForm('2')
     >>> form.getControl('Submit').click()
     >>> browser.contents
     '...<em>Second Text</em>...'
-    >>> browser.forms['3'].getControl('Text Control').value
+    >>> browser.getForm('3').getControl('Text Control').value
     'Third Text'
 
-The `forms` mapping also supports the check for containment
-
-    >>> 'three' in browser.forms
-    True
-
-and retrieval with optional default value:
-
-    >>> browser.forms.get('2')
-    <zope.testbrowser.browser.Form object at ...>
-    >>> browser.forms.get('invalid', 42)
-    42
-
 The last form on the page does not have a name, an id, or a submit button.
-Working with it is still easy, thanks to a values attribute that guarantees
+Working with it is still easy, thanks to a index attribute that guarantees
 order.  (Forms without submit buttons are sometimes useful for JavaScript.)
 
-    >>> form = browser.forms.values()[3]
+    >>> form = browser.getForm(index=3)
     >>> form.submit()
     >>> browser.contents
     '...<em>Fourth Text</em>...<em>Submitted without the submit button.</em>...'
 
-Other mapping attributes for the forms collection remain unimplemented.
-If useful, contributors implementing these would be welcome.
+If a form is requested that does not exists, an exception will be raised.
 
-    >>> browser.forms.items()
+    >>> form = browser.getForm('does-not-exist')
     Traceback (most recent call last):
-    ...
-    AttributeError: 'FormsMapping' object has no attribute 'items'
-    >>> browser.forms.keys()
-    Traceback (most recent call last):
-    ...
-    AttributeError: 'FormsMapping' object has no attribute 'keys'
+    LookupError
 
 Handling Errors
 ---------------
