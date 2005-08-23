@@ -124,9 +124,9 @@ Or as a mapping:
 Navigation and Link Objects
 ---------------------------
 
-If you want to simulate clicking on a link, get the link and `click` on it. 
+If you want to simulate clicking on a link, get the link and `click` on it.
 In the `navigate.html` file there are several links set up to demonstrate the
-capabilities of the link objects and their `click` method. 
+capabilities of the link objects and their `click` method.
 
 The simplest way to get a link is via the anchor text.  In other words
 the text you would see in a browser (text and url searches are substring
@@ -152,6 +152,22 @@ searches):
     >>> browser.contents
     '...Message: <em>By Link Text</em>...'
 
+When finding a link by its text, whitespace is normalized.
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.contents
+    '...> Link Text \n    with     Whitespace\tNormalization (and parens) </a>...'
+    >>> link = browser.getLink('Link Text with Whitespace Normalization (and parens)')
+    >>> link
+    <Link text='Link Text with Whitespace Normalization (and parens)'...>
+    >>> link.text
+    'Link Text with Whitespace Normalization (and parens)'
+    >>> link.click()
+    >>> browser.url
+    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text+with+Normalization'
+    >>> browser.contents
+    '...Message: <em>By Link Text with Normalization</em>...'
+
 Note that clicking a link object after its browser page has expired will
 geterate an error.
 
@@ -176,7 +192,7 @@ or its id:
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
-    '...<a href="navigate.html?message=By+Id" 
+    '...<a href="navigate.html?message=By+Id"
     id="anchorid">By Anchor Id</a>...'
 
     >>> browser.getLink(id='anchorid').click()
@@ -257,7 +273,7 @@ If you request a control that doesn't exist, the code raises a LookupError:
     ...
     LookupError: label 'Does Not Exist'
 
-If you request a control with an ambiguous lookup, the code raises an 
+If you request a control with an ambiguous lookup, the code raises an
 AmbiguityError.
 
     >>> browser.getControl('Ambiguous Control')
@@ -266,7 +282,7 @@ AmbiguityError.
     AmbiguityError: label 'Ambiguous Control'
 
 Ambiguous controls may be specified using an index value.  We use the control's
-value attribute to show the two controls; this attribute is properly introduced 
+value attribute to show the two controls; this attribute is properly introduced
 below.
 
     >>> browser.getControl('Ambiguous Control', index=0)
@@ -450,7 +466,7 @@ These fields have four other attributes and an additional method:
      <ItemControl name='multi-select-value' type='select' optionValue='3'>]
 
   - The get method lets you get subcontrols by their label or their value.
- 
+
     >>> ctrl.getControl('Un')
     <ItemControl name='multi-select-value' type='select' optionValue='1'>
     >>> ctrl.getControl('Deux')
@@ -504,7 +520,7 @@ Controls with subcontrols--
 Various Controls
 ~~~~~~~~~~~~~~~~
 
-The various types of controls are demonstrated here. 
+The various types of controls are demonstrated here.
 
   - Text Control
 
@@ -541,7 +557,7 @@ The various types of controls are demonstrated here.
     False
     >>> ctrl.multiple
     False
-    
+
   - Text Area Control
 
     >>> ctrl = browser.getControl('Text Area Control')
@@ -819,7 +835,7 @@ you will get an error.
     Traceback (most recent call last):
     ...
     ExpiredError
-    
+
 All the above also holds true for the image control:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
@@ -865,7 +881,7 @@ Forms
 
 Because pages can have multiple forms with like-named controls, it is sometimes
 neccesary to access forms by name or id.  The browser's `forms` attribute can
-be used to do so.  The key value is the form's name or id.  If more than one 
+be used to do so.  The key value is the form's name or id.  If more than one
 form has the same name or id, the first one will be returned.
 
     >>> browser.open('http://localhost/@@/testbrowser/forms.html')
@@ -882,7 +898,7 @@ The form exposes several attributes related to forms:
 
     >>> form.id
     '1'
-    
+
   - The action (target URL) when the form is submitted:
 
     >>> form.action
@@ -983,7 +999,7 @@ original exception caused by the application.  In those cases you can set the
     >>> browser.handleErrors
     True
 
-So when we tell the publisher not to handle the errors,    
+So when we tell the publisher not to handle the errors,
 
     >>> browser.handleErrors = False
 
@@ -992,5 +1008,5 @@ we get a different, Zope internal error:
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.app.folder.folder.Folder object at ...>, 
+    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
               name: u'invalid'
