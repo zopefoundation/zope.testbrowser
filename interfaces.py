@@ -155,8 +155,6 @@ class ILink(zope.interface.Interface):
         description=u'The tag name of the link (a or area, typically)',
         required=True)
 
-class IFormsMapping(zope.interface.common.mapping.IReadMapping):
-    """A mapping of all forms in a page."""
 
 class IForm(zope.interface.Interface):
     """An HTML form of the page."""
@@ -254,14 +252,6 @@ class IBrowser(zope.interface.Interface):
         description=u"Title of the displayed page",
         required=False)
 
-    forms = zope.schema.Object(
-        title=u"Forms",
-        description=(u"A mapping of form elements on the page. The key is "
-                     u"actually quiet flexible and searches the id and name "
-                     u"of the form element."),
-        schema=IFormsMapping,
-        required=True)
-
     handleErrors = zope.schema.Bool(
         title=u"Handle Errors",
         description=(u"Describes whether server-side errors will be handled "
@@ -319,7 +309,7 @@ class IBrowser(zope.interface.Interface):
         """
 
     def getControl(label=None, name=None, index=None):
-        """Get a control in the page.
+        """Get a control from the page.
 
         Only one of ``label`` and ``name`` may be provided.  ``label``
         searches form labels (including submit button values, per the HTML 4.0
@@ -333,6 +323,21 @@ class IBrowser(zope.interface.Interface):
         If no values are found, the code raises a LookupError.
 
         If ``index`` is None (the default) and more than one field matches the
+        search, the code raises an AmbiguityError.  If an index is provided,
+        it is used to choose the index from the ambiguous choices.  If the
+        index does not exist, the code raises a LookupError.
+        """
+
+    def getForm(id=None, name=None, action=None, index=None):
+        """Get a form from the page.
+
+        Zero or one of ``id``, ``name``, and ``action`` may be provided.  If
+        none are provided the index alone is used to determine the return
+        value.
+
+        If no values are found, the code raises a LookupError.
+
+        If ``index`` is None (the default) and more than one form matches the
         search, the code raises an AmbiguityError.  If an index is provided,
         it is used to choose the index from the ambiguous choices.  If the
         index does not exist, the code raises a LookupError.

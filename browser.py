@@ -59,6 +59,9 @@ def controlFactory(control, form, browser):
         else:
             return Control(control, form, browser)
 
+def any(items):
+    return bool(sum([bool(i) for i in items]))
+
 def onlyOne(items, description):
     total = sum([bool(i) for i in items])
     if total == 0 or total > 1:
@@ -71,7 +74,19 @@ def zeroOrOne(items, description):
             "Supply no more than one of %s as arguments" % description)
 
 
-class Browser(object):
+class SetattrErrorsMixin(object):
+    _enable_setattr_errors = False
+
+    def __setattr__(self, name, value):
+        if self._enable_setattr_errors:
+            # cause an attribute error if the attribute doesn't already exist
+            getattr(self, name)
+
+        # set the value
+        object.__setattr__(self, name, value)
+
+
+class Browser(SetattrErrorsMixin):
     """A web user agent."""
     zope.interface.implements(interfaces.IBrowser)
 
@@ -82,6 +97,7 @@ class Browser(object):
         self._counter = 0
         if url is not None:
             self.open(url)
+        self._enable_setattr_errors = True
 
     @property
     def url(self):
@@ -227,6 +243,9 @@ class Browser(object):
         
     def getForm(self, id=None, name=None, action=None, index=None):
         zeroOrOne([id, name, action], '"id", "name", and "action"')
+        if index is None and not any([id, name, action]):
+            raise ValueError(
+                'if no other arguments are given, index is required.')
 
         matching_forms = []
         for form in self.mech_browser.forms():
@@ -248,13 +267,14 @@ class Browser(object):
         self._counter += 1
 
 
-class Link(object):
+class Link(SetattrErrorsMixin):
     zope.interface.implements(interfaces.ILink)
 
     def __init__(self, link, browser):
         self.mech_link = link
         self.browser = browser
         self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
 
     def click(self):
         if self._browser_counter != self.browser._counter:
@@ -283,15 +303,18 @@ class Link(object):
             self.__class__.__name__, self.text, self.url)
 
 
-class Control(object):
+class Control(SetattrErrorsMixin):
     """A control of a form."""
     zope.interface.implements(interfaces.IControl)
+
+    _enable_setattr_errors = False
 
     def __init__(self, control, form, browser):
         self.mech_control = control
         self.mech_form = form
         self.browser = browser
         self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
 
         # for some reason ClientForm thinks we shouldn't be able to modify
         # hidden fields, but while testing it is sometimes very important
@@ -436,7 +459,7 @@ class ImageControl(Control):
         self.browser._changed()
 
 
-class ItemControl(object):
+class ItemControl(SetattrErrorsMixin):
     zope.interface.implements(interfaces.IItemControl)
 
     def __init__(self, item, form, browser):
@@ -444,6 +467,7 @@ class ItemControl(object):
         self.mech_form = form
         self.browser = browser
         self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
 
     @property
     def control(self):
@@ -487,7 +511,7 @@ class ItemControl(object):
             self.mech_item.control.type, self.optionValue)
 
 
-class Form(object):
+class Form(SetattrErrorsMixin):
     """HTML Form"""
     zope.interface.implements(interfaces.IForm)
 
@@ -500,14 +524,23 @@ class Form(object):
         self.browser = browser
         self.mech_form = form
         self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
     
-    def __getattr__(self, name):
-        # See zope.testbrowser.interfaces.IForm
-        names = ['action', 'method', 'enctype', 'name']
-        if name in names:
-            return getattr(self.mech_form, name, None)
-        else:
-            raise AttributeError(name)
+    @property
+    def action(self):
+        return self.mech_form.action
+
+    @property
+    def method(self):
+        return self.mech_form.method
+
+    @property
+    def enctype(self):
+        return self.mech_form.enctype
+
+    @property
+    def name(self):
+        return self.mech_form.name
 
     @property
     def id(self):

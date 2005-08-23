@@ -25,6 +25,13 @@ Once you have opened a web page initially, best practice for writing
 testbrowser doctests suggests using 'click' to navigate further (as discussed
 below), except in unusual circumstances.
 
+The test browser complies with the IBrowser interface.
+
+    >>> from zope.testbrowser import interfaces
+    >>> from zope.interface.verify import verifyObject
+    >>> verifyObject(interfaces.IBrowser, browser)
+    True
+
 Page Contents
 -------------
 
@@ -138,6 +145,14 @@ searches):
     >>> link = browser.getLink('Link Text')
     >>> link
     <Link text='Link Text' url='http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'>
+
+Link objects comply with the ILink interface.
+
+    >>> verifyObject(interfaces.ILink, link)
+    True
+
+Links expose several attributes for easy access.
+
     >>> link.text
     'Link Text'
     >>> link.tag # links can also be image maps.
@@ -146,6 +161,9 @@ searches):
     'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
     >>> link.attrs
     {'href': 'navigate.html?message=By+Link+Text'}
+
+Links can be "clicked" and the brower will navigate to the refrenced URL.
+
     >>> link.click()
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
@@ -261,7 +279,8 @@ You look up browser controls with the 'getControl' method.  The default first
 argument is 'label', and looks up the form on the basis of any associated
 label.
 
-    >>> browser.getControl('Text Control')
+    >>> control = browser.getControl('Text Control')
+    >>> control
     <Control name='text-value' type='text'>
     >>> browser.getControl(label='Text Control') # equivalent
     <Control name='text-value' type='text'>
@@ -384,8 +403,6 @@ Controls provide IControl.
     >>> ctrl = browser.getControl('Text Control')
     >>> ctrl
     <Control name='text-value' type='text'>
-    >>> from zope.interface.verify import verifyObject
-    >>> from zope.testbrowser import interfaces
     >>> verifyObject(interfaces.IControl, ctrl)
     True
 
@@ -887,6 +904,11 @@ form has the same name or id, the first one will be returned.
     >>> browser.open('http://localhost/@@/testbrowser/forms.html')
     >>> form = browser.getForm(name='one')
 
+Form instances conform to the IForm interface.
+
+    >>> verifyObject(interfaces.IForm, form)
+    True
+
 The form exposes several attributes related to forms:
 
   - The name of the form:
@@ -1010,3 +1032,29 @@ we get a different, Zope internal error:
     ...
     NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
               name: u'invalid'
+
+Hand-Holding
+------------
+
+Instances of the various objects ensure that users don't accidentally set
+instance attributes accidentally.
+
+    >>> browser.nonexistant = None
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Browser' object has no attribute 'nonexistant'
+
+    >>> form.nonexistant = None
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Form' object has no attribute 'nonexistant'
+
+    >>> control.nonexistant = None
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Control' object has no attribute 'nonexistant'
+
+    >>> link.nonexistant = None
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Link' object has no attribute 'nonexistant'
