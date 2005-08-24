@@ -184,29 +184,16 @@ string.
                         l.append(k + '=' + urllib.quote_plus(str(elt)))
     return string.join(l, '&')
 
-# Grabbed from 2.4 xml.sax.saxutils, and modified
-def __dict_replace(s, d):
-    """Replace substrings of a string using a dictionary."""
-    for key, value in d.items():
-        s = string.replace(s, key, value)
-    return s
 def unescape(data, entities):
-    if data is None:
-        return None
-    do_amp = False
-    if entities:
-        # must do ampersand last
-        ents = entities.copy()
-        try:
-            del ents["&amp;"]
-        except KeyError:
-            pass
-        else:
-            do_amp = True
-        data = __dict_replace(data, ents)
-    if do_amp:
-        data = string.replace(data, "&amp;", "&")
-    return data
+    if data is None or '&' not in data:
+        return data
+
+    def replace_entities(match):
+        ent = match.group()
+        repl = entities.get(ent, ent)
+        return repl
+
+    return re.sub(r'&\S+;', replace_entities, data)
 
 def startswith(string, initial):
     if len(initial) > len(string): return False
