@@ -17,16 +17,26 @@
 $Id$
 """
 
-# TODO this should be removed once John J. Lee releases the new version of
-# ClientForm that has the code we rely on here.  At that point we should also
-# remove ClientForm.py from this directory.
+# TODO this should be removed once John J. Lee releases the new versions of
+# ClientForm and pullparser that have the code we rely on here.  At that point 
+# we should also remove ClientForm.py from this directory.
 import sys
+
+# stitch in ClientForm
 from zope.testbrowser import ClientForm
 
 if 'ClientForm' not in sys.modules:
     sys.modules['ClientForm'] = ClientForm
 else:
     assert sys.modules['ClientForm'] is ClientForm
+
+# stitch in pullparser
+from zope.testbrowser import pullparser
+
+if 'pullparser' not in sys.modules:
+    sys.modules['pullparser'] = pullparser
+else:
+    assert sys.modules['pullparser'] is pullparser
 # end TODO
 
 from testing import Browser
