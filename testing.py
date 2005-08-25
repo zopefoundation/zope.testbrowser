@@ -64,7 +64,6 @@ class PublisherConnection(object):
         # ``HTTPCaller`` wants. 
         request_string = (method + ' ' + url + ' HTTP/1.1\n'
                           + headers + '\n' + body)
-
         self.response = self.caller(request_string, handle_errors)
 
     def getresponse(self):
