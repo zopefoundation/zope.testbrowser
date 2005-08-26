@@ -178,15 +178,16 @@ class Browser(UserAgent):
         if kwds:
             return self._find_links(False, **kwds)
         if self._links is None:
-            self.build_links()
+            self._links = list(self.get_links_iter())
         return self._links
 
-    def build_links(self):
+    def get_links_iter(self):
+        """Return an iterator that provides links of the document."""
         base = self._response.geturl()
         self._response.seek(0)
         p = pullparser.PullParser(
             self._response, encoding=self._encoding(self._response))
-        self._links = []
+
         for token in p.tags(*(self.urltags.keys()+["base"])):
             if token.data == "base":
                 base = dict(token.attrs).get("href")
@@ -217,9 +218,7 @@ class Browser(UserAgent):
                 # this.
                 continue
 
-            link = Link(base, url, text, tag, token.attrs)
-            self._links.append(link)
-        self._response.seek(0)
+            yield Link(base, url, text, tag, token.attrs)
 
 
     def forms(self):
@@ -442,13 +441,19 @@ class Browser(UserAgent):
         if not self.viewing_html():
             raise BrowserStateError("not viewing HTML")
 
-        links = []
+        found_links = []
         orig_nr = nr
 
-        if self._links is None:
-            self.build_links()
+        # An optimization, so that if we look for a single link we do not have
+        # to necessarily parse the entire file.
+        if self._links is None and single:
+            all_links = self.get_links_iter()
+        else:
+            if self._links is None:
+                self._links = list(self.get_links_iter())
+            all_links = self._links
 
-        for link in self._links:
+        for link in all_links:
             if url is not None and url != link.url:
                 continue
             if url_regex is not None and not url_regex.search(link.url):
@@ -477,9 +482,9 @@ class Browser(UserAgent):
             else:
                 links.append(link)
                 nr = orig_nr
-        if not links:
+        if not found_links:
             raise LinkNotFoundError()
-        return links
+        return found_links
 
     def _encoding(self, response):
         # HTTPEquivProcessor may be in use, so both HTTP and HTTP-EQUIV
