@@ -94,6 +94,7 @@ class Browser(SetattrErrorsMixin):
         if mech_browser is None:
             mech_browser = mechanize.Browser()
         self.mech_browser = mech_browser
+        self._contents = None
         self._counter = 0
         if url is not None:
             self.open(url)
@@ -117,14 +118,16 @@ class Browser(SetattrErrorsMixin):
     @property
     def contents(self):
         """See zope.testbrowser.interfaces.IBrowser"""
+        if self._contents is not None:
+            return self._contents
         response = self.mech_browser.response()
         old_location = response.tell()
         response.seek(0)
         for line in iter(lambda: response.readline().strip(), ''):
             pass
-        contents = response.read()
+        self._contents = response.read()
         response.seek(old_location)
-        return contents
+        return self._contents
 
     @property
     def headers(self):
@@ -148,7 +151,7 @@ class Browser(SetattrErrorsMixin):
             if header_key in dict(headers):
                 headers.remove((header_key, current_value))
             headers.append((header_key, value))
-            
+
         return property(get, set)
 
     def open(self, url, data=None):
@@ -265,6 +268,7 @@ class Browser(SetattrErrorsMixin):
 
     def _changed(self):
         self._counter += 1
+        self._contents = None
 
 
 class Link(SetattrErrorsMixin):
