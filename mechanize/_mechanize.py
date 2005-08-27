@@ -159,6 +159,8 @@ class Browser(UserAgent):
         n: go back this number of steps (default 1 step)
 
         """
+        n = int(n) + 1 # we need to first get rid of the current page's history
+        assert n > 1
         while n:
             try:
                 self.request, self._response = self._history.pop()
