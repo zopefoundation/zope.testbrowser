@@ -73,12 +73,19 @@ class PublisherConnection(object):
         a ``urllib2`` compatible response, which is also understood by
         mechanize.
         """
-        headers = self.response.header_output.headersl
         real_response = self.response._response
         status = real_response.getStatus()
         reason = real_response._reason # XXX add a getReason method
-        output = (real_response.getHeaderText(real_response.getHeaders()) +
-                  self.response.getBody())
+
+        headers = real_response.getHeaders()
+        headers.sort()
+        output = (
+            "Status: %s\r\n%s\r\n\r\n%s" % (
+            real_response.getStatusString(),
+            '\r\n'.join([('%s: %s' % h) for h in headers]),
+            real_response.consumeBody(),
+            )
+            )
         return PublisherResponse(output, status, reason)
 
 
