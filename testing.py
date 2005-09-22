@@ -45,6 +45,9 @@ class PublisherConnection(object):
         if body is None:
             body = ''
 
+        if url == '':
+            url = '/'
+
         # Extract the handle_error option header
         handle_errors_key = 'X-zope-handle-errors'
         handle_errors = headers.get(handle_errors_key, True)
@@ -61,7 +64,7 @@ class PublisherConnection(object):
             headers = ''
 
         # Construct the full HTTP request string, since that is what the
-        # ``HTTPCaller`` wants. 
+        # ``HTTPCaller`` wants.
         request_string = (method + ' ' + url + ' HTTP/1.1\n'
                           + headers + '\n' + body)
         self.response = self.caller(request_string, handle_errors)
