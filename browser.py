@@ -243,7 +243,7 @@ class Browser(SetattrErrorsMixin):
             res = self._findByName(name, forms)
             msg = 'name %r' % name
         return res, msg
-        
+
     def getForm(self, id=None, name=None, action=None, index=None):
         zeroOrOne([id, name, action], '"id", "name", and "action"')
         if index is None and not any([id, name, action]):
@@ -261,7 +261,7 @@ class Browser(SetattrErrorsMixin):
         form = disambiguate(matching_forms, '', index)
         self.mech_browser.form = form
         return Form(self, form)
-        
+
     def _clickSubmit(self, form, control, coord):
         self.mech_browser.open(form.click(
                     id=control.id, name=control.name, coord=coord))
@@ -419,7 +419,7 @@ class ListControl(Control):
     def controls(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        res = [controlFactory(i, self.mech_form, self.browser) for i in 
+        res = [controlFactory(i, self.mech_form, self.browser) for i in
                 self.mech_control.items]
         for s in res:
             s.__dict__['control'] = self
@@ -529,7 +529,7 @@ class Form(SetattrErrorsMixin):
         self.mech_form = form
         self._browser_counter = self.browser._counter
         self._enable_setattr_errors = True
-    
+
     @property
     def action(self):
         return self.mech_form.action
