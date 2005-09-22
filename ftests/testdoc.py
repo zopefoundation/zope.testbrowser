@@ -23,7 +23,7 @@ from zope.app.testing.functional import FunctionalDocFileSuite
 
 def test_suite():
     return FunctionalDocFileSuite(
-        '../README.txt',
+        '../README.txt', '../over_the_wire.txt',
         optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
 
 if __name__ == '__main__':
