@@ -16,7 +16,9 @@ on zope.i18n locale-based formatting or a similar approach.
 
 The browser can `open` web pages:
 
-    >>> browser.open('http://google.com')
+    # This is tricky, since in Germany I am forwarded to google.de usually;
+    # The `ncr` forces to really go to google.com.
+    >>> browser.open('http://google.com/ncr')
     >>> browser.url
     'http://www.google.com/'
 

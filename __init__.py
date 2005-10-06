@@ -32,6 +32,16 @@ else:
 import ClientForm as x
 assert x is ClientForm
 
+# stitch in ClientCookie
+from zope.testbrowser import ClientCookie
+
+# I don't really care, which version is there. We are doing no patching of the
+# code.
+if 'ClientCookie' not in sys.modules:
+    sys.modules['ClientCookie'] = ClientCookie
+else:
+    pass
+
 # stitch in pullparser
 from zope.testbrowser import pullparser
 
