@@ -12,15 +12,25 @@
 # FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-"""Browser Simulator for Functional DocTests 
+"""Browser Simulator for Functional DocTests
 
 $Id$
 """
 
 # TODO this should be removed once John J. Lee releases the new versions of
-# ClientForm and pullparser that have the code we rely on here.  At that point 
+# ClientForm and pullparser that have the code we rely on here.  At that point
 # we should also remove ClientForm.py from this directory.
 import sys
+
+# stitch in ClientCookie
+from zope.testbrowser import ClientCookie
+
+if 'ClientCookie' not in sys.modules:
+    sys.modules['ClientCookie'] = ClientCookie
+else:
+    assert sys.modules['ClientCookie'] is ClientCookie
+import ClientCookie as x
+assert x is ClientCookie
 
 # stitch in ClientForm
 from zope.testbrowser import ClientForm
@@ -31,16 +41,6 @@ else:
     assert sys.modules['ClientForm'] is ClientForm
 import ClientForm as x
 assert x is ClientForm
-
-# stitch in ClientCookie
-from zope.testbrowser import ClientCookie
-
-# I don't really care, which version is there. We are doing no patching of the
-# code.
-if 'ClientCookie' not in sys.modules:
-    sys.modules['ClientCookie'] = ClientCookie
-else:
-    pass
 
 # stitch in pullparser
 from zope.testbrowser import pullparser

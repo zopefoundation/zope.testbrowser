@@ -38,11 +38,11 @@ try:
 except ImportError:
     pass
 else:
-    from ClientCookie._urllib2_support import \
+    from _urllib2_support import \
          Request, \
          OpenerDirector, build_opener, install_opener, urlopen, \
          OpenerFactory, urlretrieve, BaseHandler
-    from ClientCookie._urllib2_support import \
+    from _urllib2_support import \
          HTTPHandler, HTTPRedirectHandler, \
          HTTPRequestUpgradeProcessor, \
          HTTPEquivProcessor, SeekableProcessor, HTTPCookieProcessor, \
@@ -55,13 +55,13 @@ else:
     except ImportError:
         pass
     else:
-        from ClientCookie._urllib2_support import \
+        from _urllib2_support import \
              HTTPRobotRulesProcessor, RobotExclusionError
         del robotparser
 
     import httplib
     if hasattr(httplib, 'HTTPS'):
-        from ClientCookie._urllib2_support import HTTPSHandler
+        from _urllib2_support import HTTPSHandler
     del AbstractHTTPHandler, httplib
 from _Util import http2time
 str2time = http2time

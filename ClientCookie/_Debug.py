@@ -1,11 +1,10 @@
 import sys
 
-import ClientCookie
-
 try:
     import warnings
 except ImportError:
     def warn(text):
+        import ClientCookie
         ClientCookie.WARNINGS_STREAM.write("WARNING: "+text)
 else:
     def warn(text):

@@ -67,7 +67,6 @@ try: StopIteration
 except NameError:
     class StopIteration(Exception): pass
 
-import ClientCookie
 from _HeadersUtil import split_header_words, parse_ns_headers
 from _Util import startswith, endswith, isstringlike, getheaders
 from _Debug import warn, getLogger
@@ -90,6 +89,7 @@ def reraise_unmasked_exceptions(unmasked=()):
     # There are a few catch-all except: statements in this module, for
     # catching input that's bad in unexpected ways.
     # This function re-raises some exceptions we don't want to trap.
+    import ClientCookie
     if not ClientCookie.USE_BARE_EXCEPT:
         raise
     unmasked = unmasked + (KeyboardInterrupt, SystemExit, MemoryError)

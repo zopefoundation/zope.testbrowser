@@ -13,7 +13,6 @@ distribution).
 
 import copy, time, tempfile
 
-import ClientCookie
 from _ClientCookie import CookieJar, request_host
 from _Util import isstringlike, startswith, getheaders
 from _Debug import getLogger
