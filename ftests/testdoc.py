@@ -20,11 +20,12 @@ import unittest
 import doctest
 from zope.app.testing.functional import FunctionalDocFileSuite
 
-
 def test_suite():
-    return FunctionalDocFileSuite(
-        '../README.txt', '../over_the_wire.txt',
-        optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+    flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+    readme = FunctionalDocFileSuite('../Readme.txt', optionflags=flags)
+    wire = FunctionalDocFileSuite('../over_the_wire.txt', optionflags=flags)
+    wire.level = 2
+    return unittest.TestSuite((readme, wire))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
