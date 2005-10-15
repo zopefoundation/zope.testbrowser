@@ -119,7 +119,7 @@ class PublisherHTTPHandler(urllib2.HTTPHandler):
 
 class PublisherMechanizeBrowser(mechanize.Browser):
     """Special ``mechanize`` browser using the Zope Publisher HTTP handler."""
-    
+
     handler_classes = {
         # scheme handlers
         "http": PublisherHTTPHandler,
@@ -146,7 +146,7 @@ class PublisherMechanizeBrowser(mechanize.Browser):
 
 class Browser(browser.Browser):
     """A Zope ``testbrowser` Browser that uses the Zope Publisher."""
-    
+
     def __init__(self, url=None):
         mech_browser = PublisherMechanizeBrowser()
         super(Browser, self).__init__(url=url, mech_browser=mech_browser)

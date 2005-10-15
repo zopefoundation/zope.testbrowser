@@ -86,18 +86,66 @@ class SetattrErrorsMixin(object):
         object.__setattr__(self, name, value)
 
 
+import time
+from test import pystone
+
+class PystoneTimer(object):
+    start_time = 0
+    end_time = 0
+    _pystones_per_second = None
+
+    @property
+    def pystones_per_second(self):
+        """How many pystones are equivalent to one second on this machine"""
+        if self._pystones_per_second == None:
+            self._pystones_per_second = pystone.pystones(pystone.LOOPS/10)[1]
+        return self._pystones_per_second
+
+    def start(self):
+        """Begin a timing period"""
+        self.start_time = time.time()
+        self.end_time = None
+
+    def stop(self):
+        """End a timing period"""
+        self.end_time = time.time()
+
+    @property
+    def elapsed_seconds(self):
+        """Elapsed time from calling `start` to calling `stop` or present time
+
+        If `stop` has been called, the timing period stopped then, otherwise
+        the end is the current time.
+        """
+        if self.end_time is None:
+            end_time = time.time()
+        else:
+            end_time = self.end_time
+        return end_time - self.start_time
+
+    @property
+    def elapsed_pystones(self):
+        """Elapsed pystones in timing period
+
+        See elapsed_seconds for definition of timing period.
+        """
+        return self.elapsed_seconds * self.pystones_per_second
+
+
 class Browser(SetattrErrorsMixin):
     """A web user agent."""
     zope.interface.implements(interfaces.IBrowser)
+
+    _contents = None
+    _counter = 0
 
     def __init__(self, url=None, mech_browser=None):
         if mech_browser is None:
             mech_browser = mechanize.Browser()
         self.mech_browser = mech_browser
-        self._contents = None
-        self._counter = 0
         if url is not None:
             self.open(url)
+        self.timer = PystoneTimer()
         self._enable_setattr_errors = True
 
     @property
@@ -156,17 +204,37 @@ class Browser(SetattrErrorsMixin):
 
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
+        self._start_timer()
         self.mech_browser.open(url, data)
+        self._stop_timer()
         self._changed()
+
+    def _start_timer(self):
+        self.timer.start()
+
+    def _stop_timer(self):
+        self.timer.stop()
+
+    @property
+    def last_request_pystones(self):
+        return self.timer.elapsed_pystones
+
+    @property
+    def last_request_seconds(self):
+        return self.timer.elapsed_seconds
 
     def reload(self):
         """See zope.testbrowser.interfaces.IBrowser"""
+        self._start_timer()
         self.mech_browser.reload()
+        self._stop_timer()
         self._changed()
 
     def goBack(self, count=1):
         """See zope.testbrowser.interfaces.IBrowser"""
+        self._start_timer()
         self.mech_browser.back(count)
+        self._stop_timer()
         self._changed()
 
     def addHeader(self, key, value):
@@ -205,6 +273,7 @@ class Browser(SetattrErrorsMixin):
             for control in f.controls:
                 phantom = control.type in ('radio', 'checkbox')
                 if include_subcontrols and (
+
                     phantom or control.type=='select'):
                     for i in control.items:
                         for l in i.getLabels():
@@ -263,8 +332,10 @@ class Browser(SetattrErrorsMixin):
         return Form(self, form)
 
     def _clickSubmit(self, form, control, coord):
+        self._start_timer()
         self.mech_browser.open(form.click(
                     id=control.id, name=control.name, coord=coord))
+        self._stop_timer()
 
     def _changed(self):
         self._counter += 1
@@ -283,7 +354,9 @@ class Link(SetattrErrorsMixin):
     def click(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
+        self.browser._start_timer()
         self.browser.mech_browser.follow_link(self.mech_link)
+        self.browser._stop_timer()
         self.browser._changed()
 
     @property
@@ -569,7 +642,9 @@ class Form(SetattrErrorsMixin):
                 raise ValueError(
                     'May not use index or coord without a control')
             request = self.mech_form._switch_click("request", urllib2.Request)
+            self.browser._start_timer()
             self.browser.mech_browser.open(request)
+            self.browser._stop_timer()
         self.browser._changed()
 
     def getControl(self, label=None, name=None, index=None):
