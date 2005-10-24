@@ -144,7 +144,8 @@ searches):
     '...<a href="navigate.html?message=By+Link+Text">Link Text</a>...'
     >>> link = browser.getLink('Link Text')
     >>> link
-    <Link text='Link Text' url='http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'>
+    <Link text='Link Text'
+      url='http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'>
 
 Link objects comply with the ILink interface.
 
@@ -174,8 +175,9 @@ When finding a link by its text, whitespace is normalized.
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
-    '...> Link Text \n    with     Whitespace\tNormalization (and parens) </a>...'
-    >>> link = browser.getLink('Link Text with Whitespace Normalization (and parens)')
+    '...> Link Text \n    with     Whitespace\tNormalization (and parens) </...'
+    >>> link = browser.getLink('Link Text with Whitespace Normalization '
+    ...                        '(and parens)')
     >>> link
     <Link text='Link Text with Whitespace Normalization (and parens)'...>
     >>> link.text
@@ -504,7 +506,7 @@ argument, which is a tuple of (x, y).  These submit the forms, and are
 demonstrated below as we examine each control individually.
 
 ItemControl Objects
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 As introduced briefly above, using labels to obtain elements of a logical
 radio button or checkbox collection returns item controls, which are parents.
