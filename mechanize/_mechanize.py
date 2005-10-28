@@ -107,9 +107,12 @@ class Browser(UserAgent):
             self._response.close()
         self.request = self._response = None
         self.form = None
-        [response.close()
-         for request, response in self._history
-         if response is not None]
+        for request, response in self._history:
+            try:
+                response.close()
+            except AttributeError:
+                pass # eoffiles do not have close()
+
         self._history = []
         self._forms = self._title = self._links = None
 
