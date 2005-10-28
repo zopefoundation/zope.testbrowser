@@ -51,6 +51,8 @@ class FormNotFoundError(Exception): pass
 class Link:
     def __init__(self, base_url, url, text, tag, attrs):
         assert None not in [url, tag, attrs]
+        url = url.strip()
+        base_url = base_url.strip()
         self.base_url = base_url
         self.absolute_url = urlparse.urljoin(base_url, url)
         self.url, self.text, self.tag, self.attrs = url, text, tag, attrs
@@ -96,17 +98,23 @@ class Browser(UserAgent):
         self._history = []  # LIFO
         self.request = self._response = None
         self.form = None
-        self._forms = None
-        self._title = None
-        self._links = None
+        self._forms = self._title = self._links = None
         UserAgent.__init__(self)  # do this last to avoid __getattr__ problems
 
     def close(self):
         UserAgent.close(self)
-        self._history = self._forms = self._title = self._links = None
+        if self._response:
+            self._response.close()
         self.request = self._response = None
+        self.form = None
+        [response.close()
+         for request, response in self._history
+         if response is not None]
+        self._history = []
+        self._forms = self._title = self._links = None
 
-    def open(self, url, data=None): return self._mech_open(url, data)
+    def open(self, url, data=None):
+        return self._mech_open(url, data)
 
     def _mech_open(self, url, data=None, update_history=True):
         if not hasattr(url, 'get_full_url'):
@@ -120,8 +128,6 @@ class Browser(UserAgent):
                         "can't fetch relative URL: not viewing any document")
                 url = urlparse.urljoin(self._response.geturl(), url)
 
-        if self.request is not None:
-            self._history.append((self.request, self._response))
         self._response = None
         # we want self.request to be assigned even if OpenerDirector.open fails
         self.request = self._request(url, data)
@@ -132,6 +138,9 @@ class Browser(UserAgent):
         if not hasattr(self._response, "seek"):
             self._response = response_seek_wrapper(self._response)
         self._parse_html(self._response)
+
+        if (self.request is not None) and update_history:
+            self._history.append((self.request, self._response))
 
         return self._response
 
