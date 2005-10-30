@@ -52,7 +52,8 @@ class Link:
     def __init__(self, base_url, url, text, tag, attrs):
         assert None not in [url, tag, attrs]
         url = url.strip()
-        base_url = base_url.strip()
+        if base_url is not None:
+            base_url = base_url.strip()
         self.base_url = base_url
         self.absolute_url = urlparse.urljoin(base_url, url)
         self.url, self.text, self.tag, self.attrs = url, text, tag, attrs
