@@ -234,7 +234,18 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         self._start_timer()
         self.mech_browser.back(count)
+        # we want to ignore history of 302 redirects.  If we go back to far,
+        # mechanize will raise a BrowserStateError as usual
+        while self.mech_browser.response() is None:
+            self.mech_browser.back()
         self._stop_timer()
+        # TODO this is a hack to get around a bug in mechanize
+        response = self.mech_browser.response()
+        if response is not None:
+            response.wrapped.url = response.url
+            response.wrapped.headers = response.headers
+            response.close = lambda: None
+        # end hack
         self._changed()
 
     def addHeader(self, key, value):
@@ -276,12 +287,12 @@ class Browser(SetattrErrorsMixin):
 
                     phantom or control.type=='select'):
                     for i in control.items:
-                        for l in i.getLabels():
+                        for l in i.get_labels():
                             if matches(l.text):
                                 found.append((i, f))
                                 break
                 if not phantom:
-                    for l in control.getLabels():
+                    for l in control.get_labels():
                         if matches(l.text):
                             found.append((control, f))
                             break
@@ -421,7 +432,7 @@ class Control(SetattrErrorsMixin):
         def fget(self):
             if (self.type == 'checkbox' and
                 len(self.mech_control.items) == 1 and
-                self.mech_control.items[0].value == 'on'):
+                self.mech_control.items[0].name == 'on'):
                 return self.mech_control.items[0].selected
             return self.mech_control.value
 
@@ -472,21 +483,21 @@ class ListControl(Control):
         res = []
         for item in self.mech_control.items:
             if not item.disabled:
-                for label in item.getLabels():
+                for label in item.get_labels():
                     if label.text:
                         res.append(label.text)
                         break
-                    else:
-                        res.append(None)
+                else:
+                    res.append(None)
         return res
 
     @property
     def options(self):
         """See zope.testbrowser.interfaces.IListControl"""
         if (self.type == 'checkbox' and len(self.mech_control.items) == 1 and
-            self.mech_control.items[0].value == 'on'):
+            self.mech_control.items[0].name == 'on'):
             return [True]
-        return [i.value for i in self.mech_control.items if not i.disabled]
+        return [i.name for i in self.mech_control.items if not i.disabled]
 
     @property
     def controls(self):
@@ -505,10 +516,10 @@ class ListControl(Control):
         onlyOne([label, value], '"label" and "value"')
 
         if label is not None:
-            options = self.mech_control.items_from_label(label)
+            options = self.mech_control.get_items(label=label)
             msg = 'label %r' % label
         elif value is not None:
-            options = self.mech_control.items_from_value(value)
+            options = self.mech_control.get_items(name=value)
             msg = 'value %r' % value
         res = controlFactory(
             disambiguate(options, msg, index), self.mech_form, self.browser)
@@ -551,7 +562,7 @@ class ItemControl(SetattrErrorsMixin):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
         res = controlFactory(
-            self.mech_item.control, self.mech_form, self.browser)
+            self.mech_item._control, self.mech_form, self.browser)
         self.__dict__['control'] = res
         return res
 
@@ -584,8 +595,8 @@ class ItemControl(SetattrErrorsMixin):
 
     def __repr__(self):
         return "<%s name=%r type=%r optionValue=%r>" % (
-            self.__class__.__name__, self.mech_item.control.name,
-            self.mech_item.control.type, self.optionValue)
+            self.__class__.__name__, self.mech_item._control.name,
+            self.mech_item._control.type, self.optionValue)
 
 
 class Form(SetattrErrorsMixin):
