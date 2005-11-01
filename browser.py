@@ -234,18 +234,7 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         self._start_timer()
         self.mech_browser.back(count)
-        # we want to ignore history of 302 redirects.  If we go back to far,
-        # mechanize will raise a BrowserStateError as usual
-        while self.mech_browser.response() is None:
-            self.mech_browser.back()
         self._stop_timer()
-        # TODO this is a hack to get around a bug in mechanize
-        response = self.mech_browser.response()
-        if response is not None:
-            response.wrapped.url = response.url
-            response.wrapped.headers = response.headers
-            response.close = lambda: None
-        # end hack
         self._changed()
 
     def addHeader(self, key, value):
