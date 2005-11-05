@@ -43,7 +43,7 @@ class IControl(zope.interface.Interface):
         values=['text', 'password', 'hidden', 'submit', 'checkbox', 'select',
                 'radio', 'image', 'file'],
         required=True)
-        
+
     disabled = zope.schema.Bool(
         title=u"Disabled",
         description=u"Describes whether a control is disabled.",
@@ -111,7 +111,7 @@ class IItemControl(zope.interface.Interface):
         description=(u"The parent control element."),
         schema=IControl,
         required=True)
-        
+
     disabled = zope.schema.Bool(
         title=u"Disabled",
         description=u"Describes whether a subcontrol is disabled.",
@@ -158,7 +158,7 @@ class ILink(zope.interface.Interface):
 
 class IForm(zope.interface.Interface):
     """An HTML form of the page."""
-    
+
     action = zope.schema.TextLine(
         title=u"Action",
         description=u"The action (or URI) that is opened upon submittance.",
@@ -212,7 +212,7 @@ class IForm(zope.interface.Interface):
 
         The `label`, `name`, and `index` arguments select the submit button to
         use to submit the form.  You may label or name, with index to
-        disambiguate.  
+        disambiguate.
 
         Label value is searched as case-sensitive whole words within
         the labels for each control--that is, a search for 'Add' will match
@@ -222,7 +222,7 @@ class IForm(zope.interface.Interface):
         The control code works identically to 'get' except that searches are
         filtered to find only submit and image controls.
         """
-    
+
 
 class IBrowser(zope.interface.Interface):
     """A Test Web Browser."""
@@ -281,7 +281,7 @@ class IBrowser(zope.interface.Interface):
 
     def reload():
         """Reload the current page.
-        
+
         Like a browser reload, if the past request included a form submission,
         the form data will be resubmitted."""
 
