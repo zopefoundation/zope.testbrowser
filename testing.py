@@ -22,7 +22,6 @@ from cStringIO import StringIO
 import mechanize
 import ClientCookie
 
-from zope.app.testing.functional import HTTPCaller
 from zope.testbrowser import browser
 
 
@@ -30,8 +29,9 @@ class PublisherConnection(object):
     """A ``urllib2`` compatible connection obejct."""
 
     def __init__(self, host):
-        self.host = host
+        from zope.app.testing.functional import HTTPCaller
         self.caller = HTTPCaller()
+        self.host = host
 
     def set_debuglevel(self, level):
         pass
