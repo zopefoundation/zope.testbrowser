@@ -24,7 +24,7 @@ try:
     from zope import schema
 except ImportError:
     class DummySchemaModule(object):
-        def __getatt__(self, name):
+        def __getattr__(self, name):
             return lambda *args, **kws: None
 
     schema = DummySchemaModule()
