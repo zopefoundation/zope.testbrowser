@@ -171,8 +171,6 @@ class Browser(SetattrErrorsMixin):
         response = self.mech_browser.response()
         old_location = response.tell()
         response.seek(0)
-        for line in iter(lambda: response.readline().strip(), ''):
-            pass
         self._contents = response.read()
         response.seek(old_location)
         return self._contents

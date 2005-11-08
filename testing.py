@@ -81,25 +81,21 @@ class PublisherConnection(object):
 
         headers = real_response.getHeaders()
         headers.sort()
-        output = (
-            "Status: %s\r\n%s\r\n\r\n%s" % (
-            real_response.getStatusString(),
-            '\r\n'.join([('%s: %s' % h) for h in headers]),
-            real_response.consumeBody(),
-            )
-            )
-        return PublisherResponse(output, status, reason)
+        headers.insert(0, ('Status', real_response.getStatusString()))
+        headers = '\r\n'.join('%s: %s' % h for h in headers)
+        content = real_response.consumeBody()
+        return PublisherResponse(content, headers, status, reason)
 
 
 class PublisherResponse(object):
     """``urllib2`` compatible response object."""
 
-    def __init__(self, content, status, reason):
+    def __init__(self, content, headers, status, reason):
         self.content = content
         self.status = status
         self.reason = reason
-        self.msg = httplib.HTTPMessage(StringIO(content), 0)
-        self.content_as_file = StringIO(content)
+        self.msg = httplib.HTTPMessage(StringIO(headers), 0)
+        self.content_as_file = StringIO(self.content)
 
     def read(self, amt=None):
         return self.content_as_file.read(amt)

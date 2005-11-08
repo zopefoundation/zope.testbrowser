@@ -21,6 +21,8 @@ The browser can `open` web pages:
     >>> browser.open('http://google.com/ncr')
     >>> browser.url
     'http://www.google.com/'
+    >>> 'html' in browser.contents.lower()
+    True
 
 We'll put some text in the query box...
 
