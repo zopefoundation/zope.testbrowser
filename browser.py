@@ -264,7 +264,7 @@ class Browser(SetattrErrorsMixin):
 
     def _findByLabel(self, label, forms, include_subcontrols=False):
         # forms are iterable of mech_forms
-        matches = re.compile(r'(^|\b|\s)%s(\b|\s|$)'
+        matches = re.compile(r'(^|\b|\W)%s(\b|\W|$)'
                              % re.escape(compressText(label))).search
         found = []
         for f in forms:

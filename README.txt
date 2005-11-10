@@ -333,6 +333,8 @@ text in a label.  Thus, for instance, a search for 'Add' will match the label
     Traceback (most recent call last):
     ...
     LookupError: label 'hitespace'
+    >>> browser.getControl('[non word characters should not confuse]')
+    <Control name='non-word-characters' type='text'>
 
 Multiple labels can refer to the same control (simply because that is possible
 in the HTML 4.0 spec).
