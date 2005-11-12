@@ -24,7 +24,11 @@ import pullparser
 import re
 import StringIO
 import urllib2
-import zope.interface
+
+try:
+    from zope import interface
+except ImportError:
+    from dummymodules import interface
 
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
@@ -134,7 +138,7 @@ class PystoneTimer(object):
 
 class Browser(SetattrErrorsMixin):
     """A web user agent."""
-    zope.interface.implements(interfaces.IBrowser)
+    interface.implements(interfaces.IBrowser)
 
     _contents = None
     _counter = 0
@@ -341,7 +345,7 @@ class Browser(SetattrErrorsMixin):
 
 
 class Link(SetattrErrorsMixin):
-    zope.interface.implements(interfaces.ILink)
+    interface.implements(interfaces.ILink)
 
     def __init__(self, link, browser):
         self.mech_link = link
@@ -380,7 +384,7 @@ class Link(SetattrErrorsMixin):
 
 class Control(SetattrErrorsMixin):
     """A control of a form."""
-    zope.interface.implements(interfaces.IControl)
+    interface.implements(interfaces.IControl)
 
     _enable_setattr_errors = False
 
@@ -445,7 +449,7 @@ class Control(SetattrErrorsMixin):
 
 
 class ListControl(Control):
-    zope.interface.implements(interfaces.IListControl)
+    interface.implements(interfaces.IListControl)
 
     @apply
     def displayValue():
@@ -515,7 +519,7 @@ class ListControl(Control):
 
 
 class SubmitControl(Control):
-    zope.interface.implements(interfaces.ISubmitControl)
+    interface.implements(interfaces.ISubmitControl)
 
     def click(self):
         if self._browser_counter != self.browser._counter:
@@ -525,7 +529,7 @@ class SubmitControl(Control):
 
 
 class ImageControl(Control):
-    zope.interface.implements(interfaces.IImageSubmitControl)
+    interface.implements(interfaces.IImageSubmitControl)
 
     def click(self, coord=(1,1)):
         if self._browser_counter != self.browser._counter:
@@ -535,7 +539,7 @@ class ImageControl(Control):
 
 
 class ItemControl(SetattrErrorsMixin):
-    zope.interface.implements(interfaces.IItemControl)
+    interface.implements(interfaces.IItemControl)
 
     def __init__(self, item, form, browser):
         self.mech_item = item
@@ -588,7 +592,7 @@ class ItemControl(SetattrErrorsMixin):
 
 class Form(SetattrErrorsMixin):
     """HTML Form"""
-    zope.interface.implements(interfaces.IForm)
+    interface.implements(interfaces.IForm)
 
     def __init__(self, browser, form):
         """Initialize the Form

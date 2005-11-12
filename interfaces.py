@@ -17,17 +17,17 @@ $Id$
 """
 __docformat__ = "reStructuredText"
 
-from zope import interface
+try:
+    # zope.interface isn't included in the stand-alone version
+    from zope import interface
+except ImportError:
+    from dummymodules import interface
 
 try:
-    # zope.schema isn't included in the stand-alone version of zope.testbrowser
+    # zope.schema isn't included in the stand-alone version
     from zope import schema
 except ImportError:
-    class DummySchemaModule(object):
-        def __getattr__(self, name):
-            return lambda *args, **kws: interface.Attribute('')
-
-    schema = DummySchemaModule()
+    from dummymodules import schema
 
 
 class ExpiredError(Exception):
