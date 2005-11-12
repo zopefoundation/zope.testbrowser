@@ -30,212 +30,8 @@ except ImportError:
     from dummymodules import schema
 
 
-class ExpiredError(Exception):
-    """The browser page to which this was attached is no longer active"""
-
-class IControl(interface.Interface):
-    """A control (input field) of a page."""
-
-    name = schema.TextLine(
-        title=u"Name",
-        description=u"The name of the control.",
-        required=True)
-
-    value = schema.Field(
-        title=u"Value",
-        description=u"The value of the control",
-        default=None,
-        required=True)
-
-    type = schema.Choice(
-        title=u"Type",
-        description=u"The type of the control",
-        values=['text', 'password', 'hidden', 'submit', 'checkbox', 'select',
-                'radio', 'image', 'file'],
-        required=True)
-
-    disabled = schema.Bool(
-        title=u"Disabled",
-        description=u"Describes whether a control is disabled.",
-        default=False,
-        required=False)
-
-    multiple = schema.Bool(
-        title=u"Multiple",
-        description=u"Describes whether this control can hold multiple values.",
-        default=False,
-        required=False)
-
-    def clear():
-        """Clear the value of the control."""
-
-class IListControl(IControl):
-    """A radio button, checkbox, or select control"""
-
-    options = schema.List(
-        title=u"Options",
-        description=u"""\
-        A list of possible values for the control.""",
-        required=True)
-
-    displayOptions = schema.List(
-        # TODO: currently only implemented for select by ClientForm
-        title=u"Options",
-        description=u"""\
-        A list of possible display values for the control.""",
-        required=True)
-
-    displayValue = schema.Field(
-        # TODO: currently only implemented for select by ClientForm
-        title=u"Value",
-        description=u"The value of the control, as rendered by the display",
-        default=None,
-        required=True)
-
-    def getControl(label=None, value=None, index=None):
-        """return subcontrol for given label or value, disambiguated by index
-        if given.  Label value is searched as case-sensitive whole words within
-        the labels for each item--that is, a search for 'Add' will match
-        'Add a contact' but not 'Address'.  A word is defined as one or more
-        alphanumeric characters or the underline."""
-
-    controls = interface.Attribute(
-        """a list of subcontrols for the control.  mutating list has no effect
-        on control (although subcontrols may be changed as usual).""")
-
-class ISubmitControl(IControl):
-
-    def click():
-        "click the submit button"
-
-class IImageSubmitControl(ISubmitControl):
-
-    def click(coord=(1,1,)):
-        "click the submit button with optional coordinates"
-
-class IItemControl(interface.Interface):
-    """a radio button or checkbox within a larger multiple-choice control"""
-
-    control = schema.Object(
-        title=u"Control",
-        description=(u"The parent control element."),
-        schema=IControl,
-        required=True)
-
-    disabled = schema.Bool(
-        title=u"Disabled",
-        description=u"Describes whether a subcontrol is disabled.",
-        default=False,
-        required=False)
-
-    selected = schema.Bool(
-        title=u"Selected",
-        description=u"Whether the subcontrol is selected",
-        default=None,
-        required=True)
-
-    optionValue = schema.TextLine(
-        title=u"Value",
-        description=u"The value of the subcontrol",
-        default=None,
-        required=False)
-
-class ILink(interface.Interface):
-
-    def click():
-        """click the link, going to the URL referenced"""
-
-    url = schema.TextLine(
-        title=u"URL",
-        description=u"The normalized URL of the link",
-        required=False)
-
-    attrs = schema.Dict(
-        title=u'Attributes',
-        description=u'The attributes of the link tag',
-        required=False)
-
-    text = schema.TextLine(
-        title=u'Text',
-        description=u'The contained text of the link',
-        required=False)
-
-    tag = schema.TextLine(
-        title=u'Tag',
-        description=u'The tag name of the link (a or area, typically)',
-        required=True)
-
-
-class IForm(interface.Interface):
-    """An HTML form of the page."""
-
-    action = schema.TextLine(
-        title=u"Action",
-        description=u"The action (or URI) that is opened upon submittance.",
-        required=True)
-
-    method = schema.Choice(
-        title=u"Method",
-        description=u"The method used to submit the form.",
-        values=['post', 'get', 'put'],
-        required=True)
-
-    enctype = schema.TextLine(
-        title=u"Encoding Type",
-        description=u"The type of encoding used to encode the form data.",
-        required=True)
-
-    name = schema.TextLine(
-        title=u"Name",
-        description=u"The value of the `name` attribute in the form tag, "
-                    u"if specified.",
-        required=True)
-
-    id = schema.TextLine(
-        title=u"Id",
-        description=u"The value of the `id` attribute in the form tag, "
-                    u"if specified.",
-        required=True)
-
-    def getControl(label=None, name=None, index=None):
-        """Get a control in the page.
-
-        Only one of ``label`` and ``name`` may be provided.  ``label``
-        searches form labels (including submit button values, per the HTML 4.0
-        spec), and ``name`` searches form field names.
-
-        Label value is searched as case-sensitive whole words within
-        the labels for each control--that is, a search for 'Add' will match
-        'Add a contact' but not 'Address'.  A word is defined as one or more
-        alphanumeric characters or the underline.
-
-        If no values are found, the code raises a LookupError.
-
-        If ``index`` is None (the default) and more than one field matches the
-        search, the code raises an AmbiguityError.  If an index is provided,
-        it is used to choose the index from the ambiguous choices.  If the
-        index does not exist, the code raises a LookupError.
-        """
-
-    def submit(label=None, name=None, index=None, coord=(1,1)):
-        """Submit this form.
-
-        The `label`, `name`, and `index` arguments select the submit button to
-        use to submit the form.  You may label or name, with index to
-        disambiguate.
-
-        Label value is searched as case-sensitive whole words within
-        the labels for each control--that is, a search for 'Add' will match
-        'Add a contact' but not 'Address'.  A word is defined as one or more
-        alphanumeric characters or the underline.
-
-        The control code works identically to 'get' except that searches are
-        filtered to find only submit and image controls.
-        """
-
-
 class IBrowser(interface.Interface):
-    """A Test Web Browser."""
+    """A Programmatic Web Browser."""
 
     url = schema.URI(
         title=u"URL",
@@ -352,3 +148,215 @@ class IBrowser(interface.Interface):
         it is used to choose the index from the ambiguous choices.  If the
         index does not exist, the code raises a LookupError.
         """
+
+
+class ExpiredError(Exception):
+    """The browser page to which this was attached is no longer active"""
+
+
+class IControl(interface.Interface):
+    """A control (input field) of a page."""
+
+    name = schema.TextLine(
+        title=u"Name",
+        description=u"The name of the control.",
+        required=True)
+
+    value = schema.Field(
+        title=u"Value",
+        description=u"The value of the control",
+        default=None,
+        required=True)
+
+    type = schema.Choice(
+        title=u"Type",
+        description=u"The type of the control",
+        values=['text', 'password', 'hidden', 'submit', 'checkbox', 'select',
+                'radio', 'image', 'file'],
+        required=True)
+
+    disabled = schema.Bool(
+        title=u"Disabled",
+        description=u"Describes whether a control is disabled.",
+        default=False,
+        required=False)
+
+    multiple = schema.Bool(
+        title=u"Multiple",
+        description=u"Describes whether this control can hold multiple values.",
+        default=False,
+        required=False)
+
+    def clear():
+        """Clear the value of the control."""
+
+
+class IListControl(IControl):
+    """A radio button, checkbox, or select control"""
+
+    options = schema.List(
+        title=u"Options",
+        description=u"""\
+        A list of possible values for the control.""",
+        required=True)
+
+    displayOptions = schema.List(
+        # TODO: currently only implemented for select by ClientForm
+        title=u"Options",
+        description=u"""\
+        A list of possible display values for the control.""",
+        required=True)
+
+    displayValue = schema.Field(
+        # TODO: currently only implemented for select by ClientForm
+        title=u"Value",
+        description=u"The value of the control, as rendered by the display",
+        default=None,
+        required=True)
+
+    def getControl(label=None, value=None, index=None):
+        """return subcontrol for given label or value, disambiguated by index
+        if given.  Label value is searched as case-sensitive whole words within
+        the labels for each item--that is, a search for 'Add' will match
+        'Add a contact' but not 'Address'.  A word is defined as one or more
+        alphanumeric characters or the underline."""
+
+    controls = interface.Attribute(
+        """a list of subcontrols for the control.  mutating list has no effect
+        on control (although subcontrols may be changed as usual).""")
+
+
+class ISubmitControl(IControl):
+
+    def click():
+        "click the submit button"
+
+
+class IImageSubmitControl(ISubmitControl):
+
+    def click(coord=(1,1,)):
+        "click the submit button with optional coordinates"
+
+
+class IItemControl(interface.Interface):
+    """a radio button or checkbox within a larger multiple-choice control"""
+
+    control = schema.Object(
+        title=u"Control",
+        description=(u"The parent control element."),
+        schema=IControl,
+        required=True)
+
+    disabled = schema.Bool(
+        title=u"Disabled",
+        description=u"Describes whether a subcontrol is disabled.",
+        default=False,
+        required=False)
+
+    selected = schema.Bool(
+        title=u"Selected",
+        description=u"Whether the subcontrol is selected",
+        default=None,
+        required=True)
+
+    optionValue = schema.TextLine(
+        title=u"Value",
+        description=u"The value of the subcontrol",
+        default=None,
+        required=False)
+
+
+class ILink(interface.Interface):
+
+    def click():
+        """click the link, going to the URL referenced"""
+
+    url = schema.TextLine(
+        title=u"URL",
+        description=u"The normalized URL of the link",
+        required=False)
+
+    attrs = schema.Dict(
+        title=u'Attributes',
+        description=u'The attributes of the link tag',
+        required=False)
+
+    text = schema.TextLine(
+        title=u'Text',
+        description=u'The contained text of the link',
+        required=False)
+
+    tag = schema.TextLine(
+        title=u'Tag',
+        description=u'The tag name of the link (a or area, typically)',
+        required=True)
+
+
+class IForm(interface.Interface):
+    """An HTML form of the page."""
+
+    action = schema.TextLine(
+        title=u"Action",
+        description=u"The action (or URI) that is opened upon submittance.",
+        required=True)
+
+    method = schema.Choice(
+        title=u"Method",
+        description=u"The method used to submit the form.",
+        values=['post', 'get', 'put'],
+        required=True)
+
+    enctype = schema.TextLine(
+        title=u"Encoding Type",
+        description=u"The type of encoding used to encode the form data.",
+        required=True)
+
+    name = schema.TextLine(
+        title=u"Name",
+        description=u"The value of the `name` attribute in the form tag, "
+                    u"if specified.",
+        required=True)
+
+    id = schema.TextLine(
+        title=u"Id",
+        description=u"The value of the `id` attribute in the form tag, "
+                    u"if specified.",
+        required=True)
+
+    def getControl(label=None, name=None, index=None):
+        """Get a control in the page.
+
+        Only one of ``label`` and ``name`` may be provided.  ``label``
+        searches form labels (including submit button values, per the HTML 4.0
+        spec), and ``name`` searches form field names.
+
+        Label value is searched as case-sensitive whole words within
+        the labels for each control--that is, a search for 'Add' will match
+        'Add a contact' but not 'Address'.  A word is defined as one or more
+        alphanumeric characters or the underline.
+
+        If no values are found, the code raises a LookupError.
+
+        If ``index`` is None (the default) and more than one field matches the
+        search, the code raises an AmbiguityError.  If an index is provided,
+        it is used to choose the index from the ambiguous choices.  If the
+        index does not exist, the code raises a LookupError.
+        """
+
+    def submit(label=None, name=None, index=None, coord=(1,1)):
+        """Submit this form.
+
+        The `label`, `name`, and `index` arguments select the submit button to
+        use to submit the form.  You may label or name, with index to
+        disambiguate.
+
+        Label value is searched as case-sensitive whole words within
+        the labels for each control--that is, a search for 'Add' will match
+        'Add a contact' but not 'Address'.  A word is defined as one or more
+        alphanumeric characters or the underline.
+
+        The control code works identically to 'get' except that searches are
+        filtered to find only submit and image controls.
+        """
+
+

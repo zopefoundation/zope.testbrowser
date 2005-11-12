@@ -2,17 +2,28 @@
 The Test Browser
 ================
 
-The ``zope.testbrowser`` module exposes a ``Browser`` class that
+The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
+
+    >>> from zope.testbrowser.browser import Browser
+    >>> browser = Browser()
+
+This version of the browser object can be used to access any web site just as
+you would do using a normal web browser.
+
+There is also a special version of the ``Browser`` class used to do functional
+testing of Zope 3 applications, it can be imported from
+``zope.testbrowser.testing`` or just ``zope.testbrowser`` directly::
 
     >>> from zope.testbrowser import Browser
     >>> browser = Browser()
+
+The browser can send arbitrary headers; this is helpful for setting the
+"Authorization" header or a language value, so that your tests format values
+the way you expect in your tests, if you rely on zope.i18n locale-based
+formatting or a similar approach.
+
     >>> browser.addHeader('Authorization', 'Basic mgr:mgrpw')
-
-It can send arbitrary headers; this is helpful for setting the language value,
-so that your tests format values the way you expect in your tests, if you rely
-on zope.i18n locale-based formatting or a similar approach.
-
     >>> browser.addHeader('Accept-Language', 'en-US')
 
 The browser can `open` web pages:
@@ -25,7 +36,8 @@ Once you have opened a web page initially, best practice for writing
 testbrowser doctests suggests using 'click' to navigate further (as discussed
 below), except in unusual circumstances.
 
-The test browser complies with the IBrowser interface.
+The test browser complies with the IBrowser interface; see
+``zope.testbrowser.interfaces`` for full interface details.
 
     >>> from zope.testbrowser import interfaces
     >>> from zope.interface.verify import verifyObject
