@@ -37,7 +37,7 @@ testbrowser doctests suggests using 'click' to navigate further (as discussed
 below), except in unusual circumstances.
 
 The test browser complies with the IBrowser interface; see
-``zope.testbrowser.interfaces`` for full interface details.
+``zope.testbrowser.interfaces`` for full details on the interface.
 
     >>> from zope.testbrowser import interfaces
     >>> from zope.interface.verify import verifyObject
