@@ -23,7 +23,9 @@ import operator
 import pullparser
 import re
 import StringIO
+import time
 import urllib2
+from test import pystone
 
 try:
     from zope import interface
@@ -89,9 +91,6 @@ class SetattrErrorsMixin(object):
         # set the value
         object.__setattr__(self, name, value)
 
-
-import time
-from test import pystone
 
 class PystoneTimer(object):
     start_time = 0
