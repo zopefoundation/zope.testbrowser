@@ -794,16 +794,40 @@ The various types of controls are demonstrated here.
 
   - Radio Control
 
+    This is how you get a radio button based control:
+
     >>> ctrl = browser.getControl(name='radio-value')
+
+    This shows the existing value of the control, as it was in the
+    html recieved from the server:
+
+    >>> ctrl.value
+    ['2']
+
+    We can then unselect it:
+
+    >>> ctrl.value = []
+    >>> ctrl.value
+    []
+
+    We can also reselect it:
+
+    >>> ctrl.value = ['2']
+    >>> ctrl.value
+    ['2']
+
+    displayValue shows the text the user would see next to the
+    control: 
+
+    >>> ctrl.displayValue
+    ['Zwei']
+
+    This is just unit testing:
+
     >>> ctrl
     <ListControl name='radio-value' type='radio'>
     >>> verifyObject(interfaces.IListControl, ctrl)
     True
-    >>> ctrl.value
-    ['2']
-    >>> ctrl.value = []
-    >>> ctrl.value
-    []
     >>> ctrl.disabled
     False
     >>> ctrl.multiple
@@ -812,9 +836,9 @@ The various types of controls are demonstrated here.
     ['1', '2', '3']
     >>> ctrl.displayOptions
     ['Ein', 'Zwei', 'Drei']
-    >>> ctrl.displayValue
-    []
     >>> ctrl.displayValue = ['Ein']
+    >>> ctrl.value
+    ['1']
     >>> ctrl.displayValue
     ['Ein']
 
