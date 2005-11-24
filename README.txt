@@ -608,6 +608,11 @@ The various types of controls are demonstrated here.
 
   - File Control
 
+    The following is basically unit testing, since most web servers
+    require uploaded files to have a filename, and building a control
+    in the following way means the uploaded file has no name or
+    content type:
+
     >>> ctrl = browser.getControl('File Control')
     >>> ctrl
     <Control name='file-value' type='file'>
@@ -620,6 +625,15 @@ The various types of controls are demonstrated here.
     False
     >>> ctrl.multiple
     False
+
+    Unfortunately, testbrowser doesn't really support what you need,
+    so you have to use the underlying mechanize control:
+
+    >>> ctrl.mech_control.add_file(
+    ...     cStringIO.StringIO('File contents'),
+    ...     content_type='text/plain',
+    ...     filename='test.txt',
+    ...     )
 
   - Selection Control (Single-Valued)
 
