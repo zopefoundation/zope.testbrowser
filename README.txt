@@ -409,7 +409,30 @@ may also be searched by label.
     >>> browser.getControl('Tres')
     <ItemControl name='single-select-value' type='select' optionValue='3'>
 
-Characteristics of controls and subcontrols are discussed below.
+Characteristics of controls and subcontrols are discussed in the
+'Control Objects' section below.
+
+Introspection to find controls returned by the server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+testbrowser currently doesn't help much unless you already know the
+controls you will be looking for, however, you can do some
+introspection by utilizing the underlying mechanize functionality.
+
+For example, to find all checkboxes on a page:
+
+    >>> checkboxes = [c.name for c in
+    ...               browser.getForm('controls').mech_form.controls 
+    ...               if c.type=='checkbox']
+    >>> len(checkboxes)
+    3
+    >>> checkboxes[0:2]
+    ['single-unvalued-checkbox-value', 'single-valued-checkbox-value']
+    
+You can then get the actual control as follows:
+
+    >>> browser.getControl(name=checkboxes[2])
+    <ListControl name='multi-checkbox-value' type='checkbox'>
 
 Control Objects
 ~~~~~~~~~~~~~~~
