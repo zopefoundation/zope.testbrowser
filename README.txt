@@ -628,6 +628,7 @@ The various types of controls are demonstrated here.
 
     Unfortunately, testbrowser doesn't really support what you need,
     so you have to use the underlying mechanize control:
+    XXX this missing feature must be fixed before 3.2 is released (issue 495)
 
     >>> ctrl.mech_control.add_file(
     ...     cStringIO.StringIO('File contents'),
