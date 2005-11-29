@@ -1063,9 +1063,9 @@ Be very careful using raw seconds, cross-machine differences can be huge,
 pystones is usually a better choice.
 
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
-    >>> browser.last_request_seconds < 10 # really big number for safety
+    >>> browser.lastRequestSeconds < 10 # really big number for safety
     True
-    >>> browser.last_request_pystones < 10000 # really big number for safety
+    >>> browser.lastRequestPystones < 10000 # really big number for safety
     True
 
 Handling Errors

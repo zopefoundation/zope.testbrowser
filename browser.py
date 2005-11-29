@@ -98,7 +98,7 @@ class PystoneTimer(object):
     _pystones_per_second = None
 
     @property
-    def pystones_per_second(self):
+    def pystonesPerSecond(self):
         """How many pystones are equivalent to one second on this machine"""
         if self._pystones_per_second == None:
             self._pystones_per_second = pystone.pystones(pystone.LOOPS/10)[1]
@@ -114,7 +114,7 @@ class PystoneTimer(object):
         self.end_time = time.time()
 
     @property
-    def elapsed_seconds(self):
+    def elapsedSeconds(self):
         """Elapsed time from calling `start` to calling `stop` or present time
 
         If `stop` has been called, the timing period stopped then, otherwise
@@ -127,12 +127,12 @@ class PystoneTimer(object):
         return end_time - self.start_time
 
     @property
-    def elapsed_pystones(self):
+    def elapsedPystones(self):
         """Elapsed pystones in timing period
 
         See elapsed_seconds for definition of timing period.
         """
-        return self.elapsed_seconds * self.pystones_per_second
+        return self.elapsedSeconds * self.pystonesPerSecond
 
 
 class Browser(SetattrErrorsMixin):
@@ -217,12 +217,12 @@ class Browser(SetattrErrorsMixin):
         self.timer.stop()
 
     @property
-    def last_request_pystones(self):
-        return self.timer.elapsed_pystones
+    def lastRequestPystones(self):
+        return self.timer.elapsedPystones
 
     @property
-    def last_request_seconds(self):
-        return self.timer.elapsed_seconds
+    def lastRequestSeconds(self):
+        return self.timer.elapsedSeconds
 
     def reload(self):
         """See zope.testbrowser.interfaces.IBrowser"""
