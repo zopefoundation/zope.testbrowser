@@ -392,12 +392,18 @@ class Control(SetattrErrorsMixin):
         self.mech_form = form
         self.browser = browser
         self._browser_counter = self.browser._counter
-        self._enable_setattr_errors = True
+
+        if self.mech_control.type == 'file':
+            self.filename = None
+            self.content_type = None
 
         # for some reason ClientForm thinks we shouldn't be able to modify
         # hidden fields, but while testing it is sometimes very important
         if self.mech_control.type == 'hidden':
             self.mech_control.readonly = False
+
+        # disable addition of further attributes
+        self._enable_setattr_errors = True
 
     @property
     def disabled(self):
@@ -430,7 +436,9 @@ class Control(SetattrErrorsMixin):
             if self._browser_counter != self.browser._counter:
                 raise interfaces.ExpiredError
             if self.mech_control.type == 'file':
-                self.mech_control.add_file(value)
+                self.mech_control.add_file(value,
+                                           content_type=self.content_type,
+                                           filename=self.filename)
             elif self.type == 'checkbox' and len(self.mech_control.items) == 1:
                 self.mech_control.items[0].selected = bool(value)
             else:

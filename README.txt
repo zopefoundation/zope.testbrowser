@@ -608,33 +608,31 @@ The various types of controls are demonstrated here.
 
   - File Control
 
-    The following is basically unit testing, since most web servers
-    require uploaded files to have a filename, and building a control
-    in the following way means the uploaded file has no name or
-    content type:
+    The minimum setup required for file controls is to assign a file-like
+    object to the control's ``value`` attribute:
 
     >>> ctrl = browser.getControl('File Control')
     >>> ctrl
     <Control name='file-value' type='file'>
     >>> verifyObject(interfaces.IControl, ctrl)
     True
-    >>> ctrl.value
+    >>> ctrl.value is None
+    True
     >>> import cStringIO
     >>> ctrl.value = cStringIO.StringIO('File contents')
+
+    The file control's content type and file name can also be set:
+
+    >>> ctrl.filename = 'test.txt'
+    >>> ctrl.content_type = 'text/plain'
+
+    The file control (like the other controls) also knows if it is disabled
+    or if it can have multiple values.
+
     >>> ctrl.disabled
     False
     >>> ctrl.multiple
     False
-
-    Unfortunately, testbrowser doesn't really support what you need,
-    so you have to use the underlying mechanize control:
-    XXX this missing feature must be fixed before 3.2 is released (issue 495)
-
-    >>> ctrl.mech_control.add_file(
-    ...     cStringIO.StringIO('File contents'),
-    ...     content_type='text/plain',
-    ...     filename='test.txt',
-    ...     )
 
   - Selection Control (Single-Valued)
 
