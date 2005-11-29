@@ -800,7 +800,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl(name='radio-value')
 
     This shows the existing value of the control, as it was in the
-    html recieved from the server:
+    HTML recieved from the server:
 
     >>> ctrl.value
     ['2']
