@@ -1068,8 +1068,8 @@ pystones is usually a better choice.
     >>> browser.lastRequestPystones < 10000 # really big number for safety
     True
 
-Handling Errors
----------------
+Handling Errors when using Zope 3's Publisher
+---------------------------------------------
 
 A very useful feature of the publisher is the automatic graceful handling of
 application errors, such as invalid URLs:
@@ -1099,6 +1099,11 @@ we get a different, Zope internal error:
     ...
     NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
               name: u'invalid'
+
+NB: Setting the handleErrors attribute to False will only change
+    anything if the http server you're testing is using Zope 3's
+    publisher or can otherwise respond appropriately to an
+    'X-zope-handle-errors' header in requests.
 
 Hand-Holding
 ------------
