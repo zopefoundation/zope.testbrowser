@@ -40,7 +40,8 @@ class IBrowser(interface.Interface):
 
     headers = schema.Field(
         title=u"Headers",
-        description=u"Heards of the HTTP response; a ``httplib.HTTPMessage``.",
+        description=(u"Headers of the HTTP response; a "
+                     "``httplib.HTTPMessage``."),
         required=True)
 
     contents = schema.Text(
@@ -113,6 +114,26 @@ class IBrowser(interface.Interface):
 
           o ``id`` -- The id attribute of the anchor tag submit button.
         """
+
+    headers = schema.Field(
+        title=u"lastRequestSeconds",
+        description=(
+        u"""Return how many seconds (or fractions) the last request took.
+
+        The values returned have the same resolution as the results from
+        ``time.clock``.
+        """),
+        required=True)
+
+    headers = schema.Field(
+        title=u"lastRequestPystones",
+        description=(
+        u"""Return how many pystones the last request took.
+
+        This number is found by multiplying the number of pystones/second this
+        system benchmarks at and the result of ``lastRequestSeconds``.
+        """),
+        required=True)
 
     def getControl(label=None, name=None, index=None):
         """Get a control from the page.

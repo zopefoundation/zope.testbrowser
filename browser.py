@@ -106,12 +106,12 @@ class PystoneTimer(object):
 
     def start(self):
         """Begin a timing period"""
-        self.start_time = time.time()
+        self.start_time = time.clock()
         self.end_time = None
 
     def stop(self):
         """End a timing period"""
-        self.end_time = time.time()
+        self.end_time = time.clock()
 
     @property
     def elapsedSeconds(self):
@@ -121,7 +121,7 @@ class PystoneTimer(object):
         the end is the current time.
         """
         if self.end_time is None:
-            end_time = time.time()
+            end_time = time.clock()
         else:
             end_time = self.end_time
         return end_time - self.start_time
@@ -218,10 +218,12 @@ class Browser(SetattrErrorsMixin):
 
     @property
     def lastRequestPystones(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
         return self.timer.elapsedPystones
 
     @property
     def lastRequestSeconds(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
         return self.timer.elapsedSeconds
 
     def reload(self):
