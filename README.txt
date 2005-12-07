@@ -44,6 +44,7 @@ The test browser complies with the IBrowser interface; see
     >>> verifyObject(interfaces.IBrowser, browser)
     True
 
+
 Page Contents
 -------------
 
@@ -73,6 +74,7 @@ Note: Unfortunately, ellipsis (...) cannot be used at the beginning of the
 output (this is a limitation of doctest).
 
 
+
 Checking for HTML
 -----------------
 
@@ -87,6 +89,7 @@ But if we load an image (or other binary file), we do not get HTML:
     >>> browser.open('http://localhost/@@/testbrowser/zope3logo.gif')
     >>> browser.isHtml
     False
+
 
 
 HTML Page Title
@@ -254,6 +257,7 @@ Getting a nonexistent link raises an exception.
     Traceback (most recent call last):
     ...
     LinkNotFoundError
+
 
 Other Navigation
 ----------------
@@ -946,6 +950,7 @@ But when sending an image, you can also specify the coordinate you clicked:
     ...
     </html>
 
+
 Forms
 -----
 
@@ -1054,6 +1059,7 @@ If a form is requested that does not exists, an exception will be raised.
     Traceback (most recent call last):
     LookupError
 
+
 Performance Testing
 -------------------
 
@@ -1067,6 +1073,7 @@ pystones is usually a better choice.
     True
     >>> browser.lastRequestPystones < 10000 # really big number for safety
     True
+
 
 Handling Errors when using Zope 3's Publisher
 ---------------------------------------------
@@ -1105,6 +1112,7 @@ NB: Setting the handleErrors attribute to False will only change
     publisher or can otherwise respond appropriately to an
     'X-zope-handle-errors' header in requests.
 
+
 Hand-Holding
 ------------
 
@@ -1130,6 +1138,7 @@ instance attributes accidentally.
     Traceback (most recent call last):
     ...
     AttributeError: 'Link' object has no attribute 'nonexistant'
+
 
 Fixed Bugs
 ----------
