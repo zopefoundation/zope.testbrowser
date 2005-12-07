@@ -1130,3 +1130,15 @@ instance attributes accidentally.
     Traceback (most recent call last):
     ...
     AttributeError: 'Link' object has no attribute 'nonexistant'
+
+Fixed Bugs
+----------
+
+This section includes tests for bugs that were found and then fixed that don't
+fit into the more documentation-centric sections above.
+
+When URLs have spaces in them, they're handled correctly (before the bug was
+fixed, you'd get "ValueError: too many values to unpack"):
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.getLink('Spaces in the URL').click()

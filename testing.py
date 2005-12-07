@@ -36,6 +36,11 @@ class PublisherConnection(object):
     def set_debuglevel(self, level):
         pass
 
+    def _quote(self, url):
+        # the publisher expects to be able to split on whitespace, so we have
+        # to make sure there is none in the URL
+        return url.replace(' ', '%20')
+
     def request(self, method, url, body=None, headers=None):
         """Send a request to the publisher.
 
@@ -47,6 +52,7 @@ class PublisherConnection(object):
         if url == '':
             url = '/'
 
+        url = self._quote(url)
         # Extract the handle_error option header
         handle_errors_key = 'X-zope-handle-errors'
         handle_errors = headers.get(handle_errors_key, True)
