@@ -29,6 +29,7 @@ class PublisherConnection(object):
     """A ``urllib2`` compatible connection obejct."""
 
     def __init__(self, host):
+        # this is imported here to hide the import from non-Zope-based code
         from zope.app.testing.functional import HTTPCaller
         self.caller = HTTPCaller()
         self.host = host
