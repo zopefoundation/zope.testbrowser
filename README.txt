@@ -712,6 +712,9 @@ The various types of controls are demonstrated here.
     False
     >>> ctrl.displayValue
     []
+    >>> browser.getControl(
+    ...     name='single-disabled-unvalued-checkbox-value').disabled
+    True
 
   - Checkbox Control (Single-Valued, Valued)
 

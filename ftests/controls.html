@@ -78,6 +78,18 @@
       </div>
 
       <div>
+        <em tal:condition="
+            request/single-disabled-unvalued-checkbox-value|nothing"
+            tal:content="request/single-disabled-unvalued-checkbox-value"></em>
+        <input type="checkbox" name="single-disabled-unvalued-checkbox-value" 
+               id="single-disabled-unvalued-checkbox" checked="checked"
+               disabled="disabled" />
+        <label for="single-disabled-unvalued-checkbox">
+          Single Disabled Unvalued Checkbox
+        </label>
+      </div>
+
+      <div>
         <em tal:condition="request/single-valued-checkbox-value|nothing"
             tal:content="request/single-valued-checkbox-value"></em>
         <label><input type="checkbox" name="single-valued-checkbox-value" 

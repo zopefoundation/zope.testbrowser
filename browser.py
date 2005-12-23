@@ -500,6 +500,12 @@ class ListControl(Control):
         return [i.name for i in self.mech_control.items if not i.disabled]
 
     @property
+    def disabled(self):
+        if self.type == 'checkbox' and len(self.mech_control.items) == 1:
+            return bool(getattr(self.mech_control.items[0], 'disabled', False))
+        return bool(getattr(self.mech_control, 'disabled', False))
+
+    @property
     def controls(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
