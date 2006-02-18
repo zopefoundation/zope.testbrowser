@@ -13,9 +13,9 @@ you would do using a normal web browser.
 
 There is also a special version of the ``Browser`` class used to do functional
 testing of Zope 3 applications, it can be imported from
-``zope.testbrowser.testing`` or just ``zope.testbrowser`` directly:
+``zope.testbrowser.testing``:
 
-    >>> from zope.testbrowser import Browser
+    >>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
 
 The browser can send arbitrary headers; this is helpful for setting the
