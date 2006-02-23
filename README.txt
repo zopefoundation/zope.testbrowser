@@ -178,7 +178,7 @@ Links expose several attributes for easy access.
     >>> link.attrs
     {'href': 'navigate.html?message=By+Link+Text'}
 
-Links can be "clicked" and the brower will navigate to the refrenced URL.
+Links can be "clicked" and the browser will navigate to the referenced URL.
 
     >>> link.click()
     >>> browser.url
@@ -204,7 +204,7 @@ When finding a link by its text, whitespace is normalized.
     '...Message: <em>By Link Text with Normalization</em>...'
 
 Note that clicking a link object after its browser page has expired will
-geterate an error.
+generate an error.
 
     >>> link.click()
     Traceback (most recent call last):
@@ -805,7 +805,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl(name='radio-value')
 
     This shows the existing value of the control, as it was in the
-    HTML recieved from the server:
+    HTML received from the server:
 
     >>> ctrl.value
     ['2']
@@ -958,7 +958,7 @@ Forms
 -----
 
 Because pages can have multiple forms with like-named controls, it is sometimes
-neccesary to access forms by name or id.  The browser's `forms` attribute can
+necessary to access forms by name or id.  The browser's `forms` attribute can
 be used to do so.  The key value is the form's name or id.  If more than one
 form has the same name or id, the first one will be returned.
 
