@@ -146,10 +146,11 @@ class Browser(SetattrErrorsMixin):
         if mech_browser is None:
             mech_browser = mechanize.Browser()
         self.mech_browser = mech_browser
-        if url is not None:
-            self.open(url)
         self.timer = PystoneTimer()
         self._enable_setattr_errors = True
+
+        if url is not None:
+            self.open(url)
 
     @property
     def url(self):

@@ -18,6 +18,12 @@ testing of Zope 3 applications, it can be imported from
     >>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
 
+An ititial page to load can be passed to the ``Browser`` constructor:
+
+    >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.url
+    'http://localhost/@@/testbrowser/simple.html'
+
 The browser can send arbitrary headers; this is helpful for setting the
 "Authorization" header or a language value, so that your tests format values
 the way you expect in your tests, if you rely on zope.i18n locale-based
@@ -26,7 +32,7 @@ formatting or a similar approach.
     >>> browser.addHeader('Authorization', 'Basic mgr:mgrpw')
     >>> browser.addHeader('Accept-Language', 'en-US')
 
-The browser can `open` web pages:
+An existing browser instance can also `open` web pages:
 
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
