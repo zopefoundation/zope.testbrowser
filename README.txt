@@ -18,7 +18,7 @@ testing of Zope 3 applications, it can be imported from
     >>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
 
-An ititial page to load can be passed to the ``Browser`` constructor:
+An initial page to load can be passed to the ``Browser`` constructor:
 
     >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
@@ -134,7 +134,7 @@ library):
     >>> browser.headers
     <httplib.HTTPMessage instance...>
 
-The headers can be accesed as a string:
+The headers can be accessed as a string:
 
     >>> print browser.headers
     Status: 200 Ok
@@ -500,7 +500,7 @@ These fields have four other attributes and an additional method:
     >>> ctrl.value
     ['1', '2']
 
-  - subcontrols gives you a list of the subcontrol objects in the control
+  - 'controls' gives you a list of the subcontrol objects in the control
     (subcontrols are discussed below).
 
     >>> ctrl.controls
@@ -508,7 +508,7 @@ These fields have four other attributes and an additional method:
      <ItemControl name='multi-select-value' type='select' optionValue='2'>,
      <ItemControl name='multi-select-value' type='select' optionValue='3'>]
 
-  - The get method lets you get subcontrols by their label or their value.
+  - The 'getControl' method lets you get subcontrols by their label or their value.
 
     >>> ctrl.getControl('Un')
     <ItemControl name='multi-select-value' type='select' optionValue='1'>
@@ -854,7 +854,7 @@ The various types of controls are demonstrated here.
     >>> ctrl.displayValue
     ['Ein']
 
-  The radio control subcontrols were illustrated above.
+    The radio control subcontrols were illustrated above.
 
   - Image Control
 
