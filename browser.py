@@ -207,7 +207,15 @@ class Browser(SetattrErrorsMixin):
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
         self._start_timer()
-        self.mech_browser.open(url, data)
+        try:
+            self.mech_browser.open(url, data)
+        except urllib2.HTTPError, e:
+            if e.code >= 200 and e.code <= 299:
+                # 200s aren't really errors
+                pass
+            else:
+                raise
+
         self._stop_timer()
         self._changed()
 
