@@ -16,16 +16,17 @@
 $Id$
 """
 __docformat__ = "reStructuredText"
+from test import pystone
 from zope.testbrowser import interfaces
 import ClientForm
+import StringIO
 import mechanize
 import operator
 import pullparser
 import re
-import StringIO
+import sys
 import time
 import urllib2
-from test import pystone
 
 try:
     from zope import interface
