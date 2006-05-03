@@ -618,8 +618,14 @@ The various types of controls are demonstrated here.
 
   - File Control
 
-    The minimum setup required for file controls is to assign a file-like
-    object to the control's ``value`` attribute:
+    File controls are used when a form has a file-upload field.
+    To specify data, call the add_file method, passing:
+
+    - A file-like object
+
+    - a content type, and 
+ 
+    - a file name
 
     >>> ctrl = browser.getControl('File Control')
     >>> ctrl
@@ -629,12 +635,9 @@ The various types of controls are demonstrated here.
     >>> ctrl.value is None
     True
     >>> import cStringIO
-    >>> ctrl.value = cStringIO.StringIO('File contents')
 
-    The file control's content type and file name can also be set:
-
-    >>> ctrl.filename = 'test.txt'
-    >>> ctrl.content_type = 'text/plain'
+    >>> ctrl.add_file(cStringIO.StringIO('File contents'),
+    ...               'text/plain', 'test.txt')
 
     The file control (like the other controls) also knows if it is disabled
     or if it can have multiple values.

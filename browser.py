@@ -19,7 +19,7 @@ __docformat__ = "reStructuredText"
 from test import pystone
 from zope.testbrowser import interfaces
 import ClientForm
-import StringIO
+from cStringIO import StringIO
 import mechanize
 import operator
 import pullparser
@@ -464,6 +464,14 @@ class Control(SetattrErrorsMixin):
             else:
                 self.mech_control.value = value
         return property(fget, fset)
+
+    def add_file(self, file, content_type, filename):
+        if not self.mech_control.type == 'file':
+            raise TypeError("Can't call add_file on %s controls"
+                            % self.mech_control.type)
+        if isinstance(file, str):
+            file = StringIO(file)
+        self.mech_control.add_file(file, content_type, filename)
 
     def clear(self):
         if self._browser_counter != self.browser._counter:
