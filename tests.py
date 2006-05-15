@@ -160,7 +160,7 @@ class Browser(browser.Browser):
 
 def test_file_upload():
     """
-    
+
     >>> browser = Browser()
 
 When given a form with a file-upload
@@ -220,7 +220,7 @@ You can pass s atring to add_file:
     """
 
 checker = renormalizing.RENormalizing([
-    (re.compile('127.0.0.\S+'), '-'*30),
+    (re.compile(r'(--|boundary=)\d+\.\d+\.\d+\.\S+'), '-'*30),
     (re.compile('User-agent:\s+\S+'), 'User-agent: XXX'),
     (re.compile('Content-length:\s+\S+'), 'Content-length: 123'),
     ])
