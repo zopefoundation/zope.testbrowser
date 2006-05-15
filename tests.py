@@ -220,7 +220,8 @@ You can pass s atring to add_file:
     """
 
 checker = renormalizing.RENormalizing([
-    (re.compile(r'(--|boundary=)\d+\.\d+\.\d+\.\S+'), '-'*30),
+    (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-'*30),
+    (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary='+'-'*30),
     (re.compile('User-agent:\s+\S+'), 'User-agent: XXX'),
     (re.compile('Content-length:\s+\S+'), 'Content-length: 123'),
     ])
