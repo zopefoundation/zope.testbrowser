@@ -18,16 +18,10 @@ $Id$
 __docformat__ = "reStructuredText"
 
 try:
-    # zope.interface isn't included in the stand-alone version
-    from zope import interface
+    # zope.interface and zope.schema aren't included in the stand-alone version
+    from zope import interface, schema
 except ImportError:
-    from dummymodules import interface
-
-try:
-    # zope.schema isn't included in the stand-alone version
-    from zope import schema
-except ImportError:
-    from dummymodules import schema
+    from dummymodules import interface, schema
 
 
 class IBrowser(interface.Interface):
