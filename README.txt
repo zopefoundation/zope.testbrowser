@@ -623,8 +623,8 @@ The various types of controls are demonstrated here.
 
     - A file-like object
 
-    - a content type, and 
- 
+    - a content type, and
+
     - a file name
 
     >>> ctrl = browser.getControl('File Control')
@@ -832,7 +832,7 @@ The various types of controls are demonstrated here.
     ['2']
 
     displayValue shows the text the user would see next to the
-    control: 
+    control:
 
     >>> ctrl.displayValue
     ['Zwei']
