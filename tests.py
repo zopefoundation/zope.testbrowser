@@ -47,7 +47,7 @@ def set_next_response(body, headers=None, status='200', reason='OK'):
 
 
 class FauxConnection(object):
-    """A ``urllib2`` compatible connection obejct."""
+    """A ``urllib2`` compatible connection object."""
 
     def __init__(self, host):
         pass
@@ -89,7 +89,7 @@ class FauxConnection(object):
     def getresponse(self):
         """Return a ``urllib2`` compatible response.
 
-        The goal of ths method is to convert the Zope Publisher's reseponse to
+        The goal of this method is to convert the Zope Publisher's response to
         a ``urllib2`` compatible response, which is also understood by
         mechanize.
         """
@@ -195,7 +195,7 @@ Fill in the form value using add_file:
     --127.0.0.11000318041146699896411--
     <BLANKLINE>
 
-You can pass s atring to add_file:
+You can pass a string to add_file:
 
 
     >>> browser.getControl(name='foo').add_file(
