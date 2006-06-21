@@ -1128,7 +1128,7 @@ NB: Setting the handleErrors attribute to False will only change
 Hand-Holding
 ------------
 
-Instances of the various objects ensure that users don't accidentally set
+Instances of the various objects ensure that users don't set incorrect
 instance attributes accidentally.
 
     >>> browser.nonexistant = None
@@ -1158,8 +1158,25 @@ Fixed Bugs
 This section includes tests for bugs that were found and then fixed that don't
 fit into the more documentation-centric sections above.
 
+Spaces in URL
+~~~~~~~~~~~~~
+
 When URLs have spaces in them, they're handled correctly (before the bug was
 fixed, you'd get "ValueError: too many values to unpack"):
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.getLink('Spaces in the URL').click()
+
+.goBack() Truncation
+~~~~~~~~~~~~~~~~~~~~
+
+The .goBack() method used to truncate the .contents.
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> actual_length = len(browser.contents)
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.goBack()
+    >>> len(browser.contents) == actual_length
+    True

@@ -22,7 +22,6 @@ import ClientForm
 from cStringIO import StringIO
 import mechanize
 import operator
-import pullparser
 import re
 import sys
 import time
@@ -217,16 +216,24 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         self._start_timer()
         try:
-            self.mech_browser.open(url, data)
-        except urllib2.HTTPError, e:
-            if e.code >= 200 and e.code <= 299:
-                # 200s aren't really errors
-                pass
-            else:
-                raise
+            try:
+                self.mech_browser.open(url, data)
+            except urllib2.HTTPError, e:
+                if e.code >= 200 and e.code <= 299:
+                    # 200s aren't really errors
+                    pass
+                else:
+                    raise
+        finally:
+            self._stop_timer()
+            self._changed()
 
-        self._stop_timer()
-        self._changed()
+        # if the headers don't have a status, I suppose there can't be an error
+        if 'Status' in self.headers:
+            code, msg = self.headers['Status'].split(' ', 1)
+            code = int(code)
+            if code >= 400:
+                raise urllib2.HTTPError(url, code, msg, self.headers, fp=None)
 
     def _start_timer(self):
         self.timer.start()
@@ -294,13 +301,20 @@ class Browser(SetattrErrorsMixin):
             for control in f.controls:
                 phantom = control.type in ('radio', 'checkbox')
                 if include_subcontrols and (
-
                     phantom or control.type=='select'):
+
+                    found_one = False
                     for i in control.items:
                         for l in i.get_labels():
                             if matches(l.text):
                                 found.append((i, f))
+                                found_one = True
                                 break
+
+                    if found_one:
+                        del found_one
+                        continue
+
                 if not phantom:
                     for l in control.get_labels():
                         if matches(l.text):

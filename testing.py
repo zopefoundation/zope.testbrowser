@@ -22,7 +22,6 @@ import urllib2
 from cStringIO import StringIO
 
 import mechanize
-import ClientCookie
 
 import transaction
 from zope.testbrowser import browser
@@ -127,28 +126,23 @@ class PublisherHTTPHandler(urllib2.HTTPHandler):
 class PublisherMechanizeBrowser(mechanize.Browser):
     """Special ``mechanize`` browser using the Zope Publisher HTTP handler."""
 
-    handler_classes = {
-        # scheme handlers
-        "http": PublisherHTTPHandler,
+    default_schemes = ['http']
+    default_others = ['_http_error', '_http_request_upgrade',
+                      '_http_default_error']
+    default_features = ['_redirect', '_cookies', '_referer', '_refresh',
+                        '_equiv', '_basicauth', '_digestauth', '_seek' ]
 
-        "_http_error": ClientCookie.HTTPErrorProcessor,
-        "_http_request_upgrade": ClientCookie.HTTPRequestUpgradeProcessor,
-        "_http_default_error": urllib2.HTTPDefaultErrorHandler,
+    def __init__(self, *args, **kws):
+        inherited_handlers = ['_unknown', '_http_error',
+            '_http_request_upgrade', '_http_default_error', '_basicauth',
+            '_digestauth', '_redirect', '_cookies', '_referer',
+            '_refresh', '_equiv', '_seek', '_gzip']
 
-        # feature handlers
-        "_authen": urllib2.HTTPBasicAuthHandler,
-        "_redirect": ClientCookie.HTTPRedirectHandler,
-        "_cookies": ClientCookie.HTTPCookieProcessor,
-        "_refresh": ClientCookie.HTTPRefreshProcessor,
-        "_referer": mechanize.Browser.handler_classes['_referer'],
-        "_equiv": ClientCookie.HTTPEquivProcessor,
-        "_seek": ClientCookie.SeekableProcessor,
-        }
+        self.handler_classes = {"http": PublisherHTTPHandler}
+        for name in inherited_handlers:
+            self.handler_classes[name] = mechanize.Browser.handler_classes[name]
 
-    default_schemes = ["http"]
-    default_others = ["_http_error", "_http_request_upgrade",
-                      "_http_default_error"]
-    default_features = ["_authen", "_redirect", "_cookies", "_seek"]
+        mechanize.Browser.__init__(self, *args, **kws)
 
 
 class Browser(browser.Browser):
