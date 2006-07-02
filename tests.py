@@ -23,7 +23,6 @@ import urllib2
 from cStringIO import StringIO
 
 import mechanize
-import ClientCookie
 
 from zope.testbrowser import browser
 from zope.testing import renormalizing, doctest
@@ -47,7 +46,7 @@ def set_next_response(body, headers=None, status='200', reason='OK'):
 
 
 class FauxConnection(object):
-    """A ``urllib2`` compatible connection obejct."""
+    """A ``urllib2`` compatible connection object."""
 
     def __init__(self, host):
         pass
@@ -89,7 +88,7 @@ class FauxConnection(object):
     def getresponse(self):
         """Return a ``urllib2`` compatible response.
 
-        The goal of ths method is to convert the Zope Publisher's reseponse to
+        The goal of this method is to convert the Zope Publisher's response to
         a ``urllib2`` compatible response, which is also understood by
         mechanize.
         """
@@ -128,18 +127,18 @@ class FauxMechanizeBrowser(mechanize.Browser):
         # scheme handlers
         "http": FauxHTTPHandler,
 
-        "_http_error": ClientCookie.HTTPErrorProcessor,
-        "_http_request_upgrade": ClientCookie.HTTPRequestUpgradeProcessor,
+        "_http_error": mechanize.HTTPErrorProcessor,
+        "_http_request_upgrade": mechanize.HTTPRequestUpgradeProcessor,
         "_http_default_error": urllib2.HTTPDefaultErrorHandler,
 
         # feature handlers
         "_authen": urllib2.HTTPBasicAuthHandler,
-        "_redirect": ClientCookie.HTTPRedirectHandler,
-        "_cookies": ClientCookie.HTTPCookieProcessor,
-        "_refresh": ClientCookie.HTTPRefreshProcessor,
+        "_redirect": mechanize.HTTPRedirectHandler,
+        "_cookies": mechanize.HTTPCookieProcessor,
+        "_refresh": mechanize.HTTPRefreshProcessor,
         "_referer": mechanize.Browser.handler_classes['_referer'],
-        "_equiv": ClientCookie.HTTPEquivProcessor,
-        "_seek": ClientCookie.SeekableProcessor,
+        "_equiv": mechanize.HTTPEquivProcessor,
+        "_seek": mechanize.SeekableProcessor,
         }
 
     default_schemes = ["http"]
@@ -195,7 +194,7 @@ Fill in the form value using add_file:
     --127.0.0.11000318041146699896411--
     <BLANKLINE>
 
-You can pass s atring to add_file:
+You can pass a string to add_file:
 
 
     >>> browser.getControl(name='foo').add_file(
@@ -222,6 +221,8 @@ You can pass s atring to add_file:
 checker = renormalizing.RENormalizing([
     (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-'*30),
     (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary='+'-'*30),
+    (re.compile(r'^---{10}.*', re.M), '-'*30),
+    (re.compile(r'boundary=-{10}.*'), 'boundary='+'-'*30),
     (re.compile('User-agent:\s+\S+'), 'User-agent: XXX'),
     (re.compile('Content-length:\s+\S+'), 'Content-length: 123'),
     ])
