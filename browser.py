@@ -300,10 +300,14 @@ class Browser(SetattrErrorsMixin):
         for f in forms:
             for control in f.controls:
                 phantom = control.type in ('radio', 'checkbox')
+                if not phantom:
+                    for l in control.get_labels():
+                        if matches(l.text):
+                            found.append((control, f))
+                            break
                 if include_subcontrols and (
                     phantom or control.type=='select'):
 
-                    found_one = False
                     for i in control.items:
                         for l in i.get_labels():
                             if matches(l.text):
@@ -311,15 +315,6 @@ class Browser(SetattrErrorsMixin):
                                 found_one = True
                                 break
 
-                    if found_one:
-                        del found_one
-                        continue
-
-                if not phantom:
-                    for l in control.get_labels():
-                        if matches(l.text):
-                            found.append((control, f))
-                            break
         return found
 
     def _findByName(self, name, forms):

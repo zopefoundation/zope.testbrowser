@@ -1,0 +1,200 @@
+<html>
+  <body>
+
+    <h1>Controls Tests</h1>
+
+    <form action="controls.html" method="post">
+
+      <div>
+        <label for="text-value">Text Control</label>
+        <em tal:condition="request/text-value|nothing"
+            tal:content="request/text-value"></em>
+        <input type="text" name="text-value" id="text-value" 
+               value="Some Text" />
+      </div>
+
+      <div>
+        <label for="password-value">Password Control</label>
+        <em tal:condition="request/password-value|nothing"
+            tal:content="request/password-value"></em>
+        <input type="password" name="password-value" id="password-value"
+               value="Password" />
+      </div>
+
+      <div>
+        <label for="hidden-value">Hidden Control</label> (label: hee hee)
+        <em tal:condition="request/hidden-value|nothing"
+            tal:content="request/hidden-value"></em>
+        <input type="hidden" name="hidden-value" id="hidden-value"
+               value="Hidden" />
+      </div>
+
+      <div>
+        <label for="textarea-value">Text Area Control</label>
+        <em tal:condition="request/textarea-value|nothing"
+            tal:content="request/textarea-value"></em>
+        <textarea name="textarea-value" id="textarea-value">
+          Text inside
+          area!
+        </textarea>
+      </div>
+
+      <div>
+        <label for="file-value">File Control</label>
+        <em tal:condition="request/file-value|nothing"
+            tal:content="request/file-value"></em>
+        <input type="file" name="file-value" id="file-value" />
+      </div>
+
+      <div>
+        <label for="single-select-value">Single Select Control</label>
+        <em tal:condition="request/single-select-value|nothing"
+            tal:content="request/single-select-value"></em>
+        <select name="single-select-value" id="single-select-value">
+          <option value="1">Uno</option>
+          <option value="2">Dos</option>
+          <option value="3" label="Third">Tres</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="multi-select-value">Multiple Select Control</label>
+        <em tal:condition="request/multi-select-value|nothing"
+            tal:content="request/multi-select-value"></em>
+        <select name="multi-select-value" id="multi-select-value"
+                multiple="multiple">
+          <option value="1">Un</option>
+          <option value="2">Deux</option>
+          <option value="3" label="Third">Trois</option>
+        </select>
+      </div>
+
+      <div>
+        <em tal:condition="request/single-unvalued-checkbox-value|nothing"
+            tal:content="request/single-unvalued-checkbox-value"></em>
+        <input type="checkbox" name="single-unvalued-checkbox-value" 
+               id="single-unvalued-checkbox" checked="checked" />
+        <label for="single-unvalued-checkbox">Single Unvalued Checkbox</label>
+      </div>
+
+      <div>
+        <em tal:condition="
+            request/single-disabled-unvalued-checkbox-value|nothing"
+            tal:content="request/single-disabled-unvalued-checkbox-value"></em>
+        <input type="checkbox" name="single-disabled-unvalued-checkbox-value" 
+               id="single-disabled-unvalued-checkbox" checked="checked"
+               disabled="disabled" />
+        <label for="single-disabled-unvalued-checkbox">
+          Single Disabled Unvalued Checkbox
+        </label>
+      </div>
+
+      <div>
+        <em tal:condition="request/single-valued-checkbox-value|nothing"
+            tal:content="request/single-valued-checkbox-value"></em>
+        <label><input type="checkbox" name="single-valued-checkbox-value" 
+                      value="1" checked="checked" />Single Valued Checkbox
+        </label>
+      </div>
+
+      <div>
+        (Multi checkbox: options have the labels)
+        <em tal:condition="request/multi-checkbox-value|nothing"
+            tal:content="request/multi-checkbox-value"></em>
+        <label><input type="checkbox" name="multi-checkbox-value" value="1" 
+                      checked="checked" /> One</label>
+        <input type="checkbox" name="multi-checkbox-value" value="2" 
+               id="multi-checkbox-value-2" />
+        <label for="multi-checkbox-value-2">Two</label>
+        <label><input type="checkbox" name="multi-checkbox-value" value="3" 
+                      id="multi-checkbox-value-3" checked="checked" />Three
+        </label>
+        <label for="multi-checkbox-value-3">Third</label>
+      </div>
+
+      <div>
+        (Radio: options have the labels)
+        <em tal:condition="request/radio-value|nothing"
+            tal:content="request/radio-value"></em>
+        <label><input type="radio" name="radio-value" value="1" />Ein</label>
+        <input type="radio" name="radio-value" id="radio-value-2" value="2"
+               checked="checked" />
+        <label for="radio-value-2">Zwei</label>
+        <label><input type="radio" name="radio-value" id="radio-value-3"
+                      value="3" /> Drei</label>
+        <label for="radio-value-3">Third</label>
+      </div>
+
+      <div>
+        <label for="image-value">Image Control</label>
+        <em tal:condition="request/image-value.x|nothing"
+            tal:content="request/image-value.x"></em>
+        <em tal:condition="request/image-value.y|nothing"
+            tal:content="request/image-value.y"></em>
+        <input type="image" name="image-value" id="image-value"
+               src="zope3logo.gif" />
+      </div>
+
+      <div>
+        <label for="submit-value">Standard Submit Control</label>
+        <em tal:condition="request/submit-value|nothing"
+            tal:content="request/submit-value"></em>
+        <input type="submit" name="submit-value" id="submit-value"
+               value="Submit This" />
+      </div>
+
+      <div>
+        <label for="ambiguous-control-name">Ambiguous Control</label>
+        <input type="text" name="ambiguous-control-name"
+               id="ambiguous-control-name" value="First" />
+      </div>
+
+      <div>
+        <label for="ambiguous-control-name">Ambiguous Control</label>
+        <input type="text" name="ambiguous-control-name"
+               id="ambiguous-control-name" value="Second" />
+      </div>
+
+      <div>
+        <label for="label-needs-normalization">  The Label
+          Needs Whitespace Normalization
+          Badly  </label>
+        <input type="text" name="label-needs-normalization"
+               id="label-needs-normalization" />
+      </div>
+
+      <div>
+        <label for="non-word-characters">*[non word characters should not
+          confuse]</label>
+        <input type="text" name="non-word-characters"
+               id="non-word-characters" />
+      </div>
+
+      <div>
+        <label for="two-labels">Multiple labels really</label>
+        <label for="two-labels">really are possible</label>
+        <input type="text" name="two-labels"
+               id="two-labels" />
+      </div>
+
+      <div>
+        <label>Labels can be connected by containing their respective fields
+          <input type="text" name="contained-in-label" />
+        </label>
+      </div>
+
+      <div>
+        If you have a select field with a label that overlaps with one of its
+        options' labels, that is ambiguous.
+        <label for="ambiguous-subcontrol">Sub-control Ambiguity</label>
+        <select name="ambiguous-subcontrol" id="ambiguous-subcontrol">
+          <option value="">(none)</option>
+          <option value="ambiguous">Sub-control Ambiguity Exemplified</option>
+        </select>
+      </div>
+
+
+    </form>
+
+  </body>
+</html>
