@@ -324,6 +324,14 @@ AmbiguityError.
     ...
     AmbiguityError: label 'Ambiguous Control'
 
+This is also true if an option in a control is ambiguous in relation to
+the control itself.
+
+    >>> browser.getControl('Sub-control Ambiguity')
+    Traceback (most recent call last):
+    ...
+    AmbiguityError: label 'Sub-control Ambiguity'
+
 Ambiguous controls may be specified using an index value.  We use the control's
 value attribute to show the two controls; this attribute is properly introduced
 below.
@@ -334,6 +342,10 @@ below.
     'First'
     >>> browser.getControl('Ambiguous Control', index=1).value
     'Second'
+    >>> browser.getControl('Sub-control Ambiguity', index=0)
+    <ListControl name='ambiguous-subcontrol' type='select'>
+    >>> browser.getControl('Sub-control Ambiguity', index=1).optionValue
+    'ambiguous'
 
 Label searches are against stripped, whitespace-normalized, no-tag versions of
 the text. Text applied to searches is also stripped and whitespace normalized.
