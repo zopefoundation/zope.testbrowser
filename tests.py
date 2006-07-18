@@ -218,6 +218,66 @@ You can pass a string to add_file:
 
     """
 
+
+def test_strip_linebreaks_from_textarea(self):
+    """
+
+    >>> browser = Browser()
+
+According to http://www.w3.org/TR/html4/appendix/notes.html#h-B.3.1 line break
+immediately after start tags or immediately before end tags must be ignored,
+but real browsers only ignore a line break after a start tag.  So if we give
+the following form:
+
+    >>> browser.open('''
+    ... <html><body>
+    ...   <form action="." method="post" enctype="multipart/form-data">
+    ...      <textarea name="textarea">
+    ... Foo
+    ... </textarea>
+    ...   </form></body></html>
+    ... ''') # doctest: +ELLIPSIS
+    GET / HTTP/1.1
+    ...
+
+The value of the textarea won't contain the first line break:
+
+    >>> browser.getControl(name='textarea').value
+    'Foo\\n'
+
+Of course, if we add line breaks, so that there are now two line breaks
+after the start tag, the textarea value will start and end with a line break.
+
+    >>> browser.open('''
+    ... <html><body>
+    ...   <form action="." method="post" enctype="multipart/form-data">
+    ...      <textarea name="textarea">
+    ...
+    ... Foo
+    ... </textarea>
+    ...   </form></body></html>
+    ... ''') # doctest: +ELLIPSIS
+    GET / HTTP/1.1
+    ...
+
+    >>> browser.getControl(name='textarea').value
+    '\\nFoo\\n'
+
+Also, if there is some other whitespace after the start tag, it will be preserved.
+
+    >>> browser.open('''
+    ... <html><body>
+    ...   <form action="." method="post" enctype="multipart/form-data">
+    ...      <textarea name="textarea">  Foo  </textarea>
+    ...   </form></body></html>
+    ... ''') # doctest: +ELLIPSIS
+    GET / HTTP/1.1
+    ...
+
+    >>> browser.getControl(name='textarea').value
+    '  Foo  '
+    """
+
 checker = renormalizing.RENormalizing([
     (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-'*30),
     (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary='+'-'*30),
