@@ -621,7 +621,7 @@ The various types of controls are demonstrated here.
     >>> verifyObject(interfaces.IControl, ctrl)
     True
     >>> ctrl.value
-    '\n        Text inside\n        area!\n      '
+    '        Text inside\n        area!\n      '
     >>> ctrl.value = 'A lot of\n text.'
     >>> ctrl.disabled
     False
