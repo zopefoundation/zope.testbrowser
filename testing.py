@@ -175,7 +175,7 @@ class VirtualHostingPublisherHTTPHandler(urllib2.HTTPHandler):
     def http_open(self, req):
         """Open an HTTP connection having a ``urllib2`` request."""
         # Here we connect to the publisher.
-        return self.do_open(VirtualHostingPublisherConnection, req) 
+        return self.do_open(VirtualHostingPublisherConnection, req)
 
 class VirtualHostingPublisherMechanizeBrowser(PublisherMechanizeBrowser):
     handler_classes = PublisherMechanizeBrowser.handler_classes.copy()
@@ -200,7 +200,7 @@ def virtualHostingSetUp(test):
 def VirtualHostTestBrowserSuite(*paths, **kw):
 #    layer=None,
 #    globs=None, setUp=None, normalizers=None, **kw):
-    
+
     if 'checker' in kw:
         raise ValueError(
             'Must not supply custom checker.  To provide values for '
