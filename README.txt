@@ -20,9 +20,9 @@ testing of Zope 3 applications, it can be imported from
 
 An initial page to load can be passed to the ``Browser`` constructor:
 
-    >>> browser = Browser('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.pt'
+    'http://localhost/@@/testbrowser/simple.html'
 
 The browser can send arbitrary headers; this is helpful for setting the
 "Authorization" header or a language value, so that your tests format values
@@ -34,9 +34,9 @@ formatting or a similar approach.
 
 An existing browser instance can also `open` web pages:
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.pt'
+    'http://localhost/@@/testbrowser/simple.html'
 
 Once you have opened a web page initially, best practice for writing
 testbrowser doctests suggests using 'click' to navigate further (as discussed
@@ -86,7 +86,7 @@ Checking for HTML
 
 Not all URLs return HTML.  Of course our simple page does:
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.isHtml
     True
 
@@ -103,13 +103,13 @@ HTML Page Title
 
 Another useful helper property is the title:
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.title
     'Simple Page'
 
 If a page does not provide a title, it is simply ``None``:
 
-    >>> browser.open('http://localhost/@@/testbrowser/notitle.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/notitle.html')
     >>> browser.title
 
 However, if the output is not HTML, then an error will occur trying to access
@@ -130,7 +130,7 @@ headers.  The headers are accessible via a separate attribute, which is an
 ``httplib.HTTPMessage`` instance (httplib is a part of Python's standard
 library):
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.headers
     <httplib.HTTPMessage instance...>
 
@@ -153,20 +153,20 @@ Navigation and Link Objects
 ---------------------------
 
 If you want to simulate clicking on a link, get the link and `click` on it.
-In the `navigate.pt` file there are several links set up to demonstrate the
+In the `navigate.html` file there are several links set up to demonstrate the
 capabilities of the link objects and their `click` method.
 
 The simplest way to get a link is via the anchor text.  In other words
 the text you would see in a browser (text and url searches are substring
 searches):
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
-    '...<a href="navigate.pt?message=By+Link+Text">Link Text</a>...'
+    '...<a href="navigate.html?message=By+Link+Text">Link Text</a>...'
     >>> link = browser.getLink('Link Text')
     >>> link
     <Link text='Link Text'
-      url='http://localhost/@@/testbrowser/navigate.pt?message=By+Link+Text'>
+      url='http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'>
 
 Link objects comply with the ILink interface.
 
@@ -180,21 +180,21 @@ Links expose several attributes for easy access.
     >>> link.tag # links can also be image maps.
     'a'
     >>> link.url # it's normalized
-    'http://localhost/@@/testbrowser/navigate.pt?message=By+Link+Text'
+    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
     >>> link.attrs
-    {'href': 'navigate.pt?message=By+Link+Text'}
+    {'href': 'navigate.html?message=By+Link+Text'}
 
 Links can be "clicked" and the browser will navigate to the referenced URL.
 
     >>> link.click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.pt?message=By+Link+Text'
+    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
     >>> browser.contents
     '...Message: <em>By Link Text</em>...'
 
 When finding a link by its text, whitespace is normalized.
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
     '...> Link Text \n    with     Whitespace\tNormalization (and parens) </...'
     >>> link = browser.getLink('Link Text with Whitespace Normalization '
@@ -205,7 +205,7 @@ When finding a link by its text, whitespace is normalized.
     'Link Text with Whitespace Normalization (and parens)'
     >>> link.click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.pt?message=By+Link+Text+with+Normalization'
+    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text+with+Normalization'
     >>> browser.contents
     '...Message: <em>By Link Text with Normalization</em>...'
 
@@ -219,26 +219,26 @@ generate an error.
 
 You can also find the link by its URL,
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
-    '...<a href="navigate.pt?message=By+URL">Using the URL</a>...'
+    '...<a href="navigate.html?message=By+URL">Using the URL</a>...'
 
     >>> browser.getLink(url='?message=By+URL').click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.pt?message=By+URL'
+    'http://localhost/@@/testbrowser/navigate.html?message=By+URL'
     >>> browser.contents
     '...Message: <em>By URL</em>...'
 
 or its id:
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
-    '...<a href="navigate.pt?message=By+Id"
+    '...<a href="navigate.html?message=By+Id"
     id="anchorid">By Anchor Id</a>...'
 
     >>> browser.getLink(id='anchorid').click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.pt?message=By+Id'
+    'http://localhost/@@/testbrowser/navigate.html?message=By+Id'
     >>> browser.contents
     '...Message: <em>By Id</em>...'
 
@@ -246,19 +246,19 @@ You thought we were done here? Not so quickly.  The `getLink` method also
 supports image maps, though not by specifying the coordinates, but using the
 area's id:
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> link = browser.getLink(id='zope3')
     >>> link.tag
     'area'
     >>> link.click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.pt?message=Zope+3+Name'
+    'http://localhost/@@/testbrowser/navigate.html?message=Zope+3+Name'
     >>> browser.contents
     '...Message: <em>Zope 3 Name</em>...'
 
 Getting a nonexistent link raises an exception.
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.getLink('This does not exist')
     Traceback (most recent call last):
     ...
@@ -270,21 +270,21 @@ Other Navigation
 
 Like in any normal browser, you can reload a page:
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.pt'
+    'http://localhost/@@/testbrowser/simple.html'
     >>> browser.reload()
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.pt'
+    'http://localhost/@@/testbrowser/simple.html'
 
 You can also go back:
 
-    >>> browser.open('http://localhost/@@/testbrowser/notitle.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/notitle.html')
     >>> browser.url
-    'http://localhost/@@/testbrowser/notitle.pt'
+    'http://localhost/@@/testbrowser/notitle.html'
     >>> browser.goBack()
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.pt'
+    'http://localhost/@@/testbrowser/simple.html'
 
 
 Controls
@@ -294,7 +294,7 @@ One of the most important features of the browser is the ability to inspect
 and fill in values for the controls of input forms.  To do so, let's first open
 a page that has a bunch of controls:
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
 
 Obtaining a Control
 ~~~~~~~~~~~~~~~~~~~
@@ -926,7 +926,7 @@ Both the submit and image type should be clickable and submit the form:
 Note that if you click a submit object after the associated page has expired,
 you will get an error.
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> ctrl = browser.getControl('Submit')
     >>> ctrl.click()
     >>> ctrl.click()
@@ -936,7 +936,7 @@ you will get an error.
 
 All the above also holds true for the image control:
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> browser.getControl('Text Control').value = 'Other Text'
     >>> browser.getControl(name='image-value').click()
     >>> print browser.contents
@@ -952,7 +952,7 @@ All the above also holds true for the image control:
     ...
     </html>
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> ctrl = browser.getControl(name='image-value')
     >>> ctrl.click()
     >>> ctrl.click()
@@ -962,7 +962,7 @@ All the above also holds true for the image control:
 
 But when sending an image, you can also specify the coordinate you clicked:
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> browser.getControl(name='image-value').click((50,25))
     >>> print browser.contents
     <html>
@@ -983,7 +983,7 @@ necessary to access forms by name or id.  The browser's `forms` attribute can
 be used to do so.  The key value is the form's name or id.  If more than one
 form has the same name or id, the first one will be returned.
 
-    >>> browser.open('http://localhost/@@/testbrowser/forms.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/forms.html')
     >>> form = browser.getForm(name='one')
 
 Form instances conform to the IForm interface.
@@ -1006,7 +1006,7 @@ The form exposes several attributes related to forms:
   - The action (target URL) when the form is submitted:
 
     >>> form.action
-    'http://localhost/@@/testbrowser/forms.pt'
+    'http://localhost/@@/testbrowser/forms.html'
 
   - The method (HTTP verb) used to transmit the form data:
 
@@ -1039,7 +1039,7 @@ it's primary reason for existing in competition with the control submission
 discussed above.
 
 Now let me show you briefly that looking up forms is sometimes important.  In
-the `forms.pt` template, we have four forms all having a text control named
+the `forms.html` template, we have four forms all having a text control named
 `text-value`.  Now, if I use the browser's `get` method,
 
     >>> browser.getControl(name='text-value')
@@ -1092,7 +1092,7 @@ used to ensure a particular request's performance is within a tolerable range.
 Be very careful using raw seconds, cross-machine differences can be huge,
 pystones is usually a better choice.
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.lastRequestSeconds < 10 # really big number for safety
     True
     >>> browser.lastRequestPystones < 10000 # really big number for safety
@@ -1176,7 +1176,7 @@ Spaces in URL
 When URLs have spaces in them, they're handled correctly (before the bug was
 fixed, you'd get "ValueError: too many values to unpack"):
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.getLink('Spaces in the URL').click()
 
 .goBack() Truncation
@@ -1184,11 +1184,11 @@ fixed, you'd get "ValueError: too many values to unpack"):
 
 The .goBack() method used to truncate the .contents.
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> actual_length = len(browser.contents)
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.pt')
-    >>> browser.open('http://localhost/@@/testbrowser/simple.pt')
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.goBack()
     >>> len(browser.contents) == actual_length
     True

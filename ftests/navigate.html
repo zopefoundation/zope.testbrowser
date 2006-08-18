@@ -1,0 +1,39 @@
+<html>
+  <body>
+
+    <h1>Navigation Tests</h1>
+
+    <p tal:condition="request/message|nothing">
+      Message: <em tal:content="request/message">Message</em>
+    </p>
+
+    <a href="navigate.html?message=By+Link+Text">Link Text</a>
+
+    <a href="navigate.html?message=By+Link+Text+with+Normalization"> Link Text 
+    with     Whitespace	Normalization (and parens) </a>
+
+    <a href="navigate.html?message=By+URL">Using the URL</a>
+
+    <a href="navigate.html?message=By+Name" name="anchorname">By Anchor Name</a>
+
+    <a href="navigate.html?message=By+Id" id="anchorid">By Anchor Id</a>
+
+    <a href="navigate.html?message=Spaces in URL">Spaces in the URL</a>
+
+    <form action="navigate.html" method="post">
+      <input name="message" value="By Form Submit" />
+      <input type="submit" name="submit-form" value="Submit" />
+    </form>
+
+    <img src="./zope3logo.gif" usemap="#zope3logo" />
+    <map name="zope3logo">
+      <area shape="rect" alt="Zope3" 
+            href="navigate.html?message=Zope+3+Name" id="zope3" title="Zope 3" 
+            coords="44,7,134,33" />
+      <area shape="circle" alt="Logo" 
+            href="navigate.html?message=Logo" id="logo" title="Logo" 
+            coords="23,21,18" />
+    </map>
+
+  </body>
+</html>
