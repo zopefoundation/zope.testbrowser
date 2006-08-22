@@ -425,11 +425,11 @@ may also be searched by label.
     >>> browser.getControl(name='radio-value')
     <ListControl name='radio-value' type='radio'>
     >>> browser.getControl('Zwei')
-    <ItemControl name='radio-value' type='radio' optionValue='2'>
+    <ItemControl name='radio-value' type='radio' optionValue='2' selected=True>
     >>> browser.getControl('One')
-    <ItemControl name='multi-checkbox-value' type='checkbox' optionValue='1'>
+    <ItemControl name='multi-checkbox-value' type='checkbox' optionValue='1' selected=True>
     >>> browser.getControl('Tres')
-    <ItemControl name='single-select-value' type='select' optionValue='3'>
+    <ItemControl name='single-select-value' type='select' optionValue='3' selected=False>
 
 Characteristics of controls and subcontrols are discussed below.
 
@@ -516,20 +516,20 @@ These fields have four other attributes and an additional method:
     (subcontrols are discussed below).
 
     >>> ctrl.controls
-    [<ItemControl name='multi-select-value' type='select' optionValue='1'>,
-     <ItemControl name='multi-select-value' type='select' optionValue='2'>,
-     <ItemControl name='multi-select-value' type='select' optionValue='3'>]
+    [<ItemControl name='multi-select-value' type='select' optionValue='1' selected=True>,
+     <ItemControl name='multi-select-value' type='select' optionValue='2' selected=True>,
+     <ItemControl name='multi-select-value' type='select' optionValue='3' selected=False>]
 
   - The 'getControl' method lets you get subcontrols by their label or their value.
 
     >>> ctrl.getControl('Un')
-    <ItemControl name='multi-select-value' type='select' optionValue='1'>
+    <ItemControl name='multi-select-value' type='select' optionValue='1' selected=True>
     >>> ctrl.getControl('Deux')
-    <ItemControl name='multi-select-value' type='select' optionValue='2'>
+    <ItemControl name='multi-select-value' type='select' optionValue='2' selected=True>
     >>> ctrl.getControl('Trois') # label attribute
-    <ItemControl name='multi-select-value' type='select' optionValue='3'>
+    <ItemControl name='multi-select-value' type='select' optionValue='3' selected=False>
     >>> ctrl.getControl('Third') # contents
-    <ItemControl name='multi-select-value' type='select' optionValue='3'>
+    <ItemControl name='multi-select-value' type='select' optionValue='3' selected=False>
     >>> browser.getControl('Third') # ambiguous in the browser, so useful
     Traceback (most recent call last):
     ...
