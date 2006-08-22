@@ -635,9 +635,9 @@ class ItemControl(SetattrErrorsMixin):
         self.mech_item.selected = not self.mech_item.selected
 
     def __repr__(self):
-        return "<%s name=%r type=%r optionValue=%r>" % (
+        return "<%s name=%r type=%r optionValue=%r selected=%r>" % (
             self.__class__.__name__, self.mech_item._control.name,
-            self.mech_item._control.type, self.optionValue)
+            self.mech_item._control.type, self.optionValue, self.mech_item.selected)
 
 
 class Form(SetattrErrorsMixin):
