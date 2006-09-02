@@ -232,6 +232,7 @@ def VirtualHostTestBrowserSuite(*paths, **kw):
     suite = unittest.TestSuite()
     test = functional.FunctionalDocFileSuite(*paths, **kw)
     vh_test = functional.FunctionalDocFileSuite(*paths, **vh_kw)
+    vh_test.level = 2
     if layer is not None:
         test.layer = layer
         vh_test.layer = layer
