@@ -345,9 +345,6 @@ class Browser(SetattrErrorsMixin):
 
     def getForm(self, id=None, name=None, action=None, index=None):
         zeroOrOne([id, name, action], '"id", "name", and "action"')
-        if index is None and not any([id, name, action]):
-            raise ValueError(
-                'if no other arguments are given, index is required.')
 
         matching_forms = []
         for form in self.mech_browser.forms():
@@ -356,6 +353,13 @@ class Browser(SetattrErrorsMixin):
             or (action is not None and re.search(action, str(form.action)))
             or id == name == action == None):
                 matching_forms.append(form)
+
+        if index is None and not any([id, name, action]):
+            if len(matching_forms) == 1:
+                index = 0
+            else:
+                raise ValueError(
+                    'if no other arguments are given, index is required.')
 
         form = disambiguate(matching_forms, '', index)
         self.mech_browser.form = form

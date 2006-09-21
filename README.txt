@@ -1083,6 +1083,20 @@ If a form is requested that does not exists, an exception will be raised.
     Traceback (most recent call last):
     LookupError
 
+If the HTML page contains only one form, no arguments to `getForm` are
+needed:
+
+    >>> oneform = Browser()
+    >>> oneform.open('http://localhost/@@/testbrowser/oneform.html')
+    >>> form = oneform.getForm()
+
+If the HTML page contains more than one form, `index` is needed to
+disambiguate if no other arguments are provided:
+
+    >>> browser.getForm()
+    Traceback (most recent call last):
+    ValueError: if no other arguments are given, index is required.
+
 
 Performance Testing
 -------------------
