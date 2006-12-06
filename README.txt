@@ -209,6 +209,16 @@ When finding a link by its text, whitespace is normalized.
     >>> browser.contents
     '...Message: <em>By Link Text with Normalization</em>...'
 
+When a link text matches more than one link, by default the first one is
+chosen. You can, however, specify the index of the link and thus retrieve a
+later matching link:
+
+    >>> browser.getLink('Link Text')
+    <Link text='Link Text' ...>
+
+    >>> browser.getLink('Link Text', index=1)
+    <Link text='Link Text with Whitespace Normalization (and parens)' ...>
+
 Note that clicking a link object after its browser page has expired will
 generate an error.
 

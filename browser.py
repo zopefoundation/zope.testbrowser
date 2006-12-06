@@ -269,7 +269,7 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         self.mech_browser.addheaders.append( (key, value) )
 
-    def getLink(self, text=None, url=None, id=None):
+    def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
         if id is not None:
             def predicate(link):
@@ -290,6 +290,7 @@ class Browser(SetattrErrorsMixin):
             else:
                 url_regex = None
             args = {'text_regex': text_regex, 'url_regex': url_regex}
+        args['nr'] = index
         return Link(self.mech_browser.find_link(**args), self)
 
     def _findByLabel(self, label, forms, include_subcontrols=False):
