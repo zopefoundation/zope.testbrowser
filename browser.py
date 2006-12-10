@@ -364,7 +364,7 @@ class Browser(SetattrErrorsMixin):
     def _clickSubmit(self, form, control, coord):
         self._start_timer()
         self.mech_browser.open(form.click(
-                    id=control.id, name=control.name, coord=coord))
+            id=control.id, name=control.name, label=control.value, coord=coord))
         self._stop_timer()
 
     def _changed(self):
