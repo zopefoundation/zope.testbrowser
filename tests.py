@@ -197,6 +197,38 @@ We can specify the second button through it's label/value:
     BAD
     -----------------------------100167997466992641913031254--
     <BLANKLINE>
+
+This also works if the labels have whitespace around them (this tests a
+regression caused by the original fix for the above):
+
+    >>> browser.open('''\
+    ... <html><body>
+    ...   <form action="." method="post" enctype="multipart/form-data">
+    ...      <input type="submit" name="submit_me" value=" GOOD " />
+    ...      <input type="submit" name="submit_me" value=" BAD " />
+    ...   </form></body></html>
+    ... ''') # doctest: +ELLIPSIS
+    GET / HTTP/1.1
+    ...
+    >>> browser.getControl('BAD')
+    <SubmitControl name='submit_me' type='submit'>
+    >>> browser.getControl('BAD').value
+    ' BAD '
+    >>> browser.getControl('BAD').click() # doctest: +REPORT_NDIFF
+    POST / HTTP/1.1
+    Content-length: 176
+    Connection: close
+    Content-type: multipart/form-data; boundary=---------------------------100167997466992641913031254
+    Host: localhost
+    User-agent: Python-urllib/2.4
+    <BLANKLINE>
+    -----------------------------100167997466992641913031254
+    Content-disposition: form-data; name="submit_me"
+    <BLANKLINE>
+     BAD 
+    -----------------------------100167997466992641913031254--
+    <BLANKLINE>
+
 """
 
 def test_file_upload():
