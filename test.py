@@ -34,7 +34,7 @@ from zope.testing import testrunner
 defaults = [
     '--path', src,
     '--package', 'zope.testbrowser',
-    '--tests-pattern', '^tests$',
+    '--tests-pattern', '^f?tests$',
     ]
 
 sys.exit(testrunner.run(defaults))
