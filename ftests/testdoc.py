@@ -15,15 +15,23 @@
 
 $Id$
 """
+import os
 import unittest
 import doctest
 from zope.app.testing.functional import FunctionalDocFileSuite
+from zope.app.testing import functional
+
+TestBrowserLayer = functional.ZCMLLayer(
+    os.path.join(os.path.split(__file__)[0], 'ftesting.zcml'),
+    __name__, 'TestBrowserLayer')
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     readme = FunctionalDocFileSuite('../README.txt', optionflags=flags)
+    readme.layer = TestBrowserLayer 
     wire = FunctionalDocFileSuite('../over_the_wire.txt', optionflags=flags)
     wire.level = 2
+    wire.layer = TestBrowserLayer 
     return unittest.TestSuite((readme, wire))
 
 if __name__ == '__main__':
