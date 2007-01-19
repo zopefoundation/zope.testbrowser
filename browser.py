@@ -16,7 +16,6 @@
 $Id$
 """
 __docformat__ = "reStructuredText"
-from test import pystone
 from zope.testbrowser import interfaces
 import ClientForm
 from cStringIO import StringIO
@@ -100,6 +99,11 @@ class PystoneTimer(object):
     @property
     def pystonesPerSecond(self):
         """How many pystones are equivalent to one second on this machine"""
+
+        # deferred import as workaround for Zope 2 testrunner issue:
+        # http://www.zope.org/Collectors/Zope/2268
+        from test import pystone
+
         if self._pystones_per_second == None:
             self._pystones_per_second = pystone.pystones(pystone.LOOPS/10)[1]
         return self._pystones_per_second
