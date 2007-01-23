@@ -211,7 +211,10 @@ def VirtualHostTestBrowserSuite(*paths, **kw):
     layer = kw.pop('layer', None)
     normalizers = kw.pop('normalizers', None)
     vh_kw = kw.copy()
-    globs = kw.setdefault('globs', {})
+    if 'globs' in kw:
+        globs = kw['globs'] = kw['globs'].copy() # don't mutate the original
+    else:
+        globs = kw['globs'] = {}
     if 'Browser' in globs:
         raise ValueError('"Browser" must not be defined in globs')
     vh_kw['globs'] = globs.copy()
