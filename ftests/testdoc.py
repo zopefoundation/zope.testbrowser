@@ -23,7 +23,7 @@ from zope.app.testing import functional
 
 TestBrowserLayer = functional.ZCMLLayer(
     os.path.join(os.path.split(__file__)[0], 'ftesting.zcml'),
-    __name__, 'TestBrowserLayer')
+    __name__, 'TestBrowserLayer', allow_teardown=True)
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
