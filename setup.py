@@ -18,13 +18,10 @@ $Id$
 
 import os
 
-try:
-    from setuptools import setup, Extension
-except ImportError, e:
-    from distutils.core import setup, Extension
+from setuptools import setup, find_packages
 
 setup(name='zope.testbrowser',
-      version='3.4-dev',
+      version='3.4dev',
       url='http://svn.zope.org/zope.testbrowser',
       license='ZPL 2.1',
       description='Zope testbrowser',
@@ -38,7 +35,7 @@ setup(name='zope.testbrowser',
                        "this stand-alone version can be used to"
                        "test or otherwise interact with any web site.",
 
-      packages=['zope', 'zope.testbrowser', 'zope.testbrowser.ftests'],
+      packages=find_packages('src'),
       package_dir = {'': 'src'},
 
       namespace_packages=['zope',],
