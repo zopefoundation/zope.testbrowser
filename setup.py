@@ -40,9 +40,11 @@ setup(name='zope.testbrowser',
 
       namespace_packages=['zope',],
       tests_require = ['zope.testing'],
-      install_requires=['ClientForm',
-                        'mechanize',
-                        'zope.interface'],
+      install_requires=[],
+      extras_require = {
+        'interface':  ['zope.interface',],
+        'schema':  ['zope.schema',],
+        },
       include_package_data = True,
 
       zip_safe = False,
