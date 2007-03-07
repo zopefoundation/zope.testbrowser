@@ -140,7 +140,6 @@ The headers can be accessed as a string:
     Status: 200 Ok
     Content-Length: ...
     Content-Type: text/html;charset=utf-8
-    X-Content-Type-Warning: guessed from content
     X-Powered-By: Zope (www.zope.org), Python (www.python.org)
 
 Or as a mapping:
