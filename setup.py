@@ -40,7 +40,7 @@ setup(name='zope.testbrowser',
 
       namespace_packages=['zope',],
       tests_require = ['zope.testing'],
-      install_requires=[],
+      install_requires=['setuptools'],
       extras_require = {
         'interface':  ['zope.interface',],
         'schema':  ['zope.schema',],
