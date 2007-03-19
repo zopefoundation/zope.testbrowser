@@ -16,35 +16,29 @@
 $Id$
 """
 
-import os
-
 from setuptools import setup, find_packages
 
-setup(name='zope.testbrowser',
-      version='3.4dev',
-      url='http://svn.zope.org/zope.testbrowser',
-      license='ZPL 2.1',
-      description='Zope testbrowser',
-      author='Zope Corporation and Contributors',
-      author_email='zope3-dev@zope.org',
-      long_description="An easy to use programmatic web browser"
-                       "with special focus on testing. Used in"
-                       "Zope 3, but not Zope specific."
-                       "The zope.testbrowser package used in the"
-                       "Zope 3 project for functional testing;"
-                       "this stand-alone version can be used to"
-                       "test or otherwise interact with any web site.",
-
-      packages=find_packages('src'),
-      package_dir = {'': 'src'},
-
-      namespace_packages=['zope',],
-      tests_require = ['zope.testing'],
-      install_requires=['setuptools'],
-      extras_require = dict(
-        test =  ['zope.interface', 'zope.schema', 'zope.app',],
+setup(
+    name = 'zope.testbrowser',
+    version = '3.4dev',
+    url = 'http://svn.zope.org/zope.testbrowser',
+    license = 'ZPL 2.1',
+    description = 'Zope testbrowser',
+    author = 'Zope Corporation and Contributors',
+    author_email = 'zope3-dev@zope.org',
+    long_description = 'An easy to use programmatic web browser'
+        ' with special focus on testing. Used in Zope 3, but not Zope'
+        ' specific.  The zope.testbrowser package used in the Zope 3'
+        ' project for functional testing; this stand-alone version can be'
+        ' used to test or otherwise interact with any web site.',
+    packages = find_packages('src'),
+    package_dir = {'': 'src'},
+    namespace_packages = ['zope',],
+    tests_require = ['zope.testing'],
+    install_requires = ['setuptools'],
+    extras_require = dict(
+        test = ['zope.interface', 'zope.schema', 'zope.app'],
         ),
-      include_package_data = True,
-
-      zip_safe = False,
-      )
+    include_package_data = True,
+    zip_safe = False,
+    )
