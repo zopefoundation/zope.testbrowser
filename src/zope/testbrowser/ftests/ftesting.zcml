@@ -1,0 +1,38 @@
+<configure 
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="zope"
+    package="zope.testbrowser"
+    >
+
+  <!-- This file is the equivalent of site.zcml and it is -->
+  <!-- used for functional testing setup -->
+
+  <include package="zope.app.zcmlfiles" />
+  <include package="zope.app.authentication" />
+
+  <!-- Principals -->
+
+  <unauthenticatedPrincipal
+      id="zope.anybody"
+      title="Unauthenticated User" />
+
+
+  <include package="zope.app.securitypolicy" file="meta.zcml"/>
+
+  <securityPolicy
+    component="zope.app.securitypolicy.zopepolicy.ZopeSecurityPolicy" />
+
+  <role id="zope.Anonymous" title="Everybody"
+                 description="All users have this role implicitly" />
+
+  <!-- Replace the following directive if you don't want public access -->
+  <grant permission="zope.View"
+                  role="zope.Anonymous" />
+
+
+  <browser:resourceDirectory
+      name="testbrowser"
+      directory="ftests" />
+
+</configure>

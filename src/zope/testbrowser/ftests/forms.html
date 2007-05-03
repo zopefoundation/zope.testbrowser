@@ -1,0 +1,40 @@
+<html>
+  <body>
+
+    <h1>Forms Tests</h1>
+
+    <em tal:condition="request/text-value|nothing"
+        tal:content="request/text-value" />
+
+    <form id="1" name="one" action="forms.html"
+          enctype="multipart/form-data" method="post">
+      <input type="text" name="text-value" value="First Text" />
+      <input type="image" name="image-1" src="zope3logo.gif" />
+      <input type="submit" name="submit-1" value="Submit" />
+    </form>
+
+    <form id="2" name="two" action="forms.html">
+      <input type="text" name="text-value" value="Second Text" />
+      <input type="submit" name="submit-2" value="Submit" />
+    </form>
+
+    <form id="3" name="three" action="forms.html">
+      <label for="text-value-3">Text Control</label>
+      <input type="text" name="text-value" id="text-value-3"
+             value="Third Text" />
+      <input type="submit" name="submit-3" value="Submit" />
+    </form>
+
+    <form action="forms.html">
+      <label for="text-value-4">Text Control</label>
+      <input type="text" name="text-value" id="text-value-4"
+             value="Fourth Text" />
+      <em tal:condition="python: 'hidden-4' in request.form and
+                                 'submit-4' not in request.form"
+        >Submitted without the submit button.</em>
+      <input type="submit" name="submit-4" value="Don't Submit Me" />
+      <input type="hidden" name="hidden-4" value="marker" />
+    </form>
+
+  </body>
+</html>

@@ -1,0 +1,38 @@
+=================================
+Using testbrowser On the Internet
+=================================
+
+The ``zope.testbrowser`` module exposes a ``Browser`` class that
+simulates a web browser similar to Mozilla Firefox or IE.
+
+    >>> from zope.testbrowser.browser import Browser
+    >>> browser = Browser()
+
+It can send arbitrary headers; this is helpful for setting the language value,
+so that your tests format values the way you expect in your tests, if you rely
+on zope.i18n locale-based formatting or a similar approach.
+
+    >>> browser.addHeader('Accept-Language', 'en-US')
+
+The browser can `open` web pages:
+
+    >>> # This is tricky, since in Germany I am forwarded to google.de usually;
+    >>> # The `ncr` forces to really go to google.com.
+    >>> browser.open('http://google.com/ncr')
+    >>> browser.url
+    'http://www.google.com/'
+    >>> 'html' in browser.contents.lower()
+    True
+
+We'll put some text in the query box...
+
+    >>> browser.getControl(name='q').value = 'zope.testbrowser'
+
+...and then click the search button.
+
+    >>> browser.getControl('Google Search').click()
+    Traceback (most recent call last):
+    ...
+    RobotExclusionError: HTTP Error 403: request disallowed by robots.txt
+
+Oops!  Google doesn't let robots use their search engine.  Oh well.
