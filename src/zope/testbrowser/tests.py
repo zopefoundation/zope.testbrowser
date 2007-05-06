@@ -359,6 +359,7 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'boundary=-{10}.*'), 'boundary='+'-'*30),
     (re.compile('User-agent:\s+\S+'), 'User-agent: XXX'),
     (re.compile('Content-length:\s+\S+'), 'Content-length: 123'),
+    (re.compile('Status: 200 O[Kk]'), 'Status: 200 OK'),
     ])
 
 def test_suite():
