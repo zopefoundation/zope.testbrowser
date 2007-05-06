@@ -16,16 +16,18 @@
 $Id$
 """
 
-import unittest
-import httplib
-import re
-import urllib2
 from cStringIO import StringIO
-
-import mechanize
-
+from zope.app.testing import functional
+from zope.app.testing.functional import FunctionalDocFileSuite
 from zope.testbrowser import browser
 from zope.testing import renormalizing, doctest
+import httplib
+import mechanize
+import os
+import re
+import unittest
+import unittest
+import urllib2
 
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
@@ -362,11 +364,20 @@ checker = renormalizing.RENormalizing([
     (re.compile('Status: 200 O[Kk]'), 'Status: 200 OK'),
     ])
 
+TestBrowserLayer = functional.ZCMLLayer(
+    os.path.join(os.path.split(__file__)[0], 'ftests/ftesting.zcml'),
+    __name__, 'TestBrowserLayer', allow_teardown=True)
+
 def test_suite():
     from zope.testing import doctest
-    return unittest.TestSuite((
-        doctest.DocTestSuite(checker=checker),
-        ))
+    flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+    readme = FunctionalDocFileSuite('README.txt', optionflags=flags)
+    readme.layer = TestBrowserLayer
+    wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
+    wire.level = 2
+    wire.layer = TestBrowserLayer
+    this_file = doctest.DocTestSuite(checker=checker)
+    return unittest.TestSuite((this_file, readme, wire))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
