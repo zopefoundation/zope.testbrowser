@@ -136,7 +136,7 @@ library):
 
 The headers can be accessed as a string:
 
-    >>> print browser.headers # doctest: +REPORT_NDIFF
+    >>> print browser.headers
     Status: 200 OK
     Content-Length: 123
     Content-Type: text/html;charset=utf-8
