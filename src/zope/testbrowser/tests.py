@@ -359,9 +359,9 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary='+'-'*30),
     (re.compile(r'^---{10}.*', re.M), '-'*30),
     (re.compile(r'boundary=-{10}.*'), 'boundary='+'-'*30),
-    (re.compile('User-agent:\s+\S+'), 'User-agent: XXX'),
-    (re.compile('Content-length:\s+\S+'), 'Content-length: 123'),
-    (re.compile('Status: 200 O[Kk]'), 'Status: 200 OK'),
+    (re.compile(r'User-agent:\s+\S+'), 'User-agent: Python-urllib/2.4'),
+    (re.compile(r'Content-[Ll]ength:.*'), 'Content-Length: 123'),
+    (re.compile(r'Status: 200.*'), 'Status: 200 OK'),
     ])
 
 TestBrowserLayer = functional.ZCMLLayer(
@@ -371,7 +371,8 @@ TestBrowserLayer = functional.ZCMLLayer(
 def test_suite():
     from zope.testing import doctest
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    readme = FunctionalDocFileSuite('README.txt', optionflags=flags)
+    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
+        checker=checker)
     readme.layer = TestBrowserLayer
     wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
