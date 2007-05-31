@@ -1159,6 +1159,36 @@ NB: Setting the handleErrors attribute to False will only change
     publisher or can otherwise respond appropriately to an
     'X-zope-handle-errors' header in requests.
 
+When the testbrowser is raising HttpErrors, the errors still hit the test.
+Sometimes we don't want that to happen, in situations where there are edge
+cases that will cause the error to be predictabley but infrequently raised.
+Time is a primary cause of this.
+
+To get around this, one can set the raiseHttpErrors to False.
+
+    >>> browser.handleErrors = True
+    >>> browser.raiseHttpErrors = False
+
+This will cause HttpErrors not to propagate.
+
+    >>> browser.open('http://localhost/invalid')
+
+The headers are still there, though.
+
+    >>> '404 Not Found' in str(browser.headers)
+    True
+
+If we don't handle the errors, and allow internal ones to propagate, however,
+this flage doesn't affect things.
+
+    >>> browser.handleErrors = False
+    >>> browser.open('http://localhost/invalid')
+    Traceback (most recent call last):
+    ...
+    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
+              name: u'invalid'
+
+    >>> browser.raiseHttpErrors = True
 
 Hand-Holding
 ------------
