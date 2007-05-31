@@ -158,6 +158,7 @@ class Browser(SetattrErrorsMixin):
             mech_browser = mechanize.Browser()
         self.mech_browser = mech_browser
         self.timer = PystoneTimer()
+        self.raiseHttpErrors = True
         self._enable_setattr_errors = True
 
         if url is not None:
@@ -225,7 +226,7 @@ class Browser(SetattrErrorsMixin):
                 if e.code >= 200 and e.code <= 299:
                     # 200s aren't really errors
                     pass
-                else:
+                elif self.raiseHttpErrors:
                     raise
         finally:
             self._stop_timer()
@@ -235,7 +236,7 @@ class Browser(SetattrErrorsMixin):
         if 'Status' in self.headers:
             code, msg = self.headers['Status'].split(' ', 1)
             code = int(code)
-            if code >= 400:
+            if self.raiseHttpErrors and code >= 400:
                 raise urllib2.HTTPError(url, code, msg, self.headers, fp=None)
 
     def _start_timer(self):
