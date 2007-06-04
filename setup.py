@@ -20,7 +20,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'zope.testbrowser',
-    version = '3.4.0b1',
+    version = '3.4',
     url = 'http://svn.zope.org/zope.testbrowser',
     license = 'ZPL 2.1',
     description = 'Zope testbrowser',
