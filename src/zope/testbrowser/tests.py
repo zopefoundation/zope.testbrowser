@@ -140,13 +140,12 @@ class FauxMechanizeBrowser(mechanize.Browser):
         "_refresh": mechanize.HTTPRefreshProcessor,
         "_referer": mechanize.Browser.handler_classes['_referer'],
         "_equiv": mechanize.HTTPEquivProcessor,
-        "_seek": mechanize.SeekableProcessor,
         }
 
     default_schemes = ["http"]
     default_others = ["_http_error", "_http_request_upgrade",
                       "_http_default_error"]
-    default_features = ["_authen", "_redirect", "_cookies", "_seek"]
+    default_features = ["_authen", "_redirect", "_cookies"]
 
 
 class Browser(browser.Browser):
@@ -354,6 +353,10 @@ Also, if there is some other whitespace after the start tag, it will be preserve
     '  Foo  '
     """
 
+class win32CRLFtransformer(object):
+    def sub(self, replacement, text):
+        return text.replace(r'\r','')
+
 checker = renormalizing.RENormalizing([
     (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-'*30),
     (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary='+'-'*30),
@@ -362,6 +365,8 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'User-agent:\s+\S+'), 'User-agent: Python-urllib/2.4'),
     (re.compile(r'Content-[Ll]ength:.*'), 'Content-Length: 123'),
     (re.compile(r'Status: 200.*'), 'Status: 200 OK'),
+    (re.compile(r'httperror_seek_wrapper:', re.M), 'HTTPError:'),
+    (win32CRLFtransformer(), None),
     ])
 
 TestBrowserLayer = functional.ZCMLLayer(

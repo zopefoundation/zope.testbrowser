@@ -35,7 +35,9 @@ setup(
     package_dir = {'': 'src'},
     namespace_packages = ['zope',],
     tests_require = ['zope.testing'],
-    install_requires = ['setuptools'],
+    install_requires = ['setuptools',
+                        'mechanize',
+                        'ClientForm'],
     extras_require = dict(
         test = ['zope.interface',
                 'zope.schema',
