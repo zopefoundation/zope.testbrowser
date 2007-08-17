@@ -60,7 +60,7 @@ class PublisherConnection(object):
 
         url = self._quote(url)
         # Extract the handle_error option header
-        if sys.version_info >=(2,5):
+        if sys.version_info >= (2,5):
             handle_errors_key = 'X-Zope-Handle-Errors'
         else:
             handle_errors_key = 'X-zope-handle-errors'
