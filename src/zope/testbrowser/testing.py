@@ -16,6 +16,7 @@
 $Id$
 """
 import re
+import sys
 import unittest
 import httplib
 import urllib2
@@ -59,7 +60,10 @@ class PublisherConnection(object):
 
         url = self._quote(url)
         # Extract the handle_error option header
-        handle_errors_key = 'X-zope-handle-errors'
+        if sys.version_info >=(2,5):
+            handle_errors_key = 'X-Zope-Handle-Errors'
+        else:
+            handle_errors_key = 'X-zope-handle-errors'
         handle_errors = headers.get(handle_errors_key, True)
         if handle_errors_key in headers:
             del headers[handle_errors_key]

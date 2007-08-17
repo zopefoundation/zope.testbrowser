@@ -362,6 +362,9 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'User-agent:\s+\S+'), 'User-agent: Python-urllib/2.4'),
     (re.compile(r'Content-[Ll]ength:.*'), 'Content-Length: 123'),
     (re.compile(r'Status: 200.*'), 'Status: 200 OK'),
+    (re.compile(r'User-Agent: Python-urllib/2.5'), 'User-agent: Python-urllib/2.4'),
+    (re.compile(r'Host: localhost'), 'Connection: close'),
+    (re.compile (r'Content-Type: '), 'Content-type: '),
     ])
 
 TestBrowserLayer = functional.ZCMLLayer(
