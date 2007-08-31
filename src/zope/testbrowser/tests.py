@@ -112,6 +112,9 @@ class FauxResponse(object):
     def read(self, amt=None):
         return self.content_as_file.read(amt)
 
+    def close(self):
+        """To overcome changes in urllib2 and socket in python2.5"""
+
 
 class FauxHTTPHandler(urllib2.HTTPHandler):
 

@@ -115,6 +115,9 @@ class PublisherResponse(object):
     def read(self, amt=None):
         return self.content_as_file.read(amt)
 
+    def close(self):
+        """To overcome changes in urllib2 and socket in python2.5"""
+
 
 class PublisherHTTPHandler(urllib2.HTTPHandler):
     """Special HTTP handler to use the Zope Publisher."""
