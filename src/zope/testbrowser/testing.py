@@ -117,6 +117,7 @@ class PublisherResponse(object):
 
     def close(self):
         """To overcome changes in urllib2 and socket in python2.5"""
+        pass
 
 
 class PublisherHTTPHandler(urllib2.HTTPHandler):
