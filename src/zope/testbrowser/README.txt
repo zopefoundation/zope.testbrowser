@@ -1,6 +1,5 @@
-================
-The Test Browser
-================
+Detailed Documentation
+======================
 
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
