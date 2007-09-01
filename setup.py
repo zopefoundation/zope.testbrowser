@@ -15,22 +15,33 @@
 
 $Id$
 """
-
+import os
 from setuptools import setup, find_packages
+
+long_description = (
+    '.. contents::\n\n'
+    + open('README.txt').read()
+    + '\n\n'
+    + open(os.path.join('src', 'zope', 'testbrowser', 'README.txt')).read()
+    )
 
 setup(
     name = 'zope.testbrowser',
     version = '3.4.1',
-    url = 'http://svn.zope.org/zope.testbrowser',
+    url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
-    description = 'Zope testbrowser',
+    description = 'Programmable browser for functional black-box tests',
     author = 'Zope Corporation and Contributors',
     author_email = 'zope3-dev@zope.org',
-    long_description = 'An easy to use programmatic web browser'
-        ' with special focus on testing. Used in Zope 3, but not Zope'
-        ' specific.  The zope.testbrowser package used in the Zope 3'
-        ' project for functional testing; this stand-alone version can be'
-        ' used to test or otherwise interact with any web site.',
+    long_description = long_description,
+    classifiers=['Environment :: Web Environment',
+                 'Intended Audience :: Developers',
+                 'License :: OSI Approved :: Zope Public License',
+                 'Programming Language :: Python',
+                 'Topic :: Software Development :: Testing',
+                 'Topic :: Internet :: WWW/HTTP',
+                 ],
+
     packages = find_packages('src'),
     package_dir = {'': 'src'},
     namespace_packages = ['zope',],
