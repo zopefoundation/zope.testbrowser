@@ -29,7 +29,7 @@ Changes
   the REnormalizer.
 
 3.4.0a1 (2007-04-22)
--------------------
+--------------------
 
 Initial release as a separate project, corresponds to zope.testbrowser
 from Zope 3.4.0a1
