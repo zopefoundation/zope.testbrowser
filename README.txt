@@ -9,7 +9,7 @@ interact with any web site.
 Changes
 =======
 
-3.4.1 (unreleased)
+3.4.1 (2007-09-01)
 ------------------
 
 * Updated to mechanize 0.1.7b and ClientForm 0.2.7.  These are now
