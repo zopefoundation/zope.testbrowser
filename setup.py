@@ -49,7 +49,7 @@ setup(
     install_requires = ['setuptools',
                         'mechanize',
                         'ClientForm',
-                        'mozrepl'],
+                        'simplejson'],
     extras_require = dict(
         test = ['zope.interface',
                 'zope.schema',
