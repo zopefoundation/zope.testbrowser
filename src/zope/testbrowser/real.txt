@@ -1,0 +1,33 @@
+    >>> from zope.testbrowser.real import Browser
+
+    >>> browser = Browser(host='192.168.1.103')
+
+#    >>> browser = Browser(host='192.168.23.210')
+
+    >>> browser.open('http://images.google.com')
+    >>> browser.url
+    'http://images.google.com/'
+    >>> browser.open('http://google.com')
+    >>> browser.url
+    'http://www.google.com/'
+
+    >>> browser.isHtml
+    True
+
+    >>> browser.title
+    'Google'
+
+    >>> browser.contents
+    '<head>...</body>'
+
+    >>> browser.reload()
+    >>> browser.url
+    'http://www.google.com/'
+    >>> browser.goBack()
+    >>> browser.url
+    'http://images.google.com/'
+
+    >>> browser.getLink('Preferences')
+    <Link text='Preferences' url='http://images.google.com/preferences?hl=en'>
+
+#    >>> browser.getLink(url='http://news.google.com')

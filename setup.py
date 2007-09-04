@@ -48,7 +48,8 @@ setup(
     tests_require = ['zope.testing'],
     install_requires = ['setuptools',
                         'mechanize',
-                        'ClientForm'],
+                        'ClientForm',
+                        'mozrepl'],
     extras_require = dict(
         test = ['zope.interface',
                 'zope.schema',
