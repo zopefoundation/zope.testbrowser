@@ -2,8 +2,6 @@
 
     >>> browser = Browser()
 
-#    >>> browser = Browser(host='192.168.23.210')
-
     >>> browser.open('http://images.google.com')
     >>> browser.url
     'http://images.google.com/'
