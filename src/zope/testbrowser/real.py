@@ -49,7 +49,7 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
         for line in lines:
             self.execute(line)
 
-    def expect(self, res, timeout=1):
+    def expect(self, res, timeout=60):
         i, match, text = self.telnet.expect([PROMPT], timeout)
         if match is None:
             import pdb;pdb.set_trace()

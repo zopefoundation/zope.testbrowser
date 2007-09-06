@@ -1,0 +1,6 @@
+    >>> from zope.testbrowser.real import Browser
+    >>> browser = Browser()
+    >>> browser.open('http://slashdot.org')
+    >>> import time
+    >>> time.sleep(3)
+    >>> browser.execute('tb_take_screen_shot()')

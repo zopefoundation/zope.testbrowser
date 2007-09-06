@@ -394,6 +394,9 @@ def test_suite():
     wire = doctest.DocFileSuite('real.txt', optionflags=flags)
     wire.level = 3
 
+    wire = doctest.DocFileSuite('screen-shots.txt', optionflags=flags)
+    wire.level = 3
+
     this_file = doctest.DocTestSuite(checker=checker)
     return unittest.TestSuite((this_file, readme, wire))
 

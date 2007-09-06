@@ -109,3 +109,28 @@ function tb_get_link_by_url(url, index) {
             return a.href.indexOf(url) == 0;
         }, index)
 }
+
+function tb_take_screen_shot() {
+    // The `subject` is what we want to take a screen shot of.
+    var subject = content.document;
+    var canvas = content.document.createElement('canvas');
+    canvas.width = subject.width;
+    canvas.height = subject.height;
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawWindow(content, 0, 0, subject.width, subject.height, 'rgb(0,0,0)');
+    tb_save_canvas(canvas, '/tmp/1.png');
+}
+
+function tb_save_canvas(canvas, out_path, overwrite) {
+    var io = Components.classes['@mozilla.org/network/io-service;1'
+        ].getService(Components.interfaces.nsIIOService);
+    var source = io.newURI(canvas.toDataURL('image/png', ''), 'UTF8', null);
+    var persist = Components.classes[
+        '@mozilla.org/embedding/browser/nsWebBrowserPersist;1'
+        ].createInstance(Components.interfaces.nsIWebBrowserPersist);
+    var file = Components.classes['@mozilla.org/file/local;1'
+        ].createInstance(Components.interfaces.nsILocalFile);
+    file.initWithPath(out_path);
+    persist.saveURI(source, null, null, null, null, file);
+}
