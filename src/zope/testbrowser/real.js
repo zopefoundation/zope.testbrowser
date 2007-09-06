@@ -122,7 +122,7 @@ function tb_take_screen_shot(out_path) {
     tb_save_canvas(canvas, out_path);
 }
 
-function tb_save_canvas(canvas, out_path, overwrite) {
+function tb_save_canvas(canvas, out_path) {
     var io = Components.classes['@mozilla.org/network/io-service;1'
         ].getService(Components.interfaces.nsIIOService);
     var source = io.newURI(canvas.toDataURL('image/png', ''), 'UTF8', null);
