@@ -2,10 +2,10 @@
 
     >>> browser = Browser()
 
-    >>> browser.open('http://images.google.com')
+    >>> browser.open('http://images.google.com/ncr')
     >>> browser.url
     'http://images.google.com/'
-    >>> browser.open('http://google.com')
+    >>> browser.open('http://google.com/ncr')
     >>> browser.url
     'http://www.google.com/'
 
