@@ -134,3 +134,8 @@ function tb_save_canvas(canvas, out_path) {
     file.initWithPath(out_path);
     persist.saveURI(source, null, null, null, null, file);
 }
+
+
+tb_page_loaded = false;
+document.getElementById("appcontent"
+    ).addEventListener("load", function() { tb_page_loaded = true; }, true);

@@ -3,6 +3,7 @@ import ClientForm
 import os.path
 import re
 import simplejson
+import socket
 import telnetlib
 import time
 import zope.interface
@@ -15,6 +16,7 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
 
     raiseHttpErrors = True
     _counter = 0
+    timeout = 60
 
     def __init__(self, url=None, host='localhost', port=4242):
         self.timer = zope.testbrowser.browser.PystoneTimer()
@@ -27,7 +29,12 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
     def init_repl(self, host, port):
         dir = os.path.dirname(__file__)
         js_path = os.path.join(dir, 'real.js')
-        self.telnet = telnetlib.Telnet(host, port)
+        try:
+            self.telnet = telnetlib.Telnet(host, port)
+        except socket.error, e:
+            raise RuntimeError('Error connecting to Firefox at %s:%s.'
+                ' Is MozRepl running?' % (host, port))
+
         self.telnet.write(open(js_path, 'rt').read())
 
     def execute(self, js):
@@ -49,10 +56,9 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
         for line in lines:
             self.execute(line)
 
-    def expect(self, res, timeout=60):
-        i, match, text = self.telnet.expect([PROMPT], timeout)
+    def expect(self, res):
+        i, match, text = self.telnet.expect([PROMPT], self.timeout)
         if match is None:
-            import pdb;pdb.set_trace()
             raise RuntimeError('unexpected result from MozRepl')
         return i, match, text
 
@@ -63,23 +69,21 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
     def url(self):
         return self.execute('content.location')
 
-    def _primePageLoadWait(self):
-        # save the current document element to compare against later
-        self.execute('tb_prev_document = content.document.documentElement;')
+    def waitForPageLoad(self):
+        start = time.time()
+        while self.execute('tb_page_loaded') == 'false':
+            time.sleep(0.001)
+            if time.time() - start > self.timeout:
+                raise RuntimeError('timed out waiting for page load')
 
-    def _waitForPageLoad(self):
-        # wait for the page to load
-        while self.execute('content.document.documentElement'
-            '.isSameNode(tb_prev_document)') == 'true':
-                time.sleep(0.001)
+        self.execute('tb_page_loaded = false;')
 
     def open(self, url, data=None):
         assert data is None
         self.start_timer()
         try:
-            self._primePageLoadWait()
             self.execute('content.location = ' + simplejson.dumps(url))
-            self._waitForPageLoad()
+            self.waitForPageLoad()
         finally:
             self.stop_timer()
             self._changed()
@@ -128,16 +132,16 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
 
     def reload(self):
         self.start_timer()
-        self._primePageLoadWait()
         self.execute('content.document.location = content.document.location')
-        self._waitForPageLoad()
+        self.waitForPageLoad()
         self.stop_timer()
 
     def goBack(self, count=1):
         self.start_timer()
-        self._primePageLoadWait()
         self.execute('content.back()')
-        self._waitForPageLoad()
+        # Our method of knowing when the page finishes loading doesn't work
+        # for "back", so for now just sleep a little, and hope it is enough.
+        time.sleep(1)
         self.stop_timer()
         self._changed()
 

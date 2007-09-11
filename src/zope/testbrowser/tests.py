@@ -391,14 +391,14 @@ def test_suite():
     wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
 
-    wire = doctest.DocFileSuite('real.txt', optionflags=flags)
-    wire.level = 3
+    real = doctest.DocFileSuite('real.txt', optionflags=flags)
+    real.level = 3
 
-    wire = doctest.DocFileSuite('screen-shots.txt', optionflags=flags)
-    wire.level = 3
+    screen_shots = doctest.DocFileSuite('screen-shots.txt', optionflags=flags)
+    screen_shots.level = 3
 
     this_file = doctest.DocTestSuite(checker=checker)
-    return unittest.TestSuite((this_file, readme, wire))
+    return unittest.TestSuite((this_file, readme, wire, real, screen_shots))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
