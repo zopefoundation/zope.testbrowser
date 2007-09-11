@@ -33,6 +33,6 @@ We'll put some text in the query box...
     >>> browser.getControl('Google Search').click()
     Traceback (most recent call last):
     ...
-    RobotExclusionError: HTTP Error 403: request disallowed by robots.txt
+    httperror_seek_wrapper: HTTP Error 403: request disallowed by robots.txt
 
 Oops!  Google doesn't let robots use their search engine.  Oh well.
