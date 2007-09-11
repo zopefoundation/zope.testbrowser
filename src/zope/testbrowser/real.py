@@ -157,7 +157,7 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
                  % (simplejson.dumps(text), js_index))
         elif url is not None:
             msg = 'url %r' % url
-            token = self.execute('tb_get_link_by_text(%s, %s)'
+            token = self.execute('tb_get_link_by_url(%s, %s)'
                  % (simplejson.dumps(url), js_index))
         elif id is not None:
             msg = 'id %r' % id

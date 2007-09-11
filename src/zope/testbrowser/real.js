@@ -61,7 +61,7 @@ function tb_get_link_by_predicate(predicate, index) {
     var i=0;
     var found = null;
     if (index == undefined) index = null;
-    for (x=0; x < anchors.length; x++) {
+    for (var x=0; x < anchors.length; x++) {
         a = anchors[x];
         if (!predicate(a)) {
             continue;
@@ -96,17 +96,17 @@ function tb_get_link_by_text(text, index) {
         }, index)
 }
 
-function tb_get_link_by_id(id, index) {
-    return tb_get_link_by_predicate(
-        function (a) {
-            return a.id == id;
-        }, index)
-}
-
 function tb_get_link_by_url(url, index) {
     return tb_get_link_by_predicate(
         function (a) {
             return a.href.indexOf(url) == 0;
+        }, index)
+}
+
+function tb_get_link_by_id(id, index) {
+    return tb_get_link_by_predicate(
+        function (a) {
+            return a.id == id;
         }, index)
 }
 

@@ -28,4 +28,5 @@
     >>> browser.getLink('Preferences')
     <Link text='Preferences' url='http://images.google.com/preferences?hl=en'>
 
-#    >>> browser.getLink(url='http://news.google.com')
+    >>> browser.getLink(url='http://news.google.com/')
+    <Link text='News' url='http://news.google.com/nwshp?tab=in'>
