@@ -30,3 +30,11 @@
 
     >>> browser.getLink(url='http://news.google.com/')
     <Link text='News' url='http://news.google.com/nwshp?tab=in'>
+
+    >>> browser.getLink(url='http://')
+    Traceback (most recent call last):
+        ...
+    AmbiguityError: url 'http://'
+
+    >>> browser.getLink(url='http://', index=3)
+    <Link text='Maps' url='http://maps.google.com/maps?tab=il'>
