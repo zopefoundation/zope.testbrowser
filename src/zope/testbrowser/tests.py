@@ -381,14 +381,12 @@ TestBrowserLayer = functional.ZCMLLayer(
     __name__, 'TestBrowserLayer', allow_teardown=True)
 
 def test_suite():
-    from zope.testing import doctest
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
         checker=checker)
     readme.layer = TestBrowserLayer
-    wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
+    wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
-    wire.layer = TestBrowserLayer
     this_file = doctest.DocTestSuite(checker=checker)
     return unittest.TestSuite((this_file, readme, wire))
 
