@@ -2,34 +2,35 @@
 
     >>> browser = Browser()
 
-    >>> browser.open('http://images.google.com/ncr')
-    >>> browser.url
-    'http://images.google.com/'
-    >>> browser.open('http://google.com/ncr')
-    >>> browser.url
-    'http://www.google.com/'
+    >>> base_url = 'http://localhost:%s/' % TEST_PORT
+    >>> browser.open(base_url)
+    >>> browser.url == base_url
+    True
+
+    >>> browser.open(base_url + 'simple.html')
 
     >>> browser.isHtml
     True
 
     >>> browser.title
-    'Google'
+    'Simple Page'
 
     >>> browser.contents
     '<head>...</body>'
 
+    >>> url = browser.url
     >>> browser.reload()
-    >>> browser.url
-    'http://www.google.com/'
+    >>> browser.url == url
+    True
+
     >>> browser.goBack()
-    >>> browser.url
-    'http://images.google.com/'
+    >>> browser.url == base_url
+    True
 
-    >>> browser.getLink('Preferences')
-    <Link text='Preferences' url='http://images.google.com/preferences?hl=en'>
+    >>> browser.open(base_url + 'navigate.html')
 
-    >>> browser.getLink(url='http://news.google.com/')
-    <Link text='News' url='http://news.google.com/nwshp?tab=in'>
+    >>> browser.getLink('Link Text')
+    <Link text='Link Text' url='http://localhost:.../navigate.html?message=By+Link+Text'>
 
     >>> browser.getLink(url='http://')
     Traceback (most recent call last):
@@ -37,4 +38,5 @@
     AmbiguityError: url 'http://'
 
     >>> browser.getLink(url='http://', index=3)
-    <Link text='Maps' url='http://maps.google.com/maps?tab=il'>
+    <Link text='By Anchor Name' url='http://localhost:.../navigate.html?message=By+Name'>
+

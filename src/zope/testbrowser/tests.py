@@ -21,13 +21,34 @@ from zope.app.testing import functional
 from zope.app.testing.functional import FunctionalDocFileSuite
 from zope.testbrowser import browser
 from zope.testing import renormalizing, doctest
+import BaseHTTPServer
 import httplib
 import mechanize
-import os
+import os.path
+import random
 import re
+import string
+import threading
 import unittest
-import unittest
+import urllib
 import urllib2
+
+web_server_base_path = os.path.join(os.path.split(__file__)[0], 'ftests')
+
+class TestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        try:
+            f = open(web_server_base_path + self.path)
+        except:
+            self.send_response(500)
+            return
+
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(f.read())
+        f.close()
 
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
@@ -380,8 +401,29 @@ TestBrowserLayer = functional.ZCMLLayer(
     os.path.join(os.path.split(__file__)[0], 'ftests/ftesting.zcml'),
     __name__, 'TestBrowserLayer', allow_teardown=True)
 
+server_stop = False
+def serve_requests(server):
+    global server_stopped
+    while not server_stop:
+        server.handle_request()
+
+def setUpReadme(test):
+    port = random.randint(20000,30000)
+    test.globs['TEST_PORT'] = str(port)
+    server = BaseHTTPServer.HTTPServer(('localhost', port), TestHandler)
+    thread = threading.Thread(target=serve_requests, args=[server])
+    thread.setDaemon(True)
+    thread.start()
+    test.globs['web_server_thread'] = thread
+
+def tearDownReadme(test):
+    global server_stop
+    server_stop = True
+    # make a request, so the last call to `handle_one_request` will return
+    urllib.urlretrieve('http://localhost:%s/' % test.globs['TEST_PORT'])
+    test.globs['web_server_thread'].join()
+
 def test_suite():
-    from zope.testing import doctest
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
 
     readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
@@ -391,7 +433,8 @@ def test_suite():
     wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
 
-    real = doctest.DocFileSuite('real.txt', optionflags=flags)
+    real = doctest.DocFileSuite('real.txt', optionflags=flags,
+        checker=checker, setUp=setUpReadme, tearDown=tearDownReadme)
     real.level = 3
 
     screen_shots = doctest.DocFileSuite('screen-shots.txt', optionflags=flags)
@@ -402,4 +445,3 @@ def test_suite():
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
-
