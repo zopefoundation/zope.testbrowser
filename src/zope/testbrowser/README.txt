@@ -1,41 +1,16 @@
 Detailed Documentation
 ======================
 
-The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
-simulates a web browser similar to Mozilla Firefox or IE.
+Before being of much interest, we need to open a web page.  ``Browser``
+instances have a ``base`` attribute that sets the URL from which ``open``ed
+URLs are relative.  This lets you target tests at servers running in various,
+or even variable locations (like using randomly chosen ports).
 
-    >>> from zope.testbrowser.browser import Browser
     >>> browser = Browser()
-
-This version of the browser object can be used to access any web site just as
-you would do using a normal web browser.
-
-There is also a special version of the ``Browser`` class used to do functional
-testing of Zope 3 applications, it can be imported from
-``zope.testbrowser.testing``:
-
-    >>> from zope.testbrowser.testing import Browser
-    >>> browser = Browser()
-
-An initial page to load can be passed to the ``Browser`` constructor:
-
-    >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.base = 'http://localhost:%s/' % TEST_PORT
+    >>> browser.open('index.html')
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.html'
-
-The browser can send arbitrary headers; this is helpful for setting the
-"Authorization" header or a language value, so that your tests format values
-the way you expect in your tests, if you rely on zope.i18n locale-based
-formatting or a similar approach.
-
-    >>> browser.addHeader('Authorization', 'Basic mgr:mgrpw')
-    >>> browser.addHeader('Accept-Language', 'en-US')
-
-An existing browser instance can also `open` web pages:
-
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
-    >>> browser.url
-    'http://localhost/@@/testbrowser/simple.html'
+    'http://localhost:.../index.html'
 
 Once you have opened a web page initially, best practice for writing
 testbrowser doctests suggests using 'click' to navigate further (as discussed
@@ -44,9 +19,9 @@ below), except in unusual circumstances.
 The test browser complies with the IBrowser interface; see
 ``zope.testbrowser.interfaces`` for full details on the interface.
 
-    >>> from zope.testbrowser import interfaces
+    >>> import zope.testbrowser.interfaces
     >>> from zope.interface.verify import verifyObject
-    >>> verifyObject(interfaces.IBrowser, browser)
+    >>> verifyObject(zope.testbrowser.interfaces.IBrowser, browser)
     True
 
 
@@ -85,16 +60,14 @@ Checking for HTML
 
 Not all URLs return HTML.  Of course our simple page does:
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.isHtml
     True
 
 But if we load an image (or other binary file), we do not get HTML:
 
-    >>> browser.open('http://localhost/@@/testbrowser/zope3logo.gif')
+    >>> browser.open('zope3logo.gif')
     >>> browser.isHtml
     False
-
 
 
 HTML Page Title
@@ -102,73 +75,46 @@ HTML Page Title
 
 Another useful helper property is the title:
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.open('index.html')
     >>> browser.title
     'Simple Page'
 
 If a page does not provide a title, it is simply ``None``:
 
-    >>> browser.open('http://localhost/@@/testbrowser/notitle.html')
+    >>> browser.open('notitle.html')
     >>> browser.title
 
 However, if the output is not HTML, then an error will occur trying to access
 the title:
 
-    >>> browser.open('http://localhost/@@/testbrowser/zope3logo.gif')
+    >>> browser.open('zope3logo.gif')
     >>> browser.title
     Traceback (most recent call last):
     ...
     BrowserStateError: not viewing HTML
 
 
-Headers
--------
-
-As you can see, the `contents` of the browser does not return any HTTP
-headers.  The headers are accessible via a separate attribute, which is an
-``httplib.HTTPMessage`` instance (httplib is a part of Python's standard
-library):
-
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
-    >>> browser.headers
-    <httplib.HTTPMessage instance...>
-
-The headers can be accessed as a string:
-
-    >>> print browser.headers
-    Status: 200 OK
-    Content-Length: 123
-    Content-Type: text/html;charset=utf-8
-    X-Powered-By: Zope (www.zope.org), Python (www.python.org)
-
-Or as a mapping:
-
-    >>> browser.headers['content-type']
-    'text/html;charset=utf-8'
-
-
 Navigation and Link Objects
 ---------------------------
 
-If you want to simulate clicking on a link, get the link and `click` on it.
-In the `navigate.html` file there are several links set up to demonstrate the
-capabilities of the link objects and their `click` method.
+If you want to simulate clicking on a link, get the link and call its `click`
+method.  In the `navigate.html` file there are several links set up to
+demonstrate the capabilities of the link objects and their `click` method.
 
 The simplest way to get a link is via the anchor text.  In other words
 the text you would see in a browser (text and url searches are substring
 searches):
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('navigate.html')
     >>> browser.contents
-    '...<a href="navigate.html?message=By+Link+Text">Link Text</a>...'
+    '...<a href="target.html">Link Text</a>...'
     >>> link = browser.getLink('Link Text')
     >>> link
-    <Link text='Link Text'
-      url='http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'>
+    <Link text='Link Text' url='http://localhost:.../target.html'>
 
 Link objects comply with the ILink interface.
 
-    >>> verifyObject(interfaces.ILink, link)
+    >>> verifyObject(zope.testbrowser.interfaces.ILink, link)
     True
 
 Links expose several attributes for easy access.
@@ -177,22 +123,22 @@ Links expose several attributes for easy access.
     'Link Text'
     >>> link.tag # links can also be image maps.
     'a'
-    >>> link.url # it's normalized
-    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
+    >>> link.url # normalized to an absolute URL
+    'http://localhost:.../target.html'
     >>> link.attrs
-    {'href': 'navigate.html?message=By+Link+Text'}
+    {'href': 'target.html'}
 
 Links can be "clicked" and the browser will navigate to the referenced URL.
 
     >>> link.click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
+    'http://localhost:.../target.html'
     >>> browser.contents
-    '...Message: <em>By Link Text</em>...'
+    '...This page is the target of a link...'
 
 When finding a link by its text, whitespace is normalized.
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('navigate.html')
     >>> browser.contents
     '...> Link Text \n    with     Whitespace\tNormalization (and parens) </...'
     >>> link = browser.getLink('Link Text with Whitespace Normalization '
@@ -203,14 +149,13 @@ When finding a link by its text, whitespace is normalized.
     'Link Text with Whitespace Normalization (and parens)'
     >>> link.click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text+with+Normalization'
-    >>> browser.contents
-    '...Message: <em>By Link Text with Normalization</em>...'
+    'http://localhost:.../target.html'
 
 When a link text matches more than one link, by default the first one is
 chosen. You can, however, specify the index of the link and thus retrieve a
 later matching link:
 
+    >>> browser.open('navigate.html')
     >>> browser.getLink('Link Text')
     <Link text='Link Text' ...>
 
@@ -225,48 +170,38 @@ generate an error.
     ...
     ExpiredError
 
-You can also find the link by its URL,
+You can also find links by URL,
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.contents
-    '...<a href="navigate.html?message=By+URL">Using the URL</a>...'
-
-    >>> browser.getLink(url='?message=By+URL').click()
+    >>> browser.open('navigate.html')
+    >>> browser.getLink(url='target.html').click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.html?message=By+URL'
-    >>> browser.contents
-    '...Message: <em>By URL</em>...'
+    'http://localhost:.../target.html'
 
 or its id:
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('navigate.html')
     >>> browser.contents
-    '...<a href="navigate.html?message=By+Id"
-    id="anchorid">By Anchor Id</a>...'
+    '...<a href="target.html" id="anchorid">By Anchor Id</a>...'
 
     >>> browser.getLink(id='anchorid').click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.html?message=By+Id'
-    >>> browser.contents
-    '...Message: <em>By Id</em>...'
+    'http://localhost:.../target.html'
 
 You thought we were done here? Not so quickly.  The `getLink` method also
 supports image maps, though not by specifying the coordinates, but using the
 area's id:
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('navigate.html')
     >>> link = browser.getLink(id='zope3')
     >>> link.tag
     'area'
     >>> link.click()
     >>> browser.url
-    'http://localhost/@@/testbrowser/navigate.html?message=Zope+3+Name'
-    >>> browser.contents
-    '...Message: <em>Zope 3 Name</em>...'
+    'http://localhost:.../target.html'
 
 Getting a nonexistent link raises an exception.
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('navigate.html')
     >>> browser.getLink('This does not exist')
     Traceback (most recent call last):
     ...
@@ -278,21 +213,21 @@ Other Navigation
 
 Like in any normal browser, you can reload a page:
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.open('index.html')
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.html'
+    'http://localhost:.../index.html'
     >>> browser.reload()
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.html'
+    'http://localhost:.../index.html'
 
 You can also go back:
 
-    >>> browser.open('http://localhost/@@/testbrowser/notitle.html')
+    >>> browser.open('notitle.html')
     >>> browser.url
-    'http://localhost/@@/testbrowser/notitle.html'
+    'http://localhost:.../notitle.html'
     >>> browser.goBack()
     >>> browser.url
-    'http://localhost/@@/testbrowser/simple.html'
+    'http://localhost:.../index.html'
 
 
 Controls
@@ -302,7 +237,7 @@ One of the most important features of the browser is the ability to inspect
 and fill in values for the controls of input forms.  To do so, let's first open
 a page that has a bunch of controls:
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
+    >>> browser.open('controls.html')
 
 Obtaining a Control
 ~~~~~~~~~~~~~~~~~~~
@@ -449,7 +384,7 @@ Controls provide IControl.
     >>> ctrl = browser.getControl('Text Control')
     >>> ctrl
     <Control name='text-value' type='text'>
-    >>> verifyObject(interfaces.IControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IControl, ctrl)
     True
 
 They have several useful attributes:
@@ -492,7 +427,7 @@ These fields have four other attributes and an additional method:
     False
     >>> ctrl.multiple
     True
-    >>> verifyObject(interfaces.IListControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IListControl, ctrl)
     True
 
   - 'options' lists all available value options.
@@ -562,7 +497,8 @@ Manipulating the value of these controls affects the parent control.
     '2'
     >>> browser.getControl('Zwei').selected
     True
-    >>> verifyObject(interfaces.IItemControl, browser.getControl('Zwei'))
+    >>> verifyObject(zope.testbrowser.interfaces.IItemControl,
+    ...     browser.getControl('Zwei'))
     True
     >>> browser.getControl('Ein').selected = True
     >>> browser.getControl('Ein').selected
@@ -594,7 +530,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl('Password Control')
     >>> ctrl
     <Control name='password-value' type='password'>
-    >>> verifyObject(interfaces.IControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IControl, ctrl)
     True
     >>> ctrl.value
     'Password'
@@ -611,7 +547,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl(name='hidden-value')
     >>> ctrl
     <Control name='hidden-value' type='hidden'>
-    >>> verifyObject(interfaces.IControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IControl, ctrl)
     True
     >>> ctrl.value
     'Hidden'
@@ -626,7 +562,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl('Text Area Control')
     >>> ctrl
     <Control name='textarea-value' type='textarea'>
-    >>> verifyObject(interfaces.IControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IControl, ctrl)
     True
     >>> ctrl.value
     '        Text inside\n        area!\n      '
@@ -650,7 +586,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl('File Control')
     >>> ctrl
     <Control name='file-value' type='file'>
-    >>> verifyObject(interfaces.IControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IControl, ctrl)
     True
     >>> ctrl.value is None
     True
@@ -672,7 +608,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl('Single Select Control')
     >>> ctrl
     <ListControl name='single-select-value' type='select'>
-    >>> verifyObject(interfaces.IListControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     ['1']
@@ -708,7 +644,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl(name='single-unvalued-checkbox-value')
     >>> ctrl
     <ListControl name='single-unvalued-checkbox-value' type='checkbox'>
-    >>> verifyObject(interfaces.IListControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     True
@@ -724,7 +660,7 @@ The various types of controls are demonstrated here.
     >>> ctrl.displayValue
     []
     >>> verifyObject(
-    ...     interfaces.IItemControl,
+    ...     zope.testbrowser.interfaces.IItemControl,
     ...     browser.getControl('Single Unvalued Checkbox'))
     True
     >>> browser.getControl('Single Unvalued Checkbox').optionValue
@@ -750,7 +686,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl(name='single-valued-checkbox-value')
     >>> ctrl
     <ListControl name='single-valued-checkbox-value' type='checkbox'>
-    >>> verifyObject(interfaces.IListControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     ['1']
@@ -766,7 +702,7 @@ The various types of controls are demonstrated here.
     >>> ctrl.displayValue
     []
     >>> verifyObject(
-    ...     interfaces.IItemControl,
+    ...     zope.testbrowser.interfaces.IItemControl,
     ...     browser.getControl('Single Valued Checkbox'))
     True
     >>> browser.getControl('Single Valued Checkbox').selected
@@ -789,7 +725,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl(name='multi-checkbox-value')
     >>> ctrl
     <ListControl name='multi-checkbox-value' type='checkbox'>
-    >>> verifyObject(interfaces.IListControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IListControl, ctrl)
     True
     >>> ctrl.value
     ['1', '3']
@@ -811,7 +747,8 @@ The various types of controls are demonstrated here.
     '2'
     >>> browser.getControl('Two').selected
     True
-    >>> verifyObject(interfaces.IItemControl, browser.getControl('Two'))
+    >>> verifyObject(zope.testbrowser.interfaces.IItemControl,
+    ...     browser.getControl('Two'))
     True
     >>> browser.getControl('Three').selected = True
     >>> browser.getControl('Three').selected
@@ -861,7 +798,7 @@ The various types of controls are demonstrated here.
 
     >>> ctrl
     <ListControl name='radio-value' type='radio'>
-    >>> verifyObject(interfaces.IListControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IListControl, ctrl)
     True
     >>> ctrl.disabled
     False
@@ -884,7 +821,7 @@ The various types of controls are demonstrated here.
     >>> ctrl = browser.getControl(name='image-value')
     >>> ctrl
     <ImageControl name='image-value' type='image'>
-    >>> verifyObject(interfaces.IImageSubmitControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.IImageSubmitControl, ctrl)
     True
     >>> ctrl.value
     ''
@@ -904,7 +841,7 @@ The various types of controls are demonstrated here.
     <SubmitControl name='submit-value' type='submit'>
     >>> browser.getControl('Submit') # multiple labels, but same control
     <SubmitControl name='submit-value' type='submit'>
-    >>> verifyObject(interfaces.ISubmitControl, ctrl)
+    >>> verifyObject(zope.testbrowser.interfaces.ISubmitControl, ctrl)
     True
     >>> ctrl.value
     'Submit This'
@@ -920,21 +857,13 @@ Both the submit and image type should be clickable and submit the form:
 
     >>> browser.getControl('Text Control').value = 'Other Text'
     >>> browser.getControl('Submit').click()
-    >>> print browser.contents
-    <html>
-    ...
-    <em>Other Text</em>
-    <input type="text" name="text-value" id="text-value" value="Some Text" />
-    ...
-    <em>Submit This</em>
-    <input type="submit" name="submit-value" id="submit-value" value="Submit This" />
-    ...
-    </html>
+    >>> browser.contents
+    "...'text-value': ['Other Text']..."
 
 Note that if you click a submit object after the associated page has expired,
 you will get an error.
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
+    >>> browser.open('controls.html')
     >>> ctrl = browser.getControl('Submit')
     >>> ctrl.click()
     >>> ctrl.click()
@@ -944,23 +873,13 @@ you will get an error.
 
 All the above also holds true for the image control:
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
+    >>> browser.open('controls.html')
     >>> browser.getControl('Text Control').value = 'Other Text'
     >>> browser.getControl(name='image-value').click()
-    >>> print browser.contents
-    <html>
-    ...
-    <em>Other Text</em>
-    <input type="text" name="text-value" id="text-value" value="Some Text" />
-    ...
-    <em>1</em>
-    <em>1</em>
-    <input type="image" name="image-value" id="image-value"
-           src="zope3logo.gif" />
-    ...
-    </html>
+    >>> browser.contents
+    "...'text-value': ['Other Text']..."
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
+    >>> browser.open('controls.html')
     >>> ctrl = browser.getControl(name='image-value')
     >>> ctrl.click()
     >>> ctrl.click()
@@ -970,18 +889,10 @@ All the above also holds true for the image control:
 
 But when sending an image, you can also specify the coordinate you clicked:
 
-    >>> browser.open('http://localhost/@@/testbrowser/controls.html')
+    >>> browser.open('controls.html')
     >>> browser.getControl(name='image-value').click((50,25))
-    >>> print browser.contents
-    <html>
-    ...
-    <em>50</em>
-    <em>25</em>
-    <input type="image" name="image-value" id="image-value"
-           src="zope3logo.gif" />
-    ...
-    </html>
-
+    >>> browser.contents
+    "...'image-value.x': ['50']...'image-value.y': ['25']..."
 
 Forms
 -----
@@ -991,12 +902,12 @@ necessary to access forms by name or id.  The browser's `forms` attribute can
 be used to do so.  The key value is the form's name or id.  If more than one
 form has the same name or id, the first one will be returned.
 
-    >>> browser.open('http://localhost/@@/testbrowser/forms.html')
+    >>> browser.open('forms.html')
     >>> form = browser.getForm(name='one')
 
 Form instances conform to the IForm interface.
 
-    >>> verifyObject(interfaces.IForm, form)
+    >>> verifyObject(zope.testbrowser.interfaces.IForm, form)
     True
 
 The form exposes several attributes related to forms:
@@ -1014,7 +925,7 @@ The form exposes several attributes related to forms:
   - The action (target URL) when the form is submitted:
 
     >>> form.action
-    'http://localhost/@@/testbrowser/forms.html'
+    'http://localhost:.../forms.html'
 
   - The method (HTTP verb) used to transmit the form data:
 
@@ -1024,7 +935,7 @@ The form exposes several attributes related to forms:
   - The encoding type of the form data:
 
     >>> form.enctype
-    'multipart/form-data'
+    'application/x-www-form-urlencoded'
 
 Besides those attributes, you have also a couple of methods.  Like for the
 browser, you can get control objects, but limited to the current form...
@@ -1035,12 +946,8 @@ browser, you can get control objects, but limited to the current form...
 ...and submit the form.
 
     >>> form.submit('Submit')
-    >>> print browser.contents
-    <html>
-    ...
-    <em>First Text</em>
-    ...
-    </html>
+    >>> browser.contents
+    "...'text-value': ['First Text']..."
 
 Submitting also works without specifying a control, as shown below, which is
 it's primary reason for existing in competition with the control submission
@@ -1050,6 +957,7 @@ Now let me show you briefly that looking up forms is sometimes important.  In
 the `forms.html` template, we have four forms all having a text control named
 `text-value`.  Now, if I use the browser's `get` method,
 
+    >>> browser.open('forms.html')
     >>> browser.getControl(name='text-value')
     Traceback (most recent call last):
     ...
@@ -1068,11 +976,13 @@ form:
     'Second Text'
     >>> form.submit('Submit')
     >>> browser.contents
-    '...<em>Second Text</em>...'
+    "...'text-value': ['Second Text']..."
+    >>> browser.open('forms.html')
     >>> form = browser.getForm('2')
     >>> form.getControl('Submit').click()
     >>> browser.contents
-    '...<em>Second Text</em>...'
+    "...'text-value': ['Second Text']..."
+    >>> browser.open('forms.html')
     >>> browser.getForm('3').getControl('Text Control').value
     'Third Text'
 
@@ -1083,10 +993,11 @@ order.  (Forms without submit buttons are sometimes useful for JavaScript.)
     >>> form = browser.getForm(index=3)
     >>> form.submit()
     >>> browser.contents
-    '...<em>Fourth Text</em>...<em>Submitted without the submit button.</em>...'
+    "...'text-value': ['Fourth Text']..."
 
 If a form is requested that does not exists, an exception will be raised.
 
+    >>> browser.open('forms.html')
     >>> form = browser.getForm('does-not-exist')
     Traceback (most recent call last):
     LookupError
@@ -1094,13 +1005,14 @@ If a form is requested that does not exists, an exception will be raised.
 If the HTML page contains only one form, no arguments to `getForm` are
 needed:
 
-    >>> oneform = Browser()
-    >>> oneform.open('http://localhost/@@/testbrowser/oneform.html')
-    >>> form = oneform.getForm()
+    >>> browser.open('oneform.html')
+    >>> browser.getForm()
+    <zope.testbrowser...Form object at ...>
 
 If the HTML page contains more than one form, `index` is needed to
 disambiguate if no other arguments are provided:
 
+    >>> browser.open('forms.html')
     >>> browser.getForm()
     Traceback (most recent call last):
     ValueError: if no other arguments are given, index is required.
@@ -1114,80 +1026,12 @@ used to ensure a particular request's performance is within a tolerable range.
 Be very careful using raw seconds, cross-machine differences can be huge,
 pystones is usually a better choice.
 
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.open('index.html')
     >>> browser.lastRequestSeconds < 10 # really big number for safety
     True
     >>> browser.lastRequestPystones < 10000 # really big number for safety
     True
 
-
-Handling Errors when using Zope 3's Publisher
----------------------------------------------
-
-A very useful feature of the publisher is the automatic graceful handling of
-application errors, such as invalid URLs:
-
-    >>> browser.open('http://localhost/invalid')
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 404: Not Found
-
-Note that the above error was thrown by ``urllib2`` and not by the
-publisher.  For debugging purposes, however, it can be very useful to see the
-original exception caused by the application.  In those cases you can set the
-``handleErrors`` property of the browser to ``False``.  It is defaulted to
-``True``:
-
-    >>> browser.handleErrors
-    True
-
-So when we tell the publisher not to handle the errors,
-
-    >>> browser.handleErrors = False
-
-we get a different, Zope internal error:
-
-    >>> browser.open('http://localhost/invalid')
-    Traceback (most recent call last):
-    ...
-    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
-              name: u'invalid'
-
-NB: Setting the handleErrors attribute to False will only change
-    anything if the http server you're testing is using Zope 3's
-    publisher or can otherwise respond appropriately to an
-    'X-zope-handle-errors' header in requests.
-
-When the testbrowser is raising HttpErrors, the errors still hit the test.
-Sometimes we don't want that to happen, in situations where there are edge
-cases that will cause the error to be predictabley but infrequently raised.
-Time is a primary cause of this.
-
-To get around this, one can set the raiseHttpErrors to False.
-
-    >>> browser.handleErrors = True
-    >>> browser.raiseHttpErrors = False
-
-This will cause HttpErrors not to propagate.
-
-    >>> browser.open('http://localhost/invalid')
-
-The headers are still there, though.
-
-    >>> '404 Not Found' in str(browser.headers)
-    True
-
-If we don't handle the errors, and allow internal ones to propagate, however,
-this flage doesn't affect things.
-
-    >>> browser.handleErrors = False
-    >>> browser.open('http://localhost/invalid')
-    Traceback (most recent call last):
-    ...
-    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
-              name: u'invalid'
-
-    >>> browser.raiseHttpErrors = True
 
 Hand-Holding
 ------------
@@ -1228,7 +1072,7 @@ Spaces in URL
 When URLs have spaces in them, they're handled correctly (before the bug was
 fixed, you'd get "ValueError: too many values to unpack"):
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('navigate.html')
     >>> browser.getLink('Spaces in the URL').click()
 
 .goBack() Truncation
@@ -1236,11 +1080,11 @@ fixed, you'd get "ValueError: too many values to unpack"):
 
 The .goBack() method used to truncate the .contents.
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('navigate.html')
     >>> actual_length = len(browser.contents)
 
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.open('navigate.html')
+    >>> browser.open('index.html')
     >>> browser.goBack()
     >>> len(browser.contents) == actual_length
     True

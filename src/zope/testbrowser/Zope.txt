@@ -1,0 +1,67 @@
+Handling Errors when using Zope 3's Publisher
+---------------------------------------------
+
+A very useful feature of the publisher is the automatic graceful handling of
+application errors, such as invalid URLs:
+
+    >>> browser.open('http://localhost/invalid')
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 404: Not Found
+
+Note that the above error was thrown by ``urllib2`` and not by the
+publisher.  For debugging purposes, however, it can be very useful to see the
+original exception caused by the application.  In those cases you can set the
+``handleErrors`` property of the browser to ``False``.  It is defaulted to
+``True``:
+
+    >>> browser.handleErrors
+    True
+
+So when we tell the publisher not to handle the errors,
+
+    >>> browser.handleErrors = False
+
+we get a different, Zope internal error:
+
+    >>> browser.open('http://localhost/invalid')
+    Traceback (most recent call last):
+    ...
+    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
+              name: u'invalid'
+
+NB: Setting the handleErrors attribute to False will only change
+    anything if the http server you're testing is using Zope 3's
+    publisher or can otherwise respond appropriately to an
+    'X-zope-handle-errors' header in requests.
+
+When the testbrowser is raising HttpErrors, the errors still hit the test.
+Sometimes we don't want that to happen, in situations where there are edge
+cases that will cause the error to be predictabley but infrequently raised.
+Time is a primary cause of this.
+
+To get around this, one can set the raiseHttpErrors to False.
+
+    >>> browser.handleErrors = True
+    >>> browser.raiseHttpErrors = False
+
+This will cause HttpErrors not to propagate.
+
+    >>> browser.open('http://localhost/invalid')
+
+The headers are still there, though.
+
+    >>> '404 Not Found' in str(browser.headers)
+    True
+
+If we don't handle the errors, and allow internal ones to propagate, however,
+this flage doesn't affect things.
+
+    >>> browser.handleErrors = False
+    >>> browser.open('http://localhost/invalid')
+    Traceback (most recent call last):
+    ...
+    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
+              name: u'invalid'
+
+    >>> browser.raiseHttpErrors = True

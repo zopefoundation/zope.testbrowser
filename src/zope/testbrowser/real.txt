@@ -7,7 +7,7 @@
     >>> browser.url == base_url
     True
 
-    >>> browser.open(base_url + 'simple.html')
+    >>> browser.open(base_url + 'index.html')
 
     >>> browser.isHtml
     True
@@ -33,7 +33,7 @@
     >>> browser.open(base_url + 'navigate.html')
 
     >>> browser.getLink('Link Text')
-    <Link text='Link Text' url='http://localhost:.../navigate.html?message=By+Link+Text'>
+    <Link text='Link Text' url='http://localhost:.../target.html'>
 
     >>> browser.getLink(url='http://')
     Traceback (most recent call last):
@@ -41,4 +41,4 @@
     AmbiguityError: url 'http://'
 
     >>> browser.getLink(url='http://', index=3)
-    <Link text='By Anchor Name' url='http://localhost:.../navigate.html?message=By+Name'>
+    <Link text='Spaces in the URL' url='http://localhost:.../target.html'>

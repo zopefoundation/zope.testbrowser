@@ -1,10 +1,16 @@
 Overview
 ========
 
-``zope.testbrowser`` provides an easy-to-use programmable web browser
-with special focus on testing.  It is used in Zope, but it's not Zope
-specific at all.  For instance, it can be used to test or otherwise
-interact with any web site.
+The zope.testbrowser package provides web user agents (browsers) with
+programmatic interfaces designed to be used for testing web applications,
+especially in conjunction with doctests.  This project originates in the Zope 3
+community, but is not Zope-specific.
+
+There are currently three type of testbrowser provided.  One for accessing web
+sites via HTTP (zope.testbrowser.browser), one for directly accessing a Zope 3
+application (zope.testbrowser.testing), and one that controls a Firefox web
+browser (zope.testbrowser.real).
+
 
 Changes
 =======

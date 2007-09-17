@@ -16,15 +16,17 @@
 $Id$
 """
 __docformat__ = "reStructuredText"
+
+from cStringIO import StringIO
 from zope.testbrowser import interfaces
 import ClientForm
-from cStringIO import StringIO
 import mechanize
 import operator
 import re
 import sys
 import time
 import urllib2
+import urlparse
 
 try:
     from zope import interface
@@ -150,6 +152,7 @@ class Browser(SetattrErrorsMixin):
     """A web user agent."""
     interface.implements(interfaces.IBrowser)
 
+    base = None
     _contents = None
     _counter = 0
 
@@ -218,6 +221,8 @@ class Browser(SetattrErrorsMixin):
 
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
+        if self.base is not None:
+            url = urlparse.urljoin(self.base, url)
         self._start_timer()
         try:
             try:

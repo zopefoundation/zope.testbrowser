@@ -1,0 +1,25 @@
+Headers
+-------
+
+As you can see, the `contents` of the browser does not return any HTTP
+headers.  The headers are accessible via a separate attribute, which is an
+``httplib.HTTPMessage`` instance (httplib is a part of Python's standard
+library):
+
+    >>> browser.base = 'http://localhost:%s/' % TEST_PORT
+    >>> browser.open('index.html')
+    >>> browser.headers
+    <httplib.HTTPMessage instance...>
+
+The headers can be accessed as a string:
+
+    >>> print browser.headers
+    Server: BaseHTTP
+    Date: Mon, 17 Sep 2007 10:05:42 GMT
+    Connection: close
+    Content-type: text/html
+
+Or as a mapping:
+
+    >>> browser.headers['content-type']
+    'text/html'
