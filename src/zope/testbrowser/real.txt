@@ -18,6 +18,9 @@
     >>> browser.contents
     '<head>...</body>'
 
+    XXX Note that the entire page is not returned; need to find a way to
+    retrieve the entire page.
+
     >>> url = browser.url
     >>> browser.reload()
     >>> browser.url == url
@@ -39,4 +42,3 @@
 
     >>> browser.getLink(url='http://', index=3)
     <Link text='By Anchor Name' url='http://localhost:.../navigate.html?message=By+Name'>
-
