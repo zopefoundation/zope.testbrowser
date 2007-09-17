@@ -43,6 +43,9 @@ web_server_base_path = os.path.join(os.path.split(__file__)[0], 'ftests')
 
 class TestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
+    def version_string(self):
+        return 'BaseHTTP'
+
     def date_time_string(self):
         return 'Mon, 17 Sep 2007 10:05:42 GMT'
 
