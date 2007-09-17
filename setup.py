@@ -30,7 +30,8 @@ setup(
     version = '3.4.2dev',
     url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
-    description = 'Programmable browser for functional black-box tests',
+    description = 'Programmable browser for functional black-box tests'
+        ' (not Zope-specific)',
     author = 'Zope Corporation and Contributors',
     author_email = 'zope3-dev@zope.org',
     long_description = long_description,

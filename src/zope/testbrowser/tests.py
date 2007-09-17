@@ -17,17 +17,70 @@ $Id$
 """
 
 from cStringIO import StringIO
-from zope.app.testing import functional
-from zope.app.testing.functional import FunctionalDocFileSuite
 from zope.testbrowser import browser
 from zope.testing import renormalizing, doctest
+import BaseHTTPServer
+import cgi
 import httplib
 import mechanize
-import os
+import os.path
+import pprint
+import random
 import re
+import string
+import threading
 import unittest
-import unittest
+import urllib
 import urllib2
+import zope.testbrowser.browser
+
+try:
+    from zope.app.testing import functional
+except:
+    functional = None
+
+web_server_base_path = os.path.join(os.path.split(__file__)[0], 'ftests')
+
+class TestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
+    def date_time_string(self):
+        return 'Mon, 17 Sep 2007 10:05:42 GMT'
+
+    def do_GET(self):
+        if self.path.endswith('robots.txt'):
+            self.send_response(404)
+            self.send_header('Connection', 'close')
+            return
+
+        try:
+            f = open(web_server_base_path + self.path)
+        except IOError:
+            self.send_response(500)
+            self.send_header('Connection', 'close')
+            return
+
+        self.send_response(200)
+        self.send_header('Connection', 'close')
+        if self.path.endswith('.gif'):
+            self.send_header('Content-type', 'image/gif')
+        else:
+            self.send_header('Content-type', 'text/html')
+
+        self.end_headers()
+        self.wfile.write(f.read())
+        f.close()
+
+    def do_POST(self):
+        body = self.rfile.read(int(self.headers['content-length']))
+        values = cgi.parse_qs(body)
+        self.wfile
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        pprint.pprint(values, self.wfile)
+
+    def log_request(self, *args, **kws):
+        pass
 
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
@@ -376,20 +429,55 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'Content-Type: '), 'Content-type: '),
     ])
 
-TestBrowserLayer = functional.ZCMLLayer(
-    os.path.join(os.path.split(__file__)[0], 'ftests/ftesting.zcml'),
-    __name__, 'TestBrowserLayer', allow_teardown=True)
+def serve_requests(server):
+    global server_stopped
+    global server_stop
+    server_stop = False
+    while not server_stop:
+        server.handle_request()
+    server.socket.close()
+
+def setUpServer(test):
+    port = random.randint(20000,30000)
+    test.globs['TEST_PORT'] = port
+    server = BaseHTTPServer.HTTPServer(('localhost', port), TestHandler)
+    thread = threading.Thread(target=serve_requests, args=[server])
+    thread.setDaemon(True)
+    thread.start()
+    test.globs['web_server_thread'] = thread
+
+def tearDownServer(test):
+    global server_stop
+    server_stop = True
+    # make a request, so the last call to `handle_one_request` will return
+    urllib.urlretrieve('http://localhost:%d/' % test.globs['TEST_PORT'])
+    test.globs['web_server_thread'].join()
+
+def setUpWire(test):
+    test.globs['Browser'] = zope.testbrowser.browser.Browser
+    setUpServer(test)
+
+def tearDownWire(test):
+    tearDownServer(test)
+
+def setUpHeaders(test):
+    setUpServer(test)
+    test.globs['browser'] = zope.testbrowser.browser.Browser()
+
+def tearDownHeaders(test):
+    tearDownServer(test)
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
-        checker=checker)
-    readme.layer = TestBrowserLayer
-    wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags)
-    wire.level = 2
+
+    readme = doctest.DocFileSuite('README.txt', optionflags=flags,
+        checker=checker, setUp=setUpWire, tearDown=tearDownWire)
+
+    headers = doctest.DocFileSuite('headers.txt', optionflags=flags,
+        setUp=setUpHeaders, tearDown=tearDownHeaders)
+
     this_file = doctest.DocTestSuite(checker=checker)
-    return unittest.TestSuite((this_file, readme, wire))
+    return unittest.TestSuite((this_file, readme, headers))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
-
