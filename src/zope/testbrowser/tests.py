@@ -59,13 +59,16 @@ class TestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header('Connection', 'close')
             return
 
+        if self.path.endswith('.gif'):
+            content_type = 'image/gif'
+        elif self.path.endswith('.html'):
+            content_type = 'text/html'
+        else:
+            self.send_response(500, 'unknown file type')
+
         self.send_response(200)
         self.send_header('Connection', 'close')
-        if self.path.endswith('.gif'):
-            self.send_header('Content-type', 'image/gif')
-        else:
-            self.send_header('Content-type', 'text/html')
-
+        self.send_header('Content-type', content_type)
         self.end_headers()
         self.wfile.write(f.read())
         f.close()
