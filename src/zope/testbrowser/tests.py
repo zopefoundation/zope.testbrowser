@@ -33,6 +33,7 @@ import unittest
 import urllib
 import urllib2
 import zope.testbrowser.browser
+import zope.testbrowser.real
 
 try:
     from zope.app.testing import functional
@@ -459,6 +460,13 @@ def tearDownServer(test):
     urllib.urlretrieve('http://localhost:%d/' % test.globs['TEST_PORT'])
     test.globs['web_server_thread'].join()
 
+def setUpReal(test):
+    test.globs['Browser'] = zope.testbrowser.real.Browser
+    setUpServer(test)
+
+def tearDownReal(test):
+    tearDownServer(test)
+
 def setUpReadme(test):
     test.globs['Browser'] = zope.testbrowser.browser.Browser
     setUpServer(test)
@@ -482,8 +490,8 @@ def test_suite():
     headers = doctest.DocFileSuite('headers.txt', optionflags=flags,
         setUp=setUpHeaders, tearDown=tearDownHeaders)
 
-    real = doctest.DocFileSuite('real.txt', optionflags=flags,
-        checker=checker, setUp=setUpReadme, tearDown=tearDownReadme)
+    real = doctest.DocFileSuite('README.txt', optionflags=flags,
+        checker=checker, setUp=setUpReal, tearDown=tearDownReal)
     real.level = 3
 
     screen_shots = doctest.DocFileSuite('screen-shots.txt', optionflags=flags)

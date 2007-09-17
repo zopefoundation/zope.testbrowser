@@ -6,14 +6,19 @@ import simplejson
 import socket
 import telnetlib
 import time
+import urlparse
 import zope.interface
 import zope.testbrowser.browser
 
 PROMPT = re.compile('repl\d?> ')
 
+class BrowserStateError(RuntimeError):
+    pass
+
 class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
     zope.interface.implements(interfaces.IBrowser)
 
+    base = None
     raiseHttpErrors = True
     _counter = 0
     timeout = 60
@@ -79,6 +84,8 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
         self.execute('tb_page_loaded = false;')
 
     def open(self, url, data=None):
+        if self.base is not None:
+            url = urlparse.urljoin(self.base, url)
         assert data is None
         self.start_timer()
         try:
@@ -96,7 +103,13 @@ class Browser(zope.testbrowser.browser.SetattrErrorsMixin):
 
     @property
     def title(self):
-        return self.execute('content.document.title')
+        if not self.isHtml:
+            raise BrowserStateError('not viewing HTML')
+
+        result = self.execute('content.document.title')
+        if result is '':
+            result = None
+        return result
 
     @property
     def contents(self):
@@ -193,9 +206,9 @@ class Link(zope.testbrowser.browser.SetattrErrorsMixin):
     def click(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self.browser._start_timer()
+        self.browser.start_timer()
         self.browser._follow_link(self.token)
-        self.browser._stop_timer()
+        self.browser.stop_timer()
         self.browser._changed()
 
     @property
@@ -240,9 +253,9 @@ class Link(zope.testbrowser.browser.SetattrErrorsMixin):
     def click(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self.browser._start_timer()
+        self.browser.start_timer()
         self.browser._follow_link(self.token)
-        self.browser._stop_timer()
+        self.browser.stop_timer()
         self.browser._changed()
 
     @property

@@ -21,7 +21,7 @@ The test browser complies with the IBrowser interface; see
 
     >>> import zope.testbrowser.interfaces
     >>> from zope.interface.verify import verifyObject
-    >>> verifyObject(zope.testbrowser.interfaces.IBrowser, browser)
+    >>> zope.testbrowser.interfaces.IBrowser.providedBy(browser)
     True
 
 
@@ -30,29 +30,16 @@ Page Contents
 
 The contents of the current page are available:
 
-    >>> print browser.contents
-    <html>
-      <head>
-        <title>Simple Page</title>
-      </head>
-      <body>
-        <h1>Simple Page</h1>
-      </body>
-    </html>
-
-Making assertions about page contents is easy.
-
-    >>> '<h1>Simple Page</h1>' in browser.contents
-    True
-
-Utilizing the doctest facilities, it also possible to do:
-
     >>> browser.contents
     '...<h1>Simple Page</h1>...'
 
 Note: Unfortunately, ellipsis (...) cannot be used at the beginning of the
 output (this is a limitation of doctest).
 
+Making assertions about page contents is easy.
+
+    >>> '<h1>Simple Page</h1>' in browser.contents
+    True
 
 
 Checking for HTML
