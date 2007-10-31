@@ -23,11 +23,13 @@ long_description = (
     + open('README.txt').read()
     + '\n\n'
     + open(os.path.join('src', 'zope', 'testbrowser', 'README.txt')).read()
+    + '\n\n'
+    + open('CHANGES.txt').read()
     )
 
 setup(
     name = 'zope.testbrowser',
-    version = '3.4.2dev',
+    version = '3.4.2',
     url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
     description = 'Programmable browser for functional black-box tests',
