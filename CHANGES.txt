@@ -2,10 +2,19 @@
 CHANGES
 =======
 
+3.4.3 (unreleased)
+------------------
+
+- Fix bug introduced in 3.4.1 that created incompatible tracebacks in doctests.
+  This neccesitated adding a patched mechanize to the source tree; patches have
+  been sent to the mechanize project.
+
+
 3.4.2 (2007-10-31)
 ------------------
 
 - Resolve ``ZopeSecurityPolicy`` deprecation warning.
+
 
 3.4.1 (2007-09-01)
 ------------------
@@ -15,6 +24,7 @@ CHANGES
 
 * ``zope.testbrowser`` now works on Python 2.5.
 
+
 3.4.0 (2007-06-04)
 ------------------
 
@@ -23,6 +33,7 @@ CHANGES
 
 * Made the tests more resilient to HTTP header formatting changes with
   the REnormalizer.
+
 
 3.4.0a1 (2007-04-22)
 --------------------
