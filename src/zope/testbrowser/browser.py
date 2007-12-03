@@ -26,10 +26,7 @@ import sys
 import time
 import urllib2
 
-try:
-    from zope import interface
-except ImportError:
-    from dummymodules import interface
+from zope import interface
 
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")

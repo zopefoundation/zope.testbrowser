@@ -53,11 +53,11 @@ setup(
         'setuptools',
         #'mechanize', XXX uncomment when we can use a released mechanize again
         'ClientForm',
+        'zope.interface',
+        'zope.schema',
         ],
     extras_require = dict(
         test = [
-            'zope.interface',
-            'zope.schema',
             'zope.app.component',
             'zope.app.folder',
             'zope.app.testing',
