@@ -6,8 +6,11 @@ CHANGES
 ------------------
 
 - Fix bug introduced in 3.4.1 that created incompatible tracebacks in doctests.
-  This neccesitated adding a patched mechanize to the source tree; patches have
+  This necessitated adding a patched mechanize to the source tree; patches have
   been sent to the mechanize project.
+
+- Fix https://bugs.launchpad.net/bugs/149517 by adding zope.interface and
+  zope.schema as real dependencies
 
 
 3.4.2 (2007-10-31)
