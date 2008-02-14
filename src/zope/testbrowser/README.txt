@@ -209,13 +209,16 @@ When finding a link by its text, whitespace is normalized.
     '...Message: <em>By Link Text with Normalization</em>...'
 
 When a link text matches more than one link, by default the first one is
-chosen. You can, however, specify the index of the link and thus retrieve a
-later matching link:
+chosen. In previous versions there was an index parameter that is now 
+removed. You can, however, use a regular expression and thus retrieve a
+better matching link:
 
     >>> browser.getLink('Link Text')
     <Link text='Link Text' ...>
 
-    >>> browser.getLink('Link Text', index=1)
+    >>> import re
+    >>> searched_link = re.compile('^Link .* Normalization', re.S|re.M)
+    >>> browser.getLink(searched_link)
     <Link text='Link Text with Whitespace Normalization (and parens)' ...>
 
 Note that clicking a link object after its browser page has expired will
@@ -226,7 +229,7 @@ generate an error.
     ...
     ExpiredError
 
-You can also find the link by its URL,
+You can also find the link by its URL or its id,
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
