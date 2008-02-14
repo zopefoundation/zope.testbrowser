@@ -12,7 +12,7 @@ CHANGES
 - Fix https://bugs.launchpad.net/bugs/149517 by adding zope.interface and
   zope.schema as real dependencies
 
-- Fix browser.getLink documentation that was not updated since last API
+- Fix browser.getLink documentation that was not updated since the last API
   modification.
 
 

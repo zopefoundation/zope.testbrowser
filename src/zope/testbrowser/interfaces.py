@@ -89,7 +89,7 @@ class IBrowser(interface.Interface):
         default.
         """
 
-    def getLink(text=None, url=None, id=None):
+    def getLink(text=None, url=None, id=None, index=0):
         """Return an ILink from the page.
 
         The link is found by the arguments of the method.  One or more may be
@@ -103,6 +103,10 @@ class IBrowser(interface.Interface):
             ``href`` attribute of an anchor tag or the action of a form.
 
           o ``id`` -- The id attribute of the anchor tag submit button.
+
+          o ``index`` -- When there's more than one link that matches the
+            text/URL, you can specify which one you want.
+
         """
 
     lastRequestSeconds = schema.Field(
