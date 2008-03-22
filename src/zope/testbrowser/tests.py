@@ -418,7 +418,7 @@ Also, if there is some other whitespace after the start tag, it will be preserve
 
 class win32CRLFtransformer(object):
     def sub(self, replacement, text):
-        return text.replace(r'\r','')
+        return text.replace(r'\r', '')
 
 checker = renormalizing.RENormalizing([
     (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-'*30),
@@ -444,7 +444,7 @@ def serve_requests(server):
     server.socket.close()
 
 def setUpServer(test):
-    port = random.randint(20000,30000)
+    port = random.randint(20000, 30000)
     test.globs['TEST_PORT'] = port
     server = BaseHTTPServer.HTTPServer(('localhost', port), TestHandler)
     thread = threading.Thread(target=serve_requests, args=[server])
