@@ -51,7 +51,7 @@ setup(
     tests_require = ['zope.testing'],
     install_requires = [
         'setuptools',
-        #'mechanize', XXX uncomment when we can use a released mechanize again
+        'mechanize',
         'ClientForm',
         'zope.interface',
         'zope.schema',
