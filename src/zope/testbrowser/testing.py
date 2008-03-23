@@ -123,7 +123,15 @@ class PublisherResponse(object):
 class PublisherHTTPHandler(urllib2.HTTPHandler):
     """Special HTTP handler to use the Zope Publisher."""
 
-    http_request = urllib2.AbstractHTTPHandler.do_request_
+    def http_request(self, req):
+        # look at data and set content type
+        if req.has_data():
+            data = req.get_data()
+            if isinstance(data, dict):
+                req.add_data(data['body'])
+                req.add_unredirected_header('Content-type',
+                                            data['content-type'])
+        return urllib2.AbstractHTTPHandler.do_request_(self, req)
 
     def http_open(self, req):
         """Open an HTTP connection having a ``urllib2`` request."""
@@ -159,6 +167,11 @@ class Browser(browser.Browser):
     def __init__(self, url=None):
         mech_browser = PublisherMechanizeBrowser()
         super(Browser, self).__init__(url=url, mech_browser=mech_browser)
+
+    def post(self, url, data, content_type=None):
+        if content_type is not None:
+            data = {'body': data, 'content-type': content_type}
+        return self.open(url, data)
 
 #### virtual host test suites ####
 

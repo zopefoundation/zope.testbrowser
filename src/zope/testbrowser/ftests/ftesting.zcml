@@ -30,6 +30,12 @@
   <grant permission="zope.View"
                   role="zope.Anonymous" />
 
+  <browser:page
+     name="echo.html"
+     for="*"
+     class=".ftests.Echo"
+     permission="zope.Public"
+     />
 
   <browser:resourceDirectory
       name="testbrowser"

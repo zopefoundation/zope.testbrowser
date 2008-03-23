@@ -1107,6 +1107,72 @@ disambiguate if no other arguments are provided:
     ValueError: if no other arguments are given, index is required.
 
 
+Submitting a posts body directly
+--------------------------------
+
+In addition to the open method, zope.testbrowser.testing.Browser has a
+post method that allows a body to be supplied.
+
+Let's visit a page that echos it's request:
+
+    >>> browser.open('http://localhost/@@echo.html')
+    >>> print browser.contents,
+    HTTP_ACCEPT_LANGUAGE:	en-US
+    HTTP_CONNECTION:	close
+    HTTP_COOKIE:	
+    HTTP_HOST:	localhost
+    HTTP_REFERER:	localhost
+    HTTP_USER_AGENT:	Python-urllib/2.4
+    PATH_INFO:	/@@echo.html
+    QUERY_STRING:	
+    REQUEST_METHOD:	GET
+    SERVER_PROTOCOL:	HTTP/1.1
+    Body: ''
+
+Now, we'll try a post.  The post method takes a URL, a data string,
+and an optional content type.  If we just pass a string, then
+a URL-encoded query string is assumed:
+
+    >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
+    >>> print browser.contents,
+    CONTENT_LENGTH:	7
+    CONTENT_TYPE:	application/x-www-form-urlencoded
+    HTTP_ACCEPT_LANGUAGE:	en-US
+    HTTP_CONNECTION:	close
+    HTTP_COOKIE:	
+    HTTP_HOST:	localhost
+    HTTP_REFERER:	localhost
+    HTTP_USER_AGENT:	Python-urllib/2.4
+    PATH_INFO:	/@@echo.html
+    QUERY_STRING:	
+    REQUEST_METHOD:	POST
+    SERVER_PROTOCOL:	HTTP/1.1
+    x:	1
+    y:	2
+    Body: ''
+
+The body is empty because it is consumed to get form data.
+
+We can pass a content-type explicitly:
+
+    >>> browser.post('http://localhost/@@echo.html',
+    ...              '{"x":1,"y":2}', 'application/x-javascipt')
+    >>> print browser.contents,
+    CONTENT_LENGTH:	13
+    CONTENT_TYPE:	application/x-javascipt
+    HTTP_ACCEPT_LANGUAGE:	en-US
+    HTTP_CONNECTION:	close
+    HTTP_COOKIE:	
+    HTTP_HOST:	localhost
+    HTTP_REFERER:	localhost
+    HTTP_USER_AGENT:	Python-urllib/2.4
+    PATH_INFO:	/@@echo.html
+    REQUEST_METHOD:	POST
+    SERVER_PROTOCOL:	HTTP/1.1
+    Body: '{"x":1,"y":2}'
+
+Here, the body if left in place because it isn't form data.
+
 Performance Testing
 -------------------
 
