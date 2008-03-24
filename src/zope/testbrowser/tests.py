@@ -382,14 +382,21 @@ TestBrowserLayer = functional.ZCMLLayer(
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+
     readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
         checker=checker)
     readme.layer = TestBrowserLayer
+
+    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags)
+    fixed_bugs.layer = TestBrowserLayer
+
     wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
     wire.layer = TestBrowserLayer
+
     this_file = doctest.DocTestSuite(checker=checker)
-    return unittest.TestSuite((this_file, readme, wire))
+
+    return unittest.TestSuite((this_file, readme, fixed_bugs, wire))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

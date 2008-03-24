@@ -223,6 +223,7 @@ class Browser(SetattrErrorsMixin):
 
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
+        url = str(url)
         self._start_timer()
         try:
             try:
@@ -280,7 +281,7 @@ class Browser(SetattrErrorsMixin):
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
-        self.mech_browser.addheaders.append( (key, value) )
+        self.mech_browser.addheaders.append( (str(key), str(value)) )
 
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -386,8 +387,12 @@ class Browser(SetattrErrorsMixin):
         else:
             label = None
         self._start_timer()
-        self.mech_browser.open(form.click(
-            id=control.id, name=control.name, label=label, coord=coord))
+        try:
+            self.mech_browser.open(form.click(
+                id=control.id, name=control.name, label=label, coord=coord))
+        except Exception, e:
+            fix_exception_name(e)
+            raise
         self._stop_timer()
 
     def _changed(self):

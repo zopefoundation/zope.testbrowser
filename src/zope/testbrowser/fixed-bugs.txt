@@ -1,0 +1,27 @@
+Unicode URLs
+============
+
+Unicode URLs or headers cause the entire constructed request to be unicode, and
+(as of Python 2.4.4) Cookie.SimpleCookie checks the type of the input against
+type(""), so it handles the value inappropriately, causing exceptions that
+ended with::
+
+      File "/home/benji/Python-2.4.4/lib/python2.4/Cookie.py", line 623, in load
+        self.update(rawdata)
+    ValueError: dictionary update sequence element #0 has length 1; 2 is required
+
+As a work-around, unicode strings passed to Browser.open() are now converted to
+ASCII before being passed on, as well as the key and value passed to
+Browser.addHeader().
+
+The tests below failed before the change was put in place.
+
+    >>> from zope.testbrowser.testing import Browser
+    >>> browser = Browser()
+    >>> browser.addHeader('Cookie', 'test')
+    >>> browser.open(u'http://localhost/@@/testbrowser/simple.html')
+
+    >>> from zope.testbrowser.testing import Browser
+    >>> browser = Browser()
+    >>> browser.addHeader(u'Cookie', 'test')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
