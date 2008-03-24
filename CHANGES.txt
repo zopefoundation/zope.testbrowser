@@ -2,8 +2,16 @@
 CHANGES
 =======
 
-3.4.3 (unreleased)
+3.5.0 (unreleased)
 ------------------
+
+- Remove vendor import of mechanize.
+
+- Fix bug that caused HTTP exception tracebacks to differ between version 3.4.0
+  and 3.4.1.
+
+- Workaround for bug in Python Cookie.SimpleCookie when handling unicode
+  strings.
 
 - Fix bug introduced in 3.4.1 that created incompatible tracebacks in doctests.
   This necessitated adding a patched mechanize to the source tree; patches have

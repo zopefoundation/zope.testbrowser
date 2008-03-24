@@ -20,6 +20,7 @@ from cStringIO import StringIO
 from zope.app.testing import functional
 from zope.app.testing.functional import FunctionalDocFileSuite
 from zope.testbrowser import browser
+from zope.testing import doctest
 from zope.testing import renormalizing, doctest
 import httplib
 import mechanize
@@ -380,17 +381,22 @@ TestBrowserLayer = functional.ZCMLLayer(
     __name__, 'TestBrowserLayer', allow_teardown=True)
 
 def test_suite():
-    from zope.testing import doctest
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+
     readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
         checker=checker)
     readme.layer = TestBrowserLayer
+
+    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags)
+    fixed_bugs.layer = TestBrowserLayer
+
     wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
     wire.layer = TestBrowserLayer
+
     this_file = doctest.DocTestSuite(checker=checker)
-    return unittest.TestSuite((this_file, readme, wire))
+
+    return unittest.TestSuite((this_file, readme, fixed_bugs, wire))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
-

@@ -75,6 +75,14 @@ def zeroOrOne(items, description):
         raise ValueError(
             "Supply no more than one of %s as arguments" % description)
 
+def fix_exception_name(e):
+    # mechanize unceremoniously changed the repr of HTTPErrors, in
+    # in order not to break existing doctests, we have to undo that
+    if hasattr(e, '_exc_class_name'):
+        name = e._exc_class_name
+        name = name.rsplit('.', 1)[-1]
+        e.__class__.__name__ = name
+
 
 class SetattrErrorsMixin(object):
     _enable_setattr_errors = False
@@ -215,10 +223,15 @@ class Browser(SetattrErrorsMixin):
 
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
+        url = str(url)
         self._start_timer()
         try:
             try:
-                self.mech_browser.open(url, data)
+                try:
+                    self.mech_browser.open(url, data)
+                except Exception, e:
+                    fix_exception_name(e)
+                    raise
             except urllib2.HTTPError, e:
                 if e.code >= 200 and e.code <= 299:
                     # 200s aren't really errors
@@ -268,7 +281,7 @@ class Browser(SetattrErrorsMixin):
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
-        self.mech_browser.addheaders.append( (key, value) )
+        self.mech_browser.addheaders.append( (str(key), str(value)) )
 
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -374,8 +387,12 @@ class Browser(SetattrErrorsMixin):
         else:
             label = None
         self._start_timer()
-        self.mech_browser.open(form.click(
-            id=control.id, name=control.name, label=label, coord=coord))
+        try:
+            self.mech_browser.open(form.click(
+                id=control.id, name=control.name, label=label, coord=coord))
+        except Exception, e:
+            fix_exception_name(e)
+            raise
         self._stop_timer()
 
     def _changed(self):
