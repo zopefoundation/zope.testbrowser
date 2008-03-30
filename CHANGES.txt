@@ -3,7 +3,7 @@ CHANGES
 =======
 
 
-3.5.0 (unreleased)
+3.5.0 (2008-03-30)
 ------------------
 
 - Added a zope.testbrowser.testing.Browser.post method that allows
