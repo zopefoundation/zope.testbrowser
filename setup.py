@@ -50,9 +50,9 @@ setup(
     namespace_packages = ['zope',],
     tests_require = ['zope.testing'],
     install_requires = [
-        'setuptools',
-        'mechanize',
         'ClientForm',
+        'mechanize',
+        'setuptools',
         'zope.interface',
         'zope.schema',
         ],
@@ -60,9 +60,9 @@ setup(
         test = [
             'zope.app.component',
             'zope.app.folder',
+            'zope.app.securitypolicy',
             'zope.app.testing',
             'zope.app.zcmlfiles',
-            'zope.app.securitypolicy',
             ],
         ),
     include_package_data = True,

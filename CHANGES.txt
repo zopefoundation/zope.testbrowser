@@ -2,8 +2,13 @@
 CHANGES
 =======
 
+
 3.5.0 (unreleased)
 ------------------
+
+- Added a zope.testbrowser.testing.Browser.post method that allows
+  tests to supply a body and a content type.  This is handy for
+  testing Ajax requests with non-form input (e.g. JSON).
 
 - Remove vendor import of mechanize.
 
@@ -22,6 +27,11 @@ CHANGES
 
 - Fix browser.getLink documentation that was not updated since the last API
   modification.
+
+- Move tests for fixed bugs to a separate file.
+
+- Removed non-functional and undocumented code intended to help test servers
+  using virtual hosting.
 
 
 3.4.2 (2007-10-31)

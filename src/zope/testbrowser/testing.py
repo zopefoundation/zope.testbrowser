@@ -123,7 +123,15 @@ class PublisherResponse(object):
 class PublisherHTTPHandler(urllib2.HTTPHandler):
     """Special HTTP handler to use the Zope Publisher."""
 
-    http_request = urllib2.AbstractHTTPHandler.do_request_
+    def http_request(self, req):
+        # look at data and set content type
+        if req.has_data():
+            data = req.get_data()
+            if isinstance(data, dict):
+                req.add_data(data['body'])
+                req.add_unredirected_header('Content-type',
+                                            data['content-type'])
+        return urllib2.AbstractHTTPHandler.do_request_(self, req)
 
     def http_open(self, req):
         """Open an HTTP connection having a ``urllib2`` request."""
@@ -159,94 +167,3 @@ class Browser(browser.Browser):
     def __init__(self, url=None):
         mech_browser = PublisherMechanizeBrowser()
         super(Browser, self).__init__(url=url, mech_browser=mech_browser)
-
-#### virtual host test suites ####
-
-example_path_re = re.compile('http://example.com/virtual_path/')
-
-class VirtualHostingPublisherConnection(PublisherConnection):
-    def request(self, method, url, body=None, headers=None):
-        if self.host == 'example.com':
-            assert url.startswith('/virtual_path')
-            url = url[13:]
-        if not url:
-            url = '/'
-        url = '/vh_test_folder/++vh++http:example.com:80/virtual_path/++' + url
-        super(VirtualHostingPublisherConnection, self).request(
-            method, url, body, headers)
-
-class VirtualHostingPublisherHTTPHandler(urllib2.HTTPHandler):
-    """Special HTTP handler to use the Zope Publisher."""
-
-    http_request = urllib2.AbstractHTTPHandler.do_request_
-
-    def http_open(self, req):
-        """Open an HTTP connection having a ``urllib2`` request."""
-        # Here we connect to the publisher.
-        return self.do_open(VirtualHostingPublisherConnection, req)
-
-class VirtualHostingPublisherMechanizeBrowser(PublisherMechanizeBrowser):
-    handler_classes = PublisherMechanizeBrowser.handler_classes.copy()
-    handler_classes['http'] = VirtualHostingPublisherHTTPHandler
-
-class VirtualHostingBrowser(browser.Browser):
-    """A Zope ``testbrowser` Browser that inserts ."""
-
-    def __init__(self, url=None):
-        mech_browser = VirtualHostingPublisherMechanizeBrowser()
-        super(VirtualHostingBrowser, self).__init__(
-            url=url, mech_browser=mech_browser)
-
-def virtualHostingSetUp(test):
-    # need to create a folder named vh_test_folder in root
-    root = test.globs['getRootFolder']()
-    f = Folder()
-    root['vh_test_folder'] = f
-    f.setSiteManager(LocalSiteManager(f))
-    transaction.commit()
-
-def VirtualHostTestBrowserSuite(*paths, **kw):
-#    layer=None,
-#    globs=None, setUp=None, normalizers=None, **kw):
-
-    if 'checker' in kw:
-        raise ValueError(
-            'Must not supply custom checker.  To provide values for '
-            'zope.testing.renormalizing.RENormalizing checkers, include a '
-            '"normalizers" argument that is a list of (compiled regex, '
-            'replacement) pairs.')
-    kw['package'] = doctest._normalize_module(kw.get('package'))
-    layer = kw.pop('layer', None)
-    normalizers = kw.pop('normalizers', None)
-    vh_kw = kw.copy()
-    if 'globs' in kw:
-        globs = kw['globs'] = kw['globs'].copy() # don't mutate the original
-    else:
-        globs = kw['globs'] = {}
-    if 'Browser' in globs:
-        raise ValueError('"Browser" must not be defined in globs')
-    vh_kw['globs'] = globs.copy()
-    globs['Browser'] = Browser
-    vh_kw['globs']['Browser'] = VirtualHostingBrowser
-    def vh_setUp(test):
-        virtualHostingSetUp(test)
-        if 'setUp' in kw:
-            kw['setUp'](test)
-    vh_kw['setUp'] = vh_setUp
-    if normalizers is not None:
-        kw['checker'] = renormalizing.RENormalizing(normalizers)
-        vh_normalizers = normalizers[:]
-    else:
-        vh_normalizers = []
-    vh_normalizers.append((example_path_re, 'http://localhost/'))
-    vh_kw['checker'] = renormalizing.RENormalizing(vh_normalizers)
-    suite = unittest.TestSuite()
-    test = functional.FunctionalDocFileSuite(*paths, **kw)
-    vh_test = functional.FunctionalDocFileSuite(*paths, **vh_kw)
-    vh_test.level = 2
-    if layer is not None:
-        test.layer = layer
-        vh_test.layer = layer
-    suite.addTest(test)
-    suite.addTest(vh_test)
-    return suite

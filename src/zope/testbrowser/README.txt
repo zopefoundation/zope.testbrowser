@@ -1107,6 +1107,74 @@ disambiguate if no other arguments are provided:
     ValueError: if no other arguments are given, index is required.
 
 
+Submitting a posts body directly
+--------------------------------
+
+In addition to the open method, zope.testbrowser.testing.Browser has a ``post``
+method that allows a request body to be supplied.  This method is particularly
+helpful when testing Ajax methods.
+
+Let's visit a page that echos it's request:
+
+    >>> browser.open('http://localhost/@@echo.html')
+    >>> print browser.contents,
+    HTTP_USER_AGENT: Python-urllib/2.4
+    HTTP_CONNECTION: close
+    HTTP_COOKIE:
+    HTTP_REFERER: localhost
+    HTTP_ACCEPT_LANGUAGE: en-US
+    REQUEST_METHOD: GET
+    HTTP_HOST: localhost
+    PATH_INFO: /@@echo.html
+    SERVER_PROTOCOL: HTTP/1.1
+    QUERY_STRING:
+    Body: ''
+
+Now, we'll try a post.  The post method takes a URL, a data string,
+and an optional content type.  If we just pass a string, then
+a URL-encoded query string is assumed:
+
+    >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
+    >>> print browser.contents,
+    CONTENT_LENGTH: 7
+    HTTP_USER_AGENT: Python-urllib/2.4
+    HTTP_CONNECTION: close
+    HTTP_COOKIE:
+    HTTP_REFERER: localhost
+    HTTP_ACCEPT_LANGUAGE: en-US
+    y: 2
+    REQUEST_METHOD: POST
+    HTTP_HOST: localhost
+    PATH_INFO: /@@echo.html
+    CONTENT_TYPE: application/x-www-form-urlencoded
+    SERVER_PROTOCOL: HTTP/1.1
+    QUERY_STRING:
+    x: 1
+    Body: ''
+
+
+The body is empty because it is consumed to get form data.
+
+We can pass a content-type explicitly:
+
+    >>> browser.post('http://localhost/@@echo.html',
+    ...              '{"x":1,"y":2}', 'application/x-javascipt')
+    >>> print browser.contents,
+    CONTENT_LENGTH: 13
+    HTTP_USER_AGENT: Python-urllib/2.4
+    HTTP_CONNECTION: close
+    HTTP_COOKIE:
+    HTTP_REFERER: localhost
+    HTTP_ACCEPT_LANGUAGE: en-US
+    REQUEST_METHOD: POST
+    HTTP_HOST: localhost
+    PATH_INFO: /@@echo.html
+    CONTENT_TYPE: application/x-javascipt
+    SERVER_PROTOCOL: HTTP/1.1
+    Body: '{"x":1,"y":2}'
+
+Here, the body is left in place because it isn't form data.
+
 Performance Testing
 -------------------
 
@@ -1215,33 +1283,3 @@ instance attributes accidentally.
     Traceback (most recent call last):
     ...
     AttributeError: 'Link' object has no attribute 'nonexistant'
-
-
-Fixed Bugs
-----------
-
-This section includes tests for bugs that were found and then fixed that don't
-fit into the more documentation-centric sections above.
-
-Spaces in URL
-~~~~~~~~~~~~~
-
-When URLs have spaces in them, they're handled correctly (before the bug was
-fixed, you'd get "ValueError: too many values to unpack"):
-
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.getLink('Spaces in the URL').click()
-
-.goBack() Truncation
-~~~~~~~~~~~~~~~~~~~~
-
-The .goBack() method used to truncate the .contents.
-
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> actual_length = len(browser.contents)
-
-    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
-    >>> browser.goBack()
-    >>> len(browser.contents) == actual_length
-    True

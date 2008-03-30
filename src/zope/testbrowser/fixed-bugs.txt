@@ -1,3 +1,11 @@
+==========
+Fixed Bugs
+==========
+
+This file includes tests for bugs that were found and then fixed that don't fit
+into the more documentation-centric sections above.
+
+
 Unicode URLs
 ============
 
@@ -25,3 +33,28 @@ The tests below failed before the change was put in place.
     >>> browser = Browser()
     >>> browser.addHeader(u'Cookie', 'test')
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+
+
+Spaces in URL
+=============
+
+When URLs have spaces in them, they're handled correctly (before the bug was
+fixed, you'd get "ValueError: too many values to unpack"):
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.getLink('Spaces in the URL').click()
+
+
+.goBack() Truncation
+====================
+
+The .goBack() method used to truncate the .contents.
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> actual_length = len(browser.contents)
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.goBack()
+    >>> len(browser.contents) == actual_length
+    True
