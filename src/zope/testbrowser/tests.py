@@ -386,11 +386,17 @@ def test_suite():
     readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
         checker=checker)
     readme.layer = TestBrowserLayer
+    # XXX:  this test is really inappropriate for running in any automated
+    #       context.  Among other things, it causes the automated Zope2 test
+    #       to fail because Google now classes it as a rogue robot.
     wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
     wire.layer = TestBrowserLayer
     this_file = doctest.DocTestSuite(checker=checker)
-    return unittest.TestSuite((this_file, readme, wire))
+    TO_RUN = (this_file, readme)
+    if os.environ.get('RUN_OVER_THE_WIRE') is not None:
+        TO_RUN.append(wire)
+    return unittest.TestSuite(TO_RUN)
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
