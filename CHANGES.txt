@@ -2,11 +2,16 @@
 CHANGES
 =======
 
-After 3.4.2
------------
+3.4.2-zope2 (2008-05-31)
+------------------------
 
-- Suppress running 'over_the_wire.txt' tests in automated contexts (to
-  re-enable, set the 'OVER_THE_WIRE' environment variable).
+- Suppress running 'over_the_wire.txt' tests in automated contexts.  
+
+  These tests cause automated Zope2 tests to fail, because Google classes
+  them as coming from a rogue robot.  To re-enable these tests, set the
+  'RUN_OVER_THE_WIRE' environment variable, e.g.::
+
+    $ RUN_OVER_THE_WIRE=1 /path/to/testrunner -s zope.testbrowser
 
 3.4.2 (2007-10-31)
 ------------------
