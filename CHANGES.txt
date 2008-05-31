@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+After 3.4.2
+-----------
+
+- Suppress running 'over_the_wire.txt' tests in automated contexts (to
+  re-enable, set the 'OVER_THE_WIRE' environment variable).
+
 3.4.2 (2007-10-31)
 ------------------
 
