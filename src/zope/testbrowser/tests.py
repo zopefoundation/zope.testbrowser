@@ -368,6 +368,7 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'^---{10}.*', re.M), '-'*30),
     (re.compile(r'boundary=-{10}.*'), 'boundary='+'-'*30),
     (re.compile(r'User-agent:\s+\S+'), 'User-agent: Python-urllib/2.4'),
+    (re.compile(r'HTTP_USER_AGENT:\s+\S+'), 'HTTP_USER_AGENT: Python-urllib/2.4'),
     (re.compile(r'Content-[Ll]ength:.*'), 'Content-Length: 123'),
     (re.compile(r'Status: 200.*'), 'Status: 200 OK'),
     (win32CRLFtransformer(), None),
