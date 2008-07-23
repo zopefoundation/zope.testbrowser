@@ -50,7 +50,7 @@ setup(
     namespace_packages = ['zope',],
     tests_require = ['zope.testing'],
     install_requires = [
-        'ClientForm',
+        'ClientForm >= 0.2.8',
         'mechanize',
         'setuptools',
         'zope.interface',

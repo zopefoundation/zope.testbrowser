@@ -58,3 +58,20 @@ The .goBack() method used to truncate the .contents.
     >>> browser.goBack()
     >>> len(browser.contents) == actual_length
     True
+
+
+Labeled Radio Buttons
+=====================
+
+The .getControl() method was sometimes unable to find radio buttons by label.
+
+    >>> import ClientForm
+    >>> # ClientForm._show_debug_messages()
+    >>> browser.open('http://localhost/@@/testbrowser/radio.html')
+    >>> browser.getControl('One').optionValue
+    '1'
+    >>> browser.getControl('Two').optionValue
+    '2'
+    >>> browser.getControl('Three').optionValue
+    '3'
+
