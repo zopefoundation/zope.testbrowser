@@ -290,6 +290,7 @@ class Browser(SetattrErrorsMixin):
 
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
+        import pdb; pdb.set_trace() 
         if id is not None:
             def predicate(link):
                 return dict(link.attrs).get('id') == id
