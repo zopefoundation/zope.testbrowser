@@ -158,6 +158,9 @@ class PublisherMechanizeBrowser(mechanize.Browser):
         for name in inherited_handlers:
             self.handler_classes[name] = mechanize.Browser.handler_classes[name]
 
+        kws['request_class'] = kws.get('request_class',
+                                       mechanize._request.Request)
+
         mechanize.Browser.__init__(self, *args, **kws)
 
 

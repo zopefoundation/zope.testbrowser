@@ -6,6 +6,9 @@ CHANGES
 3.5.0 (unreleased)
 ------------------
 
+- Provide a work around for a mechanize/urllib2 bug in creating request
+  objects that won't handle fragment URLs correctly.
+
 - Added a zope.testbrowser.testing.Browser.post method that allows
   tests to supply a body and a content type.  This is handy for
   testing Ajax requests with non-form input (e.g. JSON).
