@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.5.1 (unreleased)
+3.5.1 (2008-10-10)
 ------------------
 
 - Provide a work around for a mechanize/urllib2 bug on Python 2.6
