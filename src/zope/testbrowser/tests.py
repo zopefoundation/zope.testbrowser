@@ -26,6 +26,8 @@ import httplib
 import mechanize
 import os
 import re
+import sys
+import socket
 import unittest
 import unittest
 import urllib2
@@ -51,7 +53,7 @@ def set_next_response(body, headers=None, status='200', reason='OK'):
 class FauxConnection(object):
     """A ``urllib2`` compatible connection object."""
 
-    def __init__(self, host):
+    def __init__(self, host, timeout=None):
         pass
 
     def set_debuglevel(self, level):
@@ -125,6 +127,11 @@ class FauxHTTPHandler(urllib2.HTTPHandler):
     def http_open(self, req):
         """Open an HTTP connection having a ``urllib2`` request."""
         # Here we connect to the publisher.
+
+        if sys.version_info > (2, 6) and not hasattr(req, 'timeout'):
+            # Workaround mechanize incompatibility with Python
+            # 2.6. See: LP #280334
+            req.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
         return self.do_open(FauxConnection, req)
 
 
@@ -373,6 +380,7 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'Status: 200.*'), 'Status: 200 OK'),
     (win32CRLFtransformer(), None),
     (re.compile(r'User-Agent: Python-urllib/2.5'), 'User-agent: Python-urllib/2.4'),
+    (re.compile(r'User-Agent: Python-urllib/2.6'), 'User-agent: Python-urllib/2.4'),
     (re.compile(r'Host: localhost'), 'Connection: close'),
     (re.compile(r'Content-Type: '), 'Content-type: '),
     ])

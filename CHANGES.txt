@@ -2,12 +2,17 @@
 CHANGES
 =======
 
-
-3.5.0 (unreleased)
+3.5.1 (unreleased)
 ------------------
+
+- Provide a work around for a mechanize/urllib2 bug on Python 2.6
+  missing 'timeout' attribute on 'Request' base class.
 
 - Provide a work around for a mechanize/urllib2 bug in creating request
   objects that won't handle fragment URLs correctly.
+
+3.5.0 (2008-03-30)
+------------------
 
 - Added a zope.testbrowser.testing.Browser.post method that allows
   tests to supply a body and a content type.  This is handy for
