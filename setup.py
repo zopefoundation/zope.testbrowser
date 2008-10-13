@@ -29,7 +29,7 @@ long_description = (
 
 setup(
     name = 'zope.testbrowser',
-    version = '3.4.2',
+    version = '3.4.3dev',
     url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
     description = 'Programmable browser for functional black-box tests',
@@ -50,11 +50,11 @@ setup(
     tests_require = ['zope.testing'],
     install_requires = ['setuptools',
                         'mechanize',
-                        'ClientForm'],
+                        'ClientForm',
+                        'zope.interface',
+                        'zope.schema'],
     extras_require = dict(
-        test = ['zope.interface',
-                'zope.schema',
-                'zope.app.component',
+        test = ['zope.app.component',
                 'zope.app.folder',
                 'zope.app.testing',
                 'zope.app.zcmlfiles',
