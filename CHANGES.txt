@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+3.4.3 (unreleased)
+------------------
+
+- backported fix for #149517 from 3.5 (explicitly depend on zope.interface and
+  zope.schema)
+
 3.4.2 (2007-10-31)
 ------------------
 
