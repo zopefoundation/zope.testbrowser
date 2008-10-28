@@ -16,17 +16,21 @@
 $Id$
 """
 __docformat__ = "reStructuredText"
-from zope.testbrowser import interfaces
-import ClientForm
-from cStringIO import StringIO
-import mechanize
+import datetime
 import operator
 import re
+from cStringIO import StringIO
 import sys
 import time
 import urllib2
 
+import mechanize
+import ClientForm
+
 from zope import interface
+
+from zope.testbrowser import interfaces, cookies
+
 
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
@@ -164,6 +168,7 @@ class Browser(SetattrErrorsMixin):
         self.mech_browser = mech_browser
         self.timer = PystoneTimer()
         self.raiseHttpErrors = True
+        self.cookies = cookies.Cookies(self.mech_browser)
         self._enable_setattr_errors = True
 
         if url is not None:

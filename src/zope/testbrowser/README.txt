@@ -148,6 +148,502 @@ Or as a mapping:
     'text/html;charset=utf-8'
 
 
+Cookies
+-------
+
+When a Set-Cookie header is available, it can be found in the headers, as seen
+above.  Here, we use a view that will make the server set cookies with the
+values we provide.
+
+    >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
+    >>> browser.headers['set-cookie']
+    'foo=bar;'
+
+You can also examine cookies using the browser's ``cookies`` attribute.  It has
+an extended mapping interface that allows getting, setting, and deleting the
+cookies that the browser is remembering for the current url.  These are
+examples of just the accessor operators and methods.
+
+    >>> browser.cookies['foo']
+    'bar'
+    >>> browser.cookies.keys()
+    ['foo']
+    >>> browser.cookies.values()
+    ['bar']
+    >>> browser.cookies.items()
+    [('foo', 'bar')]
+    >>> 'foo' in browser.cookies
+    True
+    >>> 'bar' in browser.cookies
+    False
+    >>> len(browser.cookies)
+    1
+    >>> print(dict(browser.cookies))
+    {'foo': 'bar'}
+
+It can also be used to examine cookies that have already been set in a
+previous request.  To demonstrate this, we use another view that does not set
+cookies but reports on the cookies it receives from the browser.
+
+    >>> browser.open('http://localhost/get_cookie.html')
+    >>> print browser.headers.get('set-cookie')
+    None
+    >>> browser.contents
+    'foo: bar'
+    >>> browser.cookies['foo']
+    'bar'
+
+The standard mapping mutation methods and operators are also available, as
+seen here.
+
+    >>> browser.cookies['sha'] = 'zam'
+    >>> len(browser.cookies)
+    2
+    >>> import pprint
+    >>> pprint.pprint(sorted(browser.cookies.items()))
+    [('foo', 'bar'), ('sha', 'zam')]
+    >>> browser.open('http://localhost/get_cookie.html')
+    >>> print browser.headers.get('set-cookie')
+    None
+    >>> print browser.contents # server got the cookie change
+    foo: bar
+    sha: zam
+    >>> browser.cookies.update({'va': 'voom', 'tweedle': 'dee'})
+    >>> pprint.pprint(sorted(browser.cookies.items()))
+    [('foo', 'bar'), ('sha', 'zam'), ('tweedle', 'dee'), ('va', 'voom')]
+    >>> browser.open('http://localhost/get_cookie.html')
+    >>> print browser.headers.get('set-cookie')
+    None
+    >>> print browser.contents
+    foo: bar
+    sha: zam
+    tweedle: dee
+    va: voom
+    >>> del browser.cookies['foo']
+    >>> del browser.cookies['tweedle']
+    >>> browser.open('http://localhost/get_cookie.html')
+    >>> print browser.contents
+    sha: zam
+    va: voom
+
+You can see the header in the ``header`` attribute and the repr and str.
+
+    >>> browser.cookies.header
+    'sha=zam; va=voom'
+    >>> browser.cookies # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <zope.testbrowser.cookies.Cookies object at ... for
+     http://localhost/get_cookie.html (sha=zam; va=voom)>
+    >>> str(browser.cookies)
+    'sha=zam; va=voom'
+
+The ``cookies`` mapping also has an extended interface to get and set extra
+information about each cookie.  ``getinfo`` returns a dictionary.  Here is the
+interface description.
+
+::
+
+    def getinfo(name):
+       """returns dict of settings for the given cookie name.
+
+       This includes only the following cookie values: 
+
+       - name (str)
+       - value (str),
+       - port (int or None),
+       - domain (str),
+       - path (str or None),
+       - secure (bool), and
+       - expires (datetime.datetime with pytz.UTC timezone or None),
+       - comment (str or None),
+       - commenturl (str or None).
+       """
+
+Here are some examples.
+
+    >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
+    >>> pprint.pprint(browser.cookies.getinfo('foo'))
+    {'comment': None,
+     'commenturl': None,
+     'domain': 'localhost.local',
+     'expires': None,
+     'name': 'foo',
+     'path': '/',
+     'port': None,
+     'secure': False,
+     'value': 'bar'}
+    >>> pprint.pprint(browser.cookies.getinfo('sha'))
+    {'comment': None,
+     'commenturl': None,
+     'domain': 'localhost.local',
+     'expires': None,
+     'name': 'sha',
+     'path': '/',
+     'port': None,
+     'secure': False,
+     'value': 'zam'}
+    >>> import datetime
+    >>> expires = datetime.datetime(2030, 1, 1).strftime(
+    ...     '%a, %d %b %Y %H:%M:%S GMT')
+    >>> browser.open(
+    ...     'http://localhost/set_cookie.html?name=wow&value=wee&'
+    ...     'expires=%s' %
+    ...     (expires,))
+    >>> pprint.pprint(browser.cookies.getinfo('wow'))
+    {'comment': None,
+     'commenturl': None,
+     'domain': 'localhost.local',
+     'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),
+     'name': 'wow',
+     'path': '/',
+     'port': None,
+     'secure': False,
+     'value': 'wee'}
+
+Max-age is converted to an "expires" value.
+
+    >>> browser.open(
+    ...     'http://localhost/set_cookie.html?name=max&value=min&'
+    ...     'max-age=3000&&comment=silly+billy')
+    >>> pprint.pprint(browser.cookies.getinfo('max')) # doctest: +ELLIPSIS
+    {'comment': 'silly%20billy',
+     'commenturl': None,
+     'domain': 'localhost.local',
+     'expires': datetime.datetime(..., tzinfo=<UTC>),
+     'name': 'max',
+     'path': '/',
+     'port': None,
+     'secure': False,
+     'value': 'min'}
+
+You can iterate over all of the information about the cookies for the current
+page using the ``iterinfo`` method.
+
+    >>> pprint.pprint(sorted(browser.cookies.iterinfo(),
+    ...                      key=lambda info: info['name']))
+    ... # doctest: +ELLIPSIS
+    [{'comment': None,
+      'commenturl': None,
+      'domain': 'localhost.local',
+      'expires': None,
+      'name': 'foo',
+      'path': '/',
+      'port': None,
+      'secure': False,
+      'value': 'bar'},
+     {'comment': 'silly%20billy',
+      'commenturl': None,
+      'domain': 'localhost.local',
+      'expires': datetime.datetime(..., tzinfo=<UTC>),
+      'name': 'max',
+      'path': '/',
+      'port': None,
+      'secure': False,
+      'value': 'min'},
+     {'comment': None,
+      'commenturl': None,
+      'domain': 'localhost.local',
+      'expires': None,
+      'name': 'sha',
+      'path': '/',
+      'port': None,
+      'secure': False,
+      'value': 'zam'},
+     {'comment': None,
+      'commenturl': None,
+      'domain': 'localhost.local',
+      'expires': None,
+      'name': 'va',
+      'path': '/',
+      'port': None,
+      'secure': False,
+      'value': 'voom'},
+     {'comment': None,
+      'commenturl': None,
+      'domain': 'localhost.local',
+      'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),
+      'name': 'wow',
+      'path': '/',
+      'port': None,
+      'secure': False,
+      'value': 'wee'}]
+
+If you want to look at the cookies for another page, you can either navigate to
+the other page in the browser, or use the ``forURL`` method, which returns an
+ICookies instance for the new URL.
+
+    >>> sorted(browser.cookies.forURL(
+    ...     'http://localhost/inner/set_cookie.html').keys())
+    ['foo', 'max', 'sha', 'va', 'wow']
+    >>> extra_cookie = browser.cookies.forURL(
+    ...     'http://localhost/inner/set_cookie.html')
+    >>> extra_cookie['gew'] = 'gaw'
+    >>> extra_cookie.getinfo('gew')['path']
+    '/inner'
+    >>> sorted(extra_cookie.keys())
+    ['foo', 'gew', 'max', 'sha', 'va', 'wow']
+    >>> sorted(browser.cookies.keys())
+    ['foo', 'max', 'sha', 'va', 'wow']
+
+    >>> import zope.app.folder.folder
+    >>> getRootFolder()['inner'] = zope.app.folder.folder.Folder()
+    >>> getRootFolder()['inner']['path'] = zope.app.folder.folder.Folder()
+    >>> import transaction
+    >>> transaction.commit()
+    >>> browser.open('http://localhost/inner/get_cookie.html')
+    >>> print browser.contents # has gewgaw
+    foo: bar
+    gew: gaw
+    max: min
+    sha: zam
+    va: voom
+    wow: wee
+    >>> browser.open('http://localhost/inner/path/get_cookie.html')
+    >>> print browser.contents # has gewgaw
+    foo: bar
+    gew: gaw
+    max: min
+    sha: zam
+    va: voom
+    wow: wee
+    >>> browser.open('http://localhost/get_cookie.html')
+    >>> print browser.contents # NO gewgaw
+    foo: bar
+    max: min
+    sha: zam
+    va: voom
+    wow: wee
+
+Here's an example of the server setting a cookie that is only available on an
+inner page.
+
+    >>> browser.open(
+    ...     'http://localhost/inner/path/set_cookie.html?name=big&value=kahuna'
+    ...     )
+    >>> browser.cookies['big']
+    'kahuna'
+    >>> browser.cookies.getinfo('big')['path']
+    '/inner/path'
+    >>> browser.cookies.getinfo('gew')['path']
+    '/inner'
+    >>> browser.cookies.getinfo('foo')['path']
+    '/'
+    >>> print browser.cookies.forURL('http://localhost/').get('big')
+    None
+
+The basic mapping API only allows setting values.  If a cookie already exists
+for the given name, it will be changed; or else a new cookie will be created
+for the current request's domain and a path of '/', set to last for only this
+browser session (a "session" cookie).  To create or set cookies with different
+additional information, use the ``set`` method.  Here is an example.
+
+    >>> from zope.testbrowser.cookies import UTC
+    >>> browser.cookies.set(
+    ...     'bling', value='blang', path='/inner',
+    ...     expires=datetime.datetime(2020, 1, 1, tzinfo=UTC),
+    ...     comment='follow swallow')
+    >>> pprint.pprint(browser.cookies.getinfo('bling'))
+    {'comment': 'follow%20swallow',
+     'commenturl': None,
+     'domain': 'localhost.local',
+     'expires': datetime.datetime(2020, 1, 1, 0, 0, tzinfo=<UTC>),
+     'name': 'bling',
+     'path': '/inner',
+     'port': None,
+     'secure': False,
+     'value': 'blang'}
+
+In these further examples, note that the testbrowser sends all domains to Zope,
+and both http and https.
+
+    >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
+    >>> browser.cookies.keys() # a different domain
+    []
+    >>> browser.cookies.set('tweedle', 'dee')
+    >>> pprint.pprint(browser.cookies.getinfo('tweedle'))
+    {'comment': None,
+     'commenturl': None,
+     'domain': 'dev.example.com',
+     'expires': None,
+     'name': 'tweedle',
+     'path': '/inner/path',
+     'port': None,
+     'secure': False,
+     'value': 'dee'}
+    >>> browser.cookies.set('boo', 'yah', domain='.example.com', path='/inner',
+    ...             secure=True)
+    >>> pprint.pprint(browser.cookies.getinfo('boo'))
+    {'comment': None,
+     'commenturl': None,
+     'domain': '.example.com',
+     'expires': None,
+     'name': 'boo',
+     'path': '/inner',
+     'port': None,
+     'secure': True,
+     'value': 'yah'}
+    >>> sorted(browser.cookies.keys())
+    ['boo', 'tweedle']
+    >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
+    >>> print browser.contents
+    boo: yah
+    tweedle: dee
+    >>> browser.open( # not https, so not secure, so not 'boo'
+    ...     'http://dev.example.com/inner/path/get_cookie.html')
+    >>> sorted(browser.cookies.keys())
+    ['tweedle']
+    >>> print browser.contents
+    tweedle: dee
+    >>> browser.open( # not tweedle's domain
+    ...     'https://prod.example.com/inner/path/get_cookie.html')
+    >>> sorted(browser.cookies.keys())
+    ['boo']
+    >>> print browser.contents
+    boo: yah
+    >>> browser.open( # not tweedle's domain
+    ...     'https://example.com/inner/path/get_cookie.html')
+    >>> sorted(browser.cookies.keys())
+    ['boo']
+    >>> print browser.contents
+    boo: yah
+    >>> browser.open( # not tweedle's path
+    ...     'https://dev.example.com/inner/get_cookie.html')
+    >>> sorted(browser.cookies.keys())
+    ['boo']
+    >>> print browser.contents
+    boo: yah
+
+The API allows creation of cookies that mask existing cookies, but it does not
+allow creating a cookie that will be immediately masked upon creation. Having
+multiple cookies with the same name for a given URL is rare, and is a
+pathological case for using a mapping API to work with cookies, but it is
+supported to some degree, as demonstrated below.  Note that the Cookie RFCs
+(2109, 2965) specify that all matching cookies be sent to the server, but with
+an ordering so that more specific paths come first. We also prefer more
+specific domains, though the RFCs state that the ordering of cookies with the
+same path is indeterminate.  The best-matching cookie is the one that the
+mapping API uses.
+
+Also note that ports, as sent by RFC 2965's Cookie2 and Set-Cookie2 headers,
+are parsed and stored by this API but are not used for filtering as of this
+writing.
+
+This is an example of making one cookie that masks another because of path.
+First, unless you pass an explicit path, you will be modifying the existing
+cookie.
+
+    >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
+    >>> print browser.contents
+    boo: yah
+    tweedle: dee
+    >>> browser.cookies.getinfo('boo')['path']
+    '/inner'
+    >>> browser.cookies['boo'] = 'hoo'
+    >>> browser.cookies.getinfo('boo')['path']
+    '/inner'
+    >>> browser.cookies.getinfo('boo')['secure']
+    True
+
+Now we mask the cookie, using the path.
+
+    >>> browser.cookies.set('boo', 'boo', path='/inner/path')
+    >>> browser.cookies['boo']
+    'boo'
+    >>> browser.cookies.getinfo('boo')['path']
+    '/inner/path'
+    >>> browser.cookies.getinfo('boo')['secure']
+    False
+    >>> browser.cookies['boo']
+    'boo'
+    >>> sorted(browser.cookies.keys())
+    ['boo', 'tweedle']
+
+To identify the additional cookies, you can change the URL...
+
+    >>> extra_cookies = browser.cookies.forURL(
+    ...     'https://dev.example.com/inner/get_cookie.html')
+    >>> extra_cookies['boo']
+    'hoo'
+    >>> extra_cookies.getinfo('boo')['path']
+    '/inner'
+    >>> extra_cookies.getinfo('boo')['secure']
+    True
+
+...or use ``iterinfo`` and pass in a name.
+
+    >>> pprint.pprint(list(browser.cookies.iterinfo('boo')))
+    [{'comment': None,
+      'commenturl': None,
+      'domain': 'dev.example.com',
+      'expires': None,
+      'name': 'boo',
+      'path': '/inner/path',
+      'port': None,
+      'secure': False,
+      'value': 'boo'},
+     {'comment': None,
+      'commenturl': None,
+      'domain': '.example.com',
+      'expires': None,
+      'name': 'boo',
+      'path': '/inner',
+      'port': None,
+      'secure': True,
+      'value': 'hoo'}]
+
+An odd situation in this case is that deleting a cookie can sometimes reveal
+another one.
+
+    >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
+    >>> browser.cookies['boo']
+    'boo'
+    >>> del browser.cookies['boo']
+    >>> browser.cookies['boo']
+    'hoo'
+
+Setting a cookie that will be immediately masked within the current url is not
+allowed.
+
+    >>> browser.cookies.getinfo('tweedle')['path']
+    '/inner/path'
+    >>> browser.cookies.set('tweedle', 'dum', path='/inner')
+    ... # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+    ...
+    ValueError: cannot set a cookie that will be hidden by another cookie for
+    this url (https://dev.example.com/inner/path/get_cookie.html)
+    >>> browser.cookies['tweedle']
+    'dee'
+
+    XXX then show for domain.
+
+XXX show can't set hidden cookie, but can hide another cookie
+
+#Note that explicitly setting a Cookie header is an error if the ``cookies``
+#mapping has any values; and adding a new cookie to the ``cookies`` mapping
+#is an error if the Cookie header is already set.
+#
+#    >>> browser.addHeader('Cookie', 'gee=gaw') # XXX Cookie or Cookie2
+#    Traceback (most recent call last):
+#    ...
+#    ValueError: cookies are already set in `cookies` attribute
+#
+#    >>> new_browser = Browser('http://localhost/get_cookie.html')
+#    >>> print new_browser.headers.get('set-cookie')
+#    None
+#    >>> print new_browser.contents
+#    <BLANKLINE>
+#    >>> new_browser.addHeader('Cookie', 'gee=gaw')
+#    Traceback (most recent call last):
+#    ...
+#    ValueError: cookies are already set in `Cookie` header
+#    >>> new_browser.cookies['fee'] = 'fi'
+#    >>> del new_browser # clean up
+
+XXX show path example, and how masking works; lots of other stuff to show like
+popinfo, update, update from cookies, expire, clear, clearAll, clearAllSession.
+
+    >>> browser.cookies.clearAll() # clean out cookies for subsequent tests
+
 Navigation and Link Objects
 ---------------------------
 
@@ -1229,7 +1725,7 @@ NB: Setting the handleErrors attribute to False will only change
 
 When the testbrowser is raising HttpErrors, the errors still hit the test.
 Sometimes we don't want that to happen, in situations where there are edge
-cases that will cause the error to be predictabley but infrequently raised.
+cases that will cause the error to be predictably but infrequently raised.
 Time is a primary cause of this.
 
 To get around this, one can set the raiseHttpErrors to False.
@@ -1247,7 +1743,7 @@ The headers are still there, though.
     True
 
 If we don't handle the errors, and allow internal ones to propagate, however,
-this flage doesn't affect things.
+this flag doesn't affect things.
 
     >>> browser.handleErrors = False
     >>> browser.open('http://localhost/invalid')
