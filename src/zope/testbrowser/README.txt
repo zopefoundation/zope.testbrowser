@@ -618,6 +618,51 @@ allowed.
 
 XXX show can't set hidden cookie, but can hide another cookie
 
+The ``expire`` method is really just a convenience.  Here are some examples.
+XXX this pretty much straight from an email with John.  Adjust to put in
+context.
+
+    >>> import zope.testbrowser.cookies
+    >>> import mechanize
+    >>> import datetime
+    >>> br = mechanize.Browser()
+    >>> cookies = zope.testbrowser.cookies.Cookies(br, 'http://example.com')
+    >>> cookies.set('foo', 'bar', domain='example.com')
+    >>> cookies.expire('foo', datetime.datetime(2021, 1, 1))
+    >>> cookies.getinfo('foo')['expires']
+    datetime.datetime(2021, 1, 1, 0, 0, tzinfo=<UTC>)
+    >>> cookies.expire('foo')
+    >>> len(cookies)
+    0
+
+That's the main story.  Now here are some edge cases.
+
+    >>> cookies.set('foo', 'bar', domain='example.com')
+    >>> cookies.expire(
+    ...     'foo',
+    ...     zope.testbrowser.cookies.expiration_string(
+    ...         datetime.datetime(2020, 1, 1)))
+    >>> cookies.getinfo('foo')['expires']
+    datetime.datetime(2020, 1, 1, 0, 0, tzinfo=<UTC>)
+    >>> cookies.forURL('http://example.com').expire(
+    ...     'foo',
+    ...     zope.testbrowser.cookies.expiration_string(
+    ...         datetime.datetime(2019, 1, 1)))
+    >>> cookies.getinfo('foo')['expires']
+    datetime.datetime(2019, 1, 1, 0, 0, tzinfo=<UTC>)
+    >>> cookies['foo']
+    'bar'
+    >>> cookies.expire('foo', datetime.datetime(1999, 1, 1))
+    >>> len(cookies)
+    0
+    >>> cookies.expire(
+    ...     'foo',
+    ...     zope.testbrowser.cookies.expiration_string(
+    ...         datetime.datetime(1999, 1, 1)))
+    >>> len(cookies)
+    0
+
+
 #Note that explicitly setting a Cookie header is an error if the ``cookies``
 #mapping has any values; and adding a new cookie to the ``cookies`` mapping
 #is an error if the Cookie header is already set.

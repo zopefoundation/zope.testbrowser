@@ -15,7 +15,7 @@ except ImportError:
     HOUR = datetime.timedelta(hours=1)
 
 
-    class UTC(datetime.tzinfo):
+    class _UTC(datetime.tzinfo):
         """UTC
 
         The reference UTC implementation given in Python docs.
@@ -48,6 +48,8 @@ except ImportError:
 
         def __str__(self):
             return "UTC"
+
+    UTC = _UTC()
 
 # Cookies class helpers
 
@@ -238,6 +240,12 @@ class Cookies(UserDict.DictMixin):
             # you CAN hide an existing cookie, by passing an explicit path
         elif use_ck:
             path = ck.path
+        if expires is not None and self._is_expired(expires):
+            if use_ck:
+                raise ValueError('May not delete a cookie using ``set``')
+            else:
+                raise ValueError(
+                    'May not create a cookie that is immediately ignored')
         version = None
         if use_ck:
             # keep unchanged existing cookie values
@@ -259,6 +267,8 @@ class Cookies(UserDict.DictMixin):
         # else...if the domain is bad, set_cookie_if_ok should catch it.
         c = Cookie.SimpleCookie()
         name = str(name)
+        if value is None:
+            raise ValueError('if cookie does not exist, must provide value')
         c[name] = value.encode('utf8')
         if secure:
             c[name]['secure'] = True
@@ -281,6 +291,8 @@ class Cookies(UserDict.DictMixin):
         # fact supported by the documented client cookie API.
         cookies = self._jar.make_cookies(
             _StubResponse([c.output(header='').strip()]), request)
+        assert len(cookies) == 1, (
+            'programmer error: %d cookies made' % (len(cookies),))
         self._jar.set_cookie_if_ok(cookies[0], request)
 
     def update(self, source=None, **kwargs):
@@ -301,13 +313,25 @@ class Cookies(UserDict.DictMixin):
     def __setitem__(self, key, value):
         self.set(key, value)
 
+    def _is_expired(self, value):
+        if isinstance(value, datetime.datetime):
+            if value.tzinfo is None:
+                 if value <= datetime.datetime.utcnow():
+                    return True
+            elif value <= datetime.datetime.now(UTC):
+                return True
+        elif isinstance(value, basestring):
+            if datetime.datetime.fromtimestamp(
+                mechanize.str2time(value),
+                UTC) <= datetime.datetime.now(UTC):
+                return True
+        return False
+
     def expire(self, name, expires=None):
-        if expires is None:
+        if expires is None or self._is_expired(expires):
             del self[name]
         else:
-            ck = self._get(name)
-            self.set(ck.name, ck.value, expires, ck.domain, ck.path, ck.secure,
-                     ck.comment)
+            res = self.set(name, expires=expires)
 
     def clear(self):
         # to give expected mapping behavior of resulting in an empty dict,
