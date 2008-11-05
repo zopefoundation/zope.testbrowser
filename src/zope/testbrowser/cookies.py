@@ -51,6 +51,9 @@ except ImportError:
 
     UTC = _UTC()
 
+import zope.interface
+from zope.testbrowser import interfaces
+
 # Cookies class helpers
 
 
@@ -86,6 +89,8 @@ class Cookies(UserDict.DictMixin):
     """Cookies for mechanize browser.
     """
 
+    zope.interface.implements(interfaces.ICookies)
+
     def __init__(self, mech_browser, url=None):
         self.mech_browser = mech_browser
         self._url = url
@@ -115,9 +120,6 @@ class Cookies(UserDict.DictMixin):
             if request is None:
                 raise RuntimeError('no request found')
             return request
-
-    def __str__(self):
-        return self.header
 
     @property
     def header(self):
@@ -218,57 +220,114 @@ class Cookies(UserDict.DictMixin):
         ck = self._get(key)
         self._jar.clear(ck.domain, ck.path, ck.name)
 
-    def set(self, name, value=None,
+    def create(self, name, value,
+               domain=None, expires=None, path=None, secure=None, comment=None,
+               commenturl=None, port=None):
+        if value is None:
+            raise ValueError('must provide value')
+        ck = self._get(name, None)
+        if (ck is not None and
+            (path is None or ck.path == path) and
+            (domain is None or ck.domain == domain or
+             ck.domain == domain) and
+            (port is None or ck.port == port)):
+            # cookie already exists
+            raise ValueError('cookie already exists')
+        if domain is not None:
+            self._verifyDomain(domain, ck)
+        if path is not None:
+            self._verifyPath(path, ck)
+        if expires is not None and self._is_expired(expires):
+            raise zope.testbrowser.interfaces.AlreadyExpiredError(
+                'May not create a cookie that is immediately expired')
+        self._setCookie(name, value, domain, expires, path, secure, comment,
+                        commenturl, port)
+
+    def change(self, name, value=None,
             domain=None, expires=None, path=None, secure=None, comment=None,
             commenturl=None, port=None):
-        request = self._request
-        if request is None:
-            raise mechanize.BrowserStateError(
-                'cannot create cookie without request')
-        ck = self._get(name, None)
-        use_ck = (ck is not None and
-                  (path is None or ck.path == path) and
-                  (domain is None or ck.domain == domain))
-        if path is not None:
-            self_path = urlparse.urlparse(self.url)[2]
-            if not self_path.startswith(path):
-                raise ValueError('current url must start with path, if given')
-            if ck is not None and ck.path != path and ck.path.startswith(path):
-                raise ValueError(
-                    'cannot set a cookie that will be hidden by another '
-                    'cookie for this url (%s)' % (self.url,))
-            # you CAN hide an existing cookie, by passing an explicit path
-        elif use_ck:
-            path = ck.path
         if expires is not None and self._is_expired(expires):
-            if use_ck:
-                raise ValueError('May not delete a cookie using ``set``')
+            # shortcut
+            del self[name]
+        else:
+            self._change(self._get(name), value, domain, expires, path, secure,
+                         comment, commenturl, port)
+
+    def _change(self, ck, value=None,
+                domain=None, expires=None, path=None, secure=None,
+                comment=None, commenturl=None, port=None):
+        if value is None:
+            value = ck.value
+        if domain is None:
+            domain = ck.domain
+        else:
+            self._verifyDomain(domain, ck)
+        if expires is None:
+            expires = ck.expires
+        if path is None:
+            path = ck.path
+        else:
+            self._verifyPath(domain, ck)
+        if secure is None:
+            secure = ck.secure
+        if comment is None:
+            comment = ck.comment
+        if commenturl is None:
+            commenturl = ck.comment_url
+        if port is None:
+            port = ck.port
+        self._setCookie(ck.name, value, domain, expires, path, secure, comment,
+                        commenturl, port, ck.version, ck=ck)
+
+    def _verifyDomain(self, domain, ck):
+        if domain is not None and domain.startswith('.'):
+            domain = domain[1:]
+        self_host = cookielib.eff_request_host(self._request)[1]
+        if (self_host != domain and
+            not self_host.endswith('.' + domain)):
+            raise ValueError('current url must match given domain')
+        if (ck is not None and ck.domain != domain and
+            ck.domain.endswith(domain)):
+            raise ValueError(
+                'cannot set a cookie that will be hidden by another '
+                'cookie for this url (%s)' % (self.url,))
+
+    def _verifyPath(self, path, ck):
+        self_path = urlparse.urlparse(self.url)[2]
+        if not self_path.startswith(path):
+            raise ValueError('current url must start with path, if given')
+        if ck is not None and ck.path != path and ck.path.startswith(path):
+            raise ValueError(
+                'cannot set a cookie that will be hidden by another '
+                'cookie for this url (%s)' % (self.url,))
+
+    def _setCookie(self, name, value, domain, expires, path, secure, comment,
+                   commenturl, port, version=None, ck=None):
+        for nm, val in self.mech_browser.addheaders:
+            if nm.lower() in ('cookie', 'cookie2'):
+                raise ValueError('cookies are already set in `Cookie` header')
+        if domain:
+            # we do a dance here so that we keep names that have been passed
+            # in consistent (i.e., if we get an explicit 'example.com' it stays
+            # 'example.com', rather than converting to '.example.com').
+            if domain.startswith('.'):
+                tmp_domain = domain[1:]
             else:
-                raise ValueError(
-                    'May not create a cookie that is immediately ignored')
-        version = None
-        if use_ck:
-            # keep unchanged existing cookie values
-            if domain is None:
-                domain = ck.domain
-            if value is None:
-                value = ck.value
-            if port is None:
-                port = ck.port
-            if comment is None:
-                comment = ck.comment
-            if commenturl is None:
-                commenturl = ck.comment_url
-            if secure is None:
-                secure = ck.secure
-            if expires is None and ck.expires is not None:
-                expires = datetime.datetime.fromtimestamp(ck.expires, UTC)
-            version = ck.version
-        # else...if the domain is bad, set_cookie_if_ok should catch it.
+                tmp_domain = domain
+                domain = None
+            if secure:
+                protocol = 'https'
+            else:
+                protocol = 'http'
+            url = '%s://%s%s' % (protocol, tmp_domain, path or '/')
+            request = self.mech_browser.request_class(url)
+        else:
+            request = self._request
+            if request is None:
+                raise mechanize.BrowserStateError(
+                    'cannot create cookie without request or domain')
         c = Cookie.SimpleCookie()
         name = str(name)
-        if value is None:
-            raise ValueError('if cookie does not exist, must provide value')
         c[name] = value.encode('utf8')
         if secure:
             c[name]['secure'] = True
@@ -293,25 +352,16 @@ class Cookies(UserDict.DictMixin):
             _StubResponse([c.output(header='').strip()]), request)
         assert len(cookies) == 1, (
             'programmer error: %d cookies made' % (len(cookies),))
+        if ck is not None:
+            self._jar.clear(ck.domain, ck.path, ck.name)
         self._jar.set_cookie_if_ok(cookies[0], request)
 
-    def update(self, source=None, **kwargs):
-        if isinstance(source, Cookies): # XXX change to ICookies.providedBy
-            if self.url != source.url:
-                raise ValueError('can only update from another ICookies '
-                                 'instance if it shares the identical url')
-            elif self is source:
-                return
-            else:
-                for info in source.iterInfo():
-                    self.set(info['name'], info['value'], info['expires'],
-                             info['domain'], info['path'], info['secure'],
-                             info['comment'])
-            source = None # to support kwargs
-        UserDict.DictMixin.update(self, source, **kwargs)
-
     def __setitem__(self, key, value):
-        self.set(key, value)
+        ck = self._get(key, None)
+        if ck is None:
+            self.create(key, value)
+        else:
+            self._change(ck, value)
 
     def _is_expired(self, value):
         if isinstance(value, datetime.datetime):
@@ -327,32 +377,14 @@ class Cookies(UserDict.DictMixin):
                 return True
         return False
 
-    def expire(self, name, expires=None):
-        if expires is None or self._is_expired(expires):
-            del self[name]
-        else:
-            res = self.set(name, expires=expires)
-
     def clear(self):
         # to give expected mapping behavior of resulting in an empty dict,
         # we use _raw_cookies rather than _get_cookies.
-        for cookies in self._raw_cookies():
+        for ck in self._raw_cookies():
             self._jar.clear(ck.domain, ck.path, ck.name)
 
-    def popinfo(self, key, *args):
-        if len(args) > 1:
-            raise TypeError, "popinfo expected at most 2 arguments, got "\
-                              + repr(1 + len(args))
-        ck = self._get(key, None)
-        if ck is None:
-            if args:
-                return args[0]
-            raise KeyError(key)
-        self._jar.clear(ck.domain, ck.path, ck.name)
-        return self._getinfo(ck)
-
-    def clearAllSession(self): # XXX could add optional "domain" filter or similar
+    def clearAllSession(self):
         self._jar.clear_session_cookies()
 
-    def clearAll(self): # XXX could add optional "domain" filter or similar
+    def clearAll(self):
         self._jar.clear()

@@ -396,6 +396,10 @@ def test_suite():
         checker=checker)
     readme.layer = TestBrowserLayer
 
+    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
+        checker=checker)
+    cookies.layer = TestBrowserLayer
+
     fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags)
     fixed_bugs.layer = TestBrowserLayer
 
@@ -405,7 +409,7 @@ def test_suite():
 
     this_file = doctest.DocTestSuite(checker=checker)
 
-    return unittest.TestSuite((this_file, readme, fixed_bugs, wire))
+    return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

@@ -291,6 +291,12 @@ class Browser(SetattrErrorsMixin):
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
+        if (self.mech_browser.request is not None and
+            key.lower() in ('cookie', 'cookie2') and
+            self.cookies.header):
+            # to prevent unpleasant intermittent errors, only set cookies with
+            # the browser headers OR the cookies mapping.
+            raise ValueError('cookies are already set in `cookies` attribute')
         self.mech_browser.addheaders.append( (str(key), str(value)) )
 
     def getLink(self, text=None, url=None, id=None, index=0):
