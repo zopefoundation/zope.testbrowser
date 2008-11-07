@@ -367,7 +367,7 @@ To create or change cookies with different additional information, use the
 ``create`` and ``change`` methods, respectively.  Here is an example of
 ``create``.
 
-    >>> from zope.testbrowser.cookies import UTC
+    >>> from pytz import UTC
     >>> browser.cookies.create(
     ...     'bling', value='blang', path='/inner',
     ...     expires=datetime.datetime(2020, 1, 1, tzinfo=UTC),

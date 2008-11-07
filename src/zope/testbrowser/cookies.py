@@ -7,50 +7,7 @@ import urlparse
 import UserDict
 
 import mechanize
-try:
-    from pytz import UTC
-except ImportError:
-
-    ZERO = datetime.timedelta(0)
-    HOUR = datetime.timedelta(hours=1)
-
-
-    class _UTC(datetime.tzinfo):
-        """UTC
-
-        The reference UTC implementation given in Python docs.
-        """
-        zone = "UTC"
-
-        def utcoffset(self, dt):
-            return ZERO
-
-        def tzname(self, dt):
-            return "UTC"
-
-        def dst(self, dt):
-            return ZERO
-
-        def localize(self, dt, is_dst=False):
-            '''Convert naive time to local time'''
-            if dt.tzinfo is not None:
-                raise ValueError, 'Not naive datetime (tzinfo is already set)'
-            return dt.replace(tzinfo=self)
-
-        def normalize(self, dt, is_dst=False):
-            '''Correct the timezone information on the given datetime'''
-            if dt.tzinfo is None:
-                raise ValueError, 'Naive time - no tzinfo set'
-            return dt.replace(tzinfo=self)
-
-        def __repr__(self):
-            return "<UTC>"
-
-        def __str__(self):
-            return "UTC"
-
-    UTC = _UTC()
-
+import pytz
 import zope.interface
 from zope.testbrowser import interfaces
 
@@ -78,7 +35,7 @@ class _StubResponse(object):
 def expiration_string(expires): # this is not protected so usable in tests.
     if isinstance(expires, datetime.datetime):
         if expires.tzinfo is not None:
-            expires = expires.astimezone(UTC)
+            expires = expires.astimezone(pytz.UTC)
         expires = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
     return expires
 
@@ -191,7 +148,7 @@ class Cookies(UserDict.DictMixin):
                'commenturl': ck.comment_url}
         if ck.expires is not None:
             res['expires'] = datetime.datetime.fromtimestamp(
-                ck.expires, UTC)
+                ck.expires, pytz.UTC)
         return res
 
     def keys(self):
@@ -368,12 +325,12 @@ class Cookies(UserDict.DictMixin):
             if value.tzinfo is None:
                  if value <= datetime.datetime.utcnow():
                     return True
-            elif value <= datetime.datetime.now(UTC):
+            elif value <= datetime.datetime.now(pytz.UTC):
                 return True
         elif isinstance(value, basestring):
             if datetime.datetime.fromtimestamp(
                 mechanize.str2time(value),
-                UTC) <= datetime.datetime.now(UTC):
+                pytz.UTC) <= datetime.datetime.now(pytz.UTC):
                 return True
         return False
 
