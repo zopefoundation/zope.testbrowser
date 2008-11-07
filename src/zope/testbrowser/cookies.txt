@@ -57,8 +57,8 @@ Here, we use a view that will make the server set cookies with the
 values we provide.
 
     >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
-    >>> browser.headers['set-cookie']
-    'foo=bar;'
+    >>> browser.headers['set-cookie'].replace(';', '')
+    'foo=bar'
 
 
 Basic Mapping Interface

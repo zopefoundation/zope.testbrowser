@@ -156,8 +156,8 @@ above.  Here, we use a view that will make the server set cookies with the
 values we provide.
 
     >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
-    >>> browser.headers['set-cookie']
-    'foo=bar;'
+    >>> browser.headers['set-cookie'].replace(';', '')
+    'foo=bar'
 
 It is also available in the browser's ``cookies`` attribute.  This is
 an extended mapping interface that allows getting, setting, and deleting the
