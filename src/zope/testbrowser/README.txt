@@ -183,8 +183,7 @@ a few examples.
     >>> browser.cookies['sha'] = 'zam'
     >>> len(browser.cookies)
     2
-    >>> import pprint
-    >>> pprint.pprint(sorted(browser.cookies.items()))
+    >>> sorted(browser.cookies.items())
     [('foo', 'bar'), ('sha', 'zam')]
     >>> browser.open('http://localhost/get_cookie.html')
     >>> print browser.headers.get('set-cookie')
@@ -192,7 +191,7 @@ a few examples.
     >>> print browser.contents # server got the cookie change
     foo: bar
     sha: zam
-    >>> pprint.pprint(sorted(browser.cookies.items()))
+    >>> sorted(browser.cookies.items())
     [('foo', 'bar'), ('sha', 'zam')]
     >>> browser.cookies.clearAll()
     >>> len(browser.cookies)
