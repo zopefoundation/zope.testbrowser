@@ -66,7 +66,7 @@ Basic Mapping Interface
 
 Now the cookies for localhost have a value.  These are examples of just the
 basic accessor operators and methods.
- 
+
     >>> browser.cookies['foo']
     'bar'
     >>> browser.cookies.keys()
@@ -130,6 +130,7 @@ seen here.
     sha: zam
     va: voom
 
+
 Headers
 =======
 
@@ -143,6 +144,7 @@ You can see the Cookies header that will be sent to the browser in the
      http://localhost/get_cookie.html (sha=zam; va=voom)>
     >>> str(browser.cookies)
     'sha=zam; va=voom'
+
 
 Extended Mapping Interface
 ==========================
@@ -163,7 +165,7 @@ interface description.
     def getinfo(name):
        """returns dict of settings for the given cookie name.
 
-       This includes only the following cookie values: 
+       This includes only the following cookie values:
 
        - name (str)
        - value (str),
@@ -233,6 +235,7 @@ Max-age is converted to an "expires" value.
      'secure': False,
      'value': 'min'}
 
+
 ``iterinfo``
 ------------
 
@@ -287,6 +290,7 @@ page using the ``iterinfo`` method.
       'port': None,
       'secure': False,
       'value': 'wee'}]
+
 
 Extended Examples
 -----------------
@@ -353,6 +357,7 @@ inner page.
     '/'
     >>> print browser.cookies.forURL('http://localhost/').get('big')
     None
+
 
 ----------------------------------------
 Write Methods: ``create`` and ``change``
@@ -442,6 +447,7 @@ domains to Zope, and both http and https.
     ['boo']
     >>> print browser.contents
     boo: yah
+
 
 Masking by Path
 ---------------
@@ -547,6 +553,7 @@ allowed.
     this url (https://dev.example.com/inner/path/get_cookie.html)
     >>> browser.cookies['tweedle']
     'dee'
+
 
 Masking by Domain
 -----------------
@@ -671,6 +678,7 @@ not allowed.
     >>> browser.cookies['tweedle']
     'dee'
 
+
 ``change``
 ----------
 
@@ -713,6 +721,7 @@ already expired raises an error.
     Traceback (most recent call last):
     ...
     AlreadyExpiredError: May not create a cookie that is immediately expired
+
 
 Clearing cookies
 ----------------
