@@ -201,6 +201,7 @@ a few examples.
 Many more examples, and a discussion of the additional methods available, can
 be found in cookies.txt.
 
+
 Navigation and Link Objects
 ---------------------------
 
@@ -358,6 +359,7 @@ a page that has a bunch of controls:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
 
+
 Obtaining a Control
 ~~~~~~~~~~~~~~~~~~~
 
@@ -495,6 +497,7 @@ may also be searched by label.
 
 Characteristics of controls and subcontrols are discussed below.
 
+
 Control Objects
 ~~~~~~~~~~~~~~~
 
@@ -603,6 +606,7 @@ IImageSubmitControl, which extents ISubmitControl.  These both simply add a
 argument, which is a tuple of (x, y).  These submit the forms, and are
 demonstrated below as we examine each control individually.
 
+
 ItemControl Objects
 ~~~~~~~~~~~~~~~~~~~
 
@@ -633,6 +637,7 @@ Manipulating the value of these controls affects the parent control.
 Checkbox collections behave similarly, as shown below.
 
 Controls with subcontrols--
+
 
 Various Controls
 ~~~~~~~~~~~~~~~~
@@ -967,6 +972,7 @@ The various types of controls are demonstrated here.
     >>> ctrl.multiple
     False
 
+
 Using Submitting Controls
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1228,6 +1234,7 @@ We can pass a content-type explicitly:
 
 Here, the body is left in place because it isn't form data.
 
+
 Performance Testing
 -------------------
 
@@ -1310,6 +1317,7 @@ this flag doesn't affect things.
               name: u'invalid'
 
     >>> browser.raiseHttpErrors = True
+
 
 Hand-Holding
 ------------
