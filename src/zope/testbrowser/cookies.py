@@ -1,7 +1,21 @@
+##############################################################################
+#
+# Copyright (c) 2008 Zope Corporation and Contributors.
+# All Rights Reserved.
+#
+# This software is subject to the provisions of the Zope Public License,
+# Version 2.1 (ZPL).  A copy of the ZPL should accompany this distribution.
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
+# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
+# FOR A PARTICULAR PURPOSE.
+#
+##############################################################################
 
 import Cookie
-import cookielib
+import cookielib # XXX hopefully will no longer be needed before release
 import datetime
+import time
 import urllib
 import urlparse
 import UserDict
@@ -39,10 +53,17 @@ def expiration_string(expires): # this is not protected so usable in tests.
         expires = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
     return expires
 
+if getattr(property, 'setter', None) is None:
+    # hack on Python 2.6 spelling of the only part we use here
+    class property(property):
+        __slots__ = ()
+        def setter(self, f):
+            return property(self.fget, f, self.fdel, self.__doc__)
+
 # end Cookies class helpers
 
 
-class Cookies(UserDict.DictMixin):
+class Cookies(object, UserDict.DictMixin):
     """Cookies for mechanize browser.
     """
 
@@ -57,6 +78,23 @@ class Cookies(UserDict.DictMixin):
                 break
         else:
             raise RuntimeError('no cookiejar found')
+
+    @property
+    def strict_domain_policy(self):
+        policy = self._jar._policy # XXX To become .get_policy()
+        flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
+                 policy.DomainStrictNonDomain)
+        return policy.strict_ns_domain & flags == flags
+
+    @strict_domain_policy.setter
+    def strict_domain_policy(self, value):
+        jar = self._jar
+        policy = jar._policy # XXX To become .get_policy()
+        flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
+                 policy.DomainStrictNonDomain)
+        policy.strict_ns_domain |= flags
+        if not value:
+            policy.strict_ns_domain  ^= flags
 
     def forURL(self, url):
         return self.__class__(self.mech_browser, url)
@@ -194,37 +232,39 @@ class Cookies(UserDict.DictMixin):
             self._verifyDomain(domain, ck)
         if path is not None:
             self._verifyPath(path, ck)
-        if expires is not None and self._is_expired(expires):
+        now = int(time.time())
+        if expires is not None and self._is_expired(expires, now):
             raise zope.testbrowser.interfaces.AlreadyExpiredError(
                 'May not create a cookie that is immediately expired')
         self._setCookie(name, value, domain, expires, path, secure, comment,
-                        commenturl, port)
+                        commenturl, port, now=now)
 
     def change(self, name, value=None,
             domain=None, expires=None, path=None, secure=None, comment=None,
             commenturl=None, port=None):
-        if expires is not None and self._is_expired(expires):
+        now = int(time.time())
+        if expires is not None and self._is_expired(expires, now):
             # shortcut
             del self[name]
         else:
             self._change(self._get(name), value, domain, expires, path, secure,
-                         comment, commenturl, port)
+                         comment, commenturl, port, now)
 
     def _change(self, ck, value=None,
                 domain=None, expires=None, path=None, secure=None,
-                comment=None, commenturl=None, port=None):
+                comment=None, commenturl=None, port=None, now=None):
         if value is None:
             value = ck.value
         if domain is None:
             domain = ck.domain
         else:
-            self._verifyDomain(domain, ck)
+            self._verifyDomain(domain, None)
         if expires is None:
             expires = ck.expires
         if path is None:
             path = ck.path
         else:
-            self._verifyPath(domain, ck)
+            self._verifyPath(domain, None)
         if secure is None:
             secure = ck.secure
         if comment is None:
@@ -234,17 +274,19 @@ class Cookies(UserDict.DictMixin):
         if port is None:
             port = ck.port
         self._setCookie(ck.name, value, domain, expires, path, secure, comment,
-                        commenturl, port, ck.version, ck=ck)
+                        commenturl, port, ck.version, ck=ck, now=now)
 
     def _verifyDomain(self, domain, ck):
+        tmp_domain = domain
         if domain is not None and domain.startswith('.'):
-            domain = domain[1:]
+            tmp_domain = domain[1:]
+        # XXX eff_request_host not public; mechanize will expose version
         self_host = cookielib.eff_request_host(self._request)[1]
-        if (self_host != domain and
-            not self_host.endswith('.' + domain)):
+        if (self_host != tmp_domain and
+            not self_host.endswith('.' + tmp_domain)):
             raise ValueError('current url must match given domain')
-        if (ck is not None and ck.domain != domain and
-            ck.domain.endswith(domain)):
+        if (ck is not None and ck.domain != tmp_domain and
+            ck.domain.endswith(tmp_domain)):
             raise ValueError(
                 'cannot set a cookie that will be hidden by another '
                 'cookie for this url (%s)' % (self.url,))
@@ -259,19 +301,16 @@ class Cookies(UserDict.DictMixin):
                 'cookie for this url (%s)' % (self.url,))
 
     def _setCookie(self, name, value, domain, expires, path, secure, comment,
-                   commenturl, port, version=None, ck=None):
+                   commenturl, port, version=None, ck=None, now=None):
         for nm, val in self.mech_browser.addheaders:
             if nm.lower() in ('cookie', 'cookie2'):
                 raise ValueError('cookies are already set in `Cookie` header')
-        if domain:
+        if domain and not domain.startswith('.'):
             # we do a dance here so that we keep names that have been passed
             # in consistent (i.e., if we get an explicit 'example.com' it stays
             # 'example.com', rather than converting to '.example.com').
-            if domain.startswith('.'):
-                tmp_domain = domain[1:]
-            else:
-                tmp_domain = domain
-                domain = None
+            tmp_domain = domain
+            domain = None
             if secure:
                 protocol = 'https'
             else:
@@ -309,9 +348,15 @@ class Cookies(UserDict.DictMixin):
             _StubResponse([c.output(header='').strip()]), request)
         assert len(cookies) == 1, (
             'programmer error: %d cookies made' % (len(cookies),))
+        policy = self._jar._policy
+        if now is None:
+            now = int(time.time())
+        policy._now = self._jar._now = now # XXX
+        if not policy.set_ok(cookies[0], request):
+            raise ValueError('policy does not allow this cookie')
         if ck is not None:
             self._jar.clear(ck.domain, ck.path, ck.name)
-        self._jar.set_cookie_if_ok(cookies[0], request)
+        self._jar.set_cookie(cookies[0])
 
     def __setitem__(self, key, value):
         ck = self._get(key, None)
@@ -320,17 +365,18 @@ class Cookies(UserDict.DictMixin):
         else:
             self._change(ck, value)
 
-    def _is_expired(self, value):
+    def _is_expired(self, value, now): # now = int(time.time())
+        dnow = datetime.datetime.fromtimestamp(now, pytz.UTC)
         if isinstance(value, datetime.datetime):
             if value.tzinfo is None:
-                 if value <= datetime.datetime.utcnow():
+                 if value <= dnow.replace(tzinfo=None):
                     return True
-            elif value <= datetime.datetime.now(pytz.UTC):
+            elif value <= dnow:
                 return True
         elif isinstance(value, basestring):
             if datetime.datetime.fromtimestamp(
                 mechanize.str2time(value),
-                pytz.UTC) <= datetime.datetime.now(pytz.UTC):
+                pytz.UTC) <= dnow:
                 return True
         return False
 

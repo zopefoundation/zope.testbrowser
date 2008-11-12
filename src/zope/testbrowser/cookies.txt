@@ -573,22 +573,81 @@ We initialize by setting some cookies for example.org.
     ...                     secure=True)
 
 Before we look at the examples, note that the default behavior of the cookies
-is to be liberal in the matching of domains.  According to the RFCs,
-a domain of 'example.com' can only be set implicitly from the server, and
-implies an exact match, so example.com URLs will get the cookie, but not
-*.example.com (i.e., dev.example.com).  Real browsers vary in their behavior
-in this regard.  The cookies collection, by default, has a looser
-interpretation of this, such that domains are always interpreted as
+is to be liberal in the matching of domains.  
+
+    >>> browser.cookies.strict_domain_policy
+    False
+
+According to the RFCs, a domain of 'example.com' can only be set implicitly
+from the server, and implies an exact match, so example.com URLs will get the
+cookie, but not *.example.com (i.e., dev.example.com).  Real browsers vary in
+their behavior in this regard.  The cookies collection, by default, has a
+looser interpretation of this, such that domains are always interpreted as
 effectively beginning with a ".", so dev.example.com will include a cookie from
 the "example.com" domain filter as if it were a ".example.com" filter.
 
-Now for the examples.  First, unless you pass an explicit domain, you will be
-modifying the existing cookie.
+Here's an example.  If we go to dev.example.org, we should only see the
+"tweedle" cookie if we are using strict rules.  But right now we are using
+loose rules, so 'boo' is around too.
 
     >>> browser.open('https://dev.example.org/get_cookie.html')
+    >>> sorted(browser.cookies)
+    ['boo', 'tweedle']
     >>> print browser.contents
     boo: yah
     tweedle: dee
+
+If we set strict_domain_policy to True, then only tweedle is included.
+
+    >>> browser.cookies.strict_domain_policy = True
+    >>> sorted(browser.cookies)
+    ['tweedle']
+    >>> browser.open('https://dev.example.org/get_cookie.html')
+    >>> print browser.contents
+    tweedle: dee
+
+If we set the "boo" domain to ".example.org" (as it would be set under the more
+recent Cookie RFC if a server sent the value) then maybe we get the "boo" value
+again.
+
+    >>> browser.cookies.forURL('https://example.org').change(
+    ...     'boo', domain=".example.org")
+    Traceback (most recent call last):
+    ...
+    ValueError: policy does not allow this cookie
+
+Whoa!  Why couldn't we do that?
+
+Well, the strict_domain_policy affects what cookies we can set also.  With
+strict rules, ".example.org" can only be set by "*.example.org" domains, *not*
+example.org itself.
+
+OK, we'll create a new cookie then.
+
+    >>> browser.cookies.forURL('https://snoo.example.org').create(
+    ...     'snoo', 'kums', domain=".example.org")
+
+    >>> sorted(browser.cookies)
+    ['snoo', 'tweedle']
+    >>> browser.open('https://dev.example.org/get_cookie.html')
+    >>> print browser.contents
+    snoo: kums
+    tweedle: dee
+
+Let's set things back to the way they were.
+
+    >>> del browser.cookies['snoo']
+    >>> browser.cookies.strict_domain_policy = False
+    >>> browser.open('https://dev.example.org/get_cookie.html')
+    >>> sorted(browser.cookies)
+    ['boo', 'tweedle']
+    >>> print browser.contents
+    boo: yah
+    tweedle: dee
+
+Now back to the the examples of masking by domain.  First, unless you pass an
+explicit domain, you will be modifying the existing cookie.
+
     >>> browser.cookies.getinfo('boo')['domain']
     'example.org'
     >>> browser.cookies['boo'] = 'hoo'
