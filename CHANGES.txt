@@ -5,7 +5,7 @@ CHANGES
 3.5.2 (Unreleased)
 ------------------
 
-- ...
+- Author e-mail to zope-dev rather than zope3-dev.
 
 3.5.1 (2008-10-10)
 ------------------

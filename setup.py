@@ -34,7 +34,7 @@ setup(
     license = 'ZPL 2.1',
     description = 'Programmable browser for functional black-box tests',
     author = 'Zope Corporation and Contributors',
-    author_email = 'zope3-dev@zope.org',
+    author_email = 'zope-dev@zope.org',
     long_description = long_description,
     classifiers=[
         'Environment :: Web Environment',
