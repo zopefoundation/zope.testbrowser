@@ -15,18 +15,20 @@
 
 $Id$
 """
+
 __docformat__ = "reStructuredText"
-from zope.testbrowser import interfaces
+
+
 import ClientForm
-from cStringIO import StringIO
+import cStringIO
 import mechanize
 import operator
 import re
 import sys
 import time
 import urllib2
-
-from zope import interface
+import zope.interface
+import zope.testbrowser.interfaces
 
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
@@ -153,7 +155,7 @@ class PystoneTimer(object):
 
 class Browser(SetattrErrorsMixin):
     """A web user agent."""
-    interface.implements(interfaces.IBrowser)
+    zope.interface.implements(zope.testbrowser.interfaces.IBrowser)
 
     _contents = None
     _counter = 0
@@ -406,7 +408,7 @@ class Browser(SetattrErrorsMixin):
 
 
 class Link(SetattrErrorsMixin):
-    interface.implements(interfaces.ILink)
+    zope.interface.implements(zope.testbrowser.interfaces.ILink)
 
     def __init__(self, link, browser):
         self.mech_link = link
@@ -416,7 +418,7 @@ class Link(SetattrErrorsMixin):
 
     def click(self):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         self.browser._start_timer()
         self.browser.mech_browser.follow_link(self.mech_link)
         self.browser._stop_timer()
@@ -445,7 +447,7 @@ class Link(SetattrErrorsMixin):
 
 class Control(SetattrErrorsMixin):
     """A control of a form."""
-    interface.implements(interfaces.IControl)
+    zope.interface.implements(zope.testbrowser.interfaces.IControl)
 
     _enable_setattr_errors = False
 
@@ -496,7 +498,7 @@ class Control(SetattrErrorsMixin):
 
         def fset(self, value):
             if self._browser_counter != self.browser._counter:
-                raise interfaces.ExpiredError
+                raise zope.testbrowser.interfaces.ExpiredError
             if self.mech_control.type == 'file':
                 self.mech_control.add_file(value,
                                            content_type=self.content_type,
@@ -512,12 +514,12 @@ class Control(SetattrErrorsMixin):
             raise TypeError("Can't call add_file on %s controls"
                             % self.mech_control.type)
         if isinstance(file, str):
-            file = StringIO(file)
+            file = cStringIO.StringIO(file)
         self.mech_control.add_file(file, content_type, filename)
 
     def clear(self):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         self.mech_control.clear()
 
     def __repr__(self):
@@ -526,7 +528,7 @@ class Control(SetattrErrorsMixin):
 
 
 class ListControl(Control):
-    interface.implements(interfaces.IListControl)
+    zope.interface.implements(zope.testbrowser.interfaces.IListControl)
 
     @apply
     def displayValue():
@@ -540,7 +542,7 @@ class ListControl(Control):
 
         def fset(self, value):
             if self._browser_counter != self.browser._counter:
-                raise interfaces.ExpiredError
+                raise zope.testbrowser.interfaces.ExpiredError
             self.mech_control.set_value_by_label(value)
 
         return property(fget, fset)
@@ -576,7 +578,7 @@ class ListControl(Control):
     @property
     def controls(self):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         res = [controlFactory(i, self.mech_form, self.browser) for i in
                 self.mech_control.items]
         for s in res:
@@ -585,7 +587,7 @@ class ListControl(Control):
 
     def getControl(self, label=None, value=None, index=None):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
 
         onlyOne([label, value], '"label" and "value"')
 
@@ -602,27 +604,27 @@ class ListControl(Control):
 
 
 class SubmitControl(Control):
-    interface.implements(interfaces.ISubmitControl)
+    zope.interface.implements(zope.testbrowser.interfaces.ISubmitControl)
 
     def click(self):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         self.browser._clickSubmit(self.mech_form, self.mech_control, (1,1))
         self.browser._changed()
 
 
 class ImageControl(Control):
-    interface.implements(interfaces.IImageSubmitControl)
+    zope.interface.implements(zope.testbrowser.interfaces.IImageSubmitControl)
 
     def click(self, coord=(1,1)):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         self.browser._clickSubmit(self.mech_form, self.mech_control, coord)
         self.browser._changed()
 
 
 class ItemControl(SetattrErrorsMixin):
-    interface.implements(interfaces.IItemControl)
+    zope.interface.implements(zope.testbrowser.interfaces.IItemControl)
 
     def __init__(self, item, form, browser):
         self.mech_item = item
@@ -634,7 +636,7 @@ class ItemControl(SetattrErrorsMixin):
     @property
     def control(self):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         res = controlFactory(
             self.mech_item._control, self.mech_form, self.browser)
         self.__dict__['control'] = res
@@ -653,7 +655,7 @@ class ItemControl(SetattrErrorsMixin):
 
         def fset(self, value):
             if self._browser_counter != self.browser._counter:
-                raise interfaces.ExpiredError
+                raise zope.testbrowser.interfaces.ExpiredError
             self.mech_item.selected = value
 
         return property(fget, fset)
@@ -664,7 +666,7 @@ class ItemControl(SetattrErrorsMixin):
 
     def click(self):
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         self.mech_item.selected = not self.mech_item.selected
 
     def __repr__(self):
@@ -675,7 +677,7 @@ class ItemControl(SetattrErrorsMixin):
 
 class Form(SetattrErrorsMixin):
     """HTML Form"""
-    interface.implements(interfaces.IForm)
+    zope.interface.implements(zope.testbrowser.interfaces.IForm)
 
     def __init__(self, browser, form):
         """Initialize the Form
@@ -712,7 +714,7 @@ class Form(SetattrErrorsMixin):
     def submit(self, label=None, name=None, index=None, coord=(1,1)):
         """See zope.testbrowser.interfaces.IForm"""
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         form = self.mech_form
         if label is not None or name is not None:
             intermediate, msg = self.browser._get_all_controls(
@@ -735,7 +737,7 @@ class Form(SetattrErrorsMixin):
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
         if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
+            raise zope.testbrowser.interfaces.ExpiredError
         intermediate, msg = self.browser._get_all_controls(
             label, name, (self.mech_form,), include_subcontrols=True)
         control, form = disambiguate(intermediate, msg, index)

@@ -15,29 +15,26 @@
 
 $Id$
 """
-import re
-import sys
-import socket
-import unittest
+
+
+import cStringIO
 import httplib
-import urllib2
-from cStringIO import StringIO
-
 import mechanize
-
+import re
+import socket
+import sys
 import transaction
-from zope.testbrowser import browser
-from zope.testing import renormalizing, doctest
+import unittest
+import urllib2
+import zope.app.testing
+import zope.testbrowser.browser
 
-from zope.app.testing import functional
-from zope.app.folder.folder import Folder
-from zope.app.component.site import LocalSiteManager
 
 class PublisherConnection(object):
     """A ``urllib2`` compatible connection obejct."""
 
     def __init__(self, host, timeout=None):
-        self.caller = functional.HTTPCaller()
+        self.caller = zope.app.testing.functional.HTTPCaller()
         self.host = host
 
     def set_debuglevel(self, level):
@@ -110,8 +107,8 @@ class PublisherResponse(object):
         self.content = content
         self.status = status
         self.reason = reason
-        self.msg = httplib.HTTPMessage(StringIO(headers), 0)
-        self.content_as_file = StringIO(self.content)
+        self.msg = httplib.HTTPMessage(cStringIO.StringIO(headers), 0)
+        self.content_as_file = cStringIO.StringIO(self.content)
 
     def read(self, amt=None):
         return self.content_as_file.read(amt)
@@ -169,7 +166,7 @@ class PublisherMechanizeBrowser(mechanize.Browser):
         mechanize.Browser.__init__(self, *args, **kws)
 
 
-class Browser(browser.Browser):
+class Browser(zope.testbrowser.browser.Browser):
     """A Zope `testbrowser` Browser that uses the Zope Publisher."""
 
     def __init__(self, url=None):

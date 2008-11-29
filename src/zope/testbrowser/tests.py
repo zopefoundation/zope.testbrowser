@@ -16,21 +16,21 @@
 $Id$
 """
 
-from cStringIO import StringIO
-from zope.app.testing import functional
 from zope.app.testing.functional import FunctionalDocFileSuite
-from zope.testbrowser import browser
 from zope.testing import doctest
-from zope.testing import renormalizing, doctest
+import cStringIO
 import httplib
 import mechanize
 import os
 import re
-import sys
 import socket
+import sys
 import unittest
 import unittest
 import urllib2
+import zope.app.testing.functional
+import zope.testbrowser.browser
+import zope.testing.renormalizing
 
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
@@ -109,8 +109,8 @@ class FauxResponse(object):
         self.content = content
         self.status = status
         self.reason = reason
-        self.msg = httplib.HTTPMessage(StringIO(headers), 0)
-        self.content_as_file = StringIO(self.content)
+        self.msg = httplib.HTTPMessage(cStringIO.StringIO(headers), 0)
+        self.content_as_file = cStringIO.StringIO(self.content)
 
     def read(self, amt=None):
         return self.content_as_file.read(amt)
@@ -160,7 +160,7 @@ class FauxMechanizeBrowser(mechanize.Browser):
     default_features = ["_authen", "_redirect", "_cookies"]
 
 
-class Browser(browser.Browser):
+class Browser(zope.testbrowser.browser.Browser):
 
     def __init__(self, url=None):
         mech_browser = FauxMechanizeBrowser()
@@ -168,7 +168,7 @@ class Browser(browser.Browser):
 
     def open(self, body, headers=None, status=200, reason='OK'):
         set_next_response(body, headers, status, reason)
-        browser.Browser.open(self, 'http://localhost/')
+        zope.testbrowser.browser.Browser.open(self, 'http://localhost/')
 
 def test_submit_duplicate_name():
     """
@@ -264,7 +264,7 @@ When given a form with a file-upload
 Fill in the form value using add_file:
 
     >>> browser.getControl(name='foo').add_file(
-    ...     StringIO('sample_data'), 'text/foo', 'x.foo')
+    ...     cStringIO.StringIO('sample_data'), 'text/foo', 'x.foo')
     >>> browser.getControl('OK').click()
     POST / HTTP/1.1
     Content-length: 173
@@ -369,7 +369,7 @@ class win32CRLFtransformer(object):
     def sub(self, replacement, text):
         return text.replace(r'\r','')
 
-checker = renormalizing.RENormalizing([
+checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-'*30),
     (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary='+'-'*30),
     (re.compile(r'^---{10}.*', re.M), '-'*30),
@@ -385,7 +385,7 @@ checker = renormalizing.RENormalizing([
     (re.compile(r'Content-Type: '), 'Content-type: '),
     ])
 
-TestBrowserLayer = functional.ZCMLLayer(
+TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
     os.path.join(os.path.split(__file__)[0], 'ftests/ftesting.zcml'),
     __name__, 'TestBrowserLayer', allow_teardown=True)
 

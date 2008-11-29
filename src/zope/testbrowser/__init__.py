@@ -15,15 +15,3 @@
 
 $Id$
 """
-
-try:
-    from testing import Browser
-    from zope.deprecation import deprecated
-    deprecated('Browser',
-        'importing Browser from zope.testbrowser has been deprecated and will'
-        ' be removed in 3.5; import Browser from zope.testbrowser.testing'
-        ' instead')
-except ImportError:
-    # This is really ugly, but non-Zope code needs to be able to import this
-    # and the testing module depends on Zope 3
-    pass
