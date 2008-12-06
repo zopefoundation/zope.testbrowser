@@ -205,7 +205,7 @@ We can specify the second button through it's label/value:
     User-agent: Python-urllib/2.4
     <BLANKLINE>
     -----------------------------100167997466992641913031254
-    Content-disposition: form-data; name="submit_me"
+    Content-Disposition: form-data; name="submit_me"
     <BLANKLINE>
     BAD
     -----------------------------100167997466992641913031254--
@@ -236,7 +236,7 @@ regression caused by the original fix for the above):
     User-agent: Python-urllib/2.4
     <BLANKLINE>
     -----------------------------100167997466992641913031254
-    Content-disposition: form-data; name="submit_me"
+    Content-Disposition: form-data; name="submit_me"
     <BLANKLINE>
      BAD 
     -----------------------------100167997466992641913031254--
@@ -274,7 +274,7 @@ Fill in the form value using add_file:
     User-agent: Python-urllib/2.99
     <BLANKLINE>
     --127.0.0.11000318041146699896411
-    Content-disposition: form-data; name="foo"; filename="x.foo"
+    Content-Disposition: form-data; name="foo"; filename="x.foo"
     Content-type: text/foo
     <BLANKLINE>
     sample_data
@@ -295,7 +295,7 @@ You can pass a string to add_file:
     User-agent: Python-urllib/2.98
     <BLANKLINE>
     --127.0.0.11000318541146700017052
-    Content-disposition: form-data; name="foo"; filename="x.blah"
+    Content-Disposition: form-data; name="foo"; filename="x.blah"
     Content-type: text/blah
     <BLANKLINE>
     blah blah blah

@@ -7,6 +7,11 @@ CHANGES
 
 - Author e-mail to zope-dev rather than zope3-dev.
 
+- Switched to Zope 3.4 KGS.
+
+- New lines are no longer stripped in XML and HTML code contained in a
+  textarea; requires ClientForm >= 0.2.10 (LP #268139).
+
 3.5.1 (2008-10-10)
 ------------------
 

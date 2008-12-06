@@ -90,3 +90,11 @@ sure this regression doesn't come back:
     >>> browser.getLink('Follow me')
     <Link text='Follow me' url='http://localhost/@@/testbrowser/fragment.html#foo'>
     >>> browser.getLink('Follow me').click()
+
+
+Textareas with HTML/XML
+======================
+
+    >>> browser.open('http://localhost/@@/testbrowser/textarea.html')
+    >>> browser.getControl('Text Area').value
+    '<block>\r\n  <feed/>\r\n</block>'
