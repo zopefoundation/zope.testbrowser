@@ -97,4 +97,4 @@ Textareas with HTML/XML
 
     >>> browser.open('http://localhost/@@/testbrowser/textarea.html')
     >>> browser.getControl('Text Area').value
-    '<block>\r\n  <feed/>\r\n</block>'
+    '<block>\r\n  <feed/>\r\n    &\r\n</block>'
