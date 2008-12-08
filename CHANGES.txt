@@ -7,10 +7,9 @@ CHANGES
 
 - Author e-mail to zope-dev rather than zope3-dev.
 
-- Switched to Zope 3.4 KGS.
-
 - New lines are no longer stripped in XML and HTML code contained in a
-  textarea; requires ClientForm >= 0.2.10 (LP #268139).
+  textarea; fix requires ClientForm >= 0.2.10 (LP #268139).
+
 
 3.5.1 (2008-10-10)
 ------------------
@@ -20,6 +19,7 @@ CHANGES
 
 - Provide a work around for a mechanize/urllib2 bug in creating request
   objects that won't handle fragment URLs correctly.
+
 
 3.5.0 (2008-03-30)
 ------------------
