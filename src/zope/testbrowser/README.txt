@@ -148,6 +148,59 @@ Or as a mapping:
     'text/html;charset=utf-8'
 
 
+Cookies
+-------
+
+When a Set-Cookie header is available, it can be found in the headers, as seen
+above.  Here, we use a view that will make the server set cookies with the
+values we provide.
+
+    >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
+    >>> browser.headers['set-cookie'].replace(';', '')
+    'foo=bar'
+
+It is also available in the browser's ``cookies`` attribute.  This is
+an extended mapping interface that allows getting, setting, and deleting the
+cookies that the browser is remembering *for the current url*.  Here are
+a few examples.
+
+    >>> browser.cookies['foo']
+    'bar'
+    >>> browser.cookies.keys()
+    ['foo']
+    >>> browser.cookies.values()
+    ['bar']
+    >>> browser.cookies.items()
+    [('foo', 'bar')]
+    >>> 'foo' in browser.cookies
+    True
+    >>> 'bar' in browser.cookies
+    False
+    >>> len(browser.cookies)
+    1
+    >>> print(dict(browser.cookies))
+    {'foo': 'bar'}
+    >>> browser.cookies['sha'] = 'zam'
+    >>> len(browser.cookies)
+    2
+    >>> sorted(browser.cookies.items())
+    [('foo', 'bar'), ('sha', 'zam')]
+    >>> browser.open('http://localhost/get_cookie.html')
+    >>> print browser.headers.get('set-cookie')
+    None
+    >>> print browser.contents # server got the cookie change
+    foo: bar
+    sha: zam
+    >>> sorted(browser.cookies.items())
+    [('foo', 'bar'), ('sha', 'zam')]
+    >>> browser.cookies.clearAll()
+    >>> len(browser.cookies)
+    0
+
+Many more examples, and a discussion of the additional methods available, can
+be found in cookies.txt.
+
+
 Navigation and Link Objects
 ---------------------------
 
@@ -305,6 +358,7 @@ a page that has a bunch of controls:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
 
+
 Obtaining a Control
 ~~~~~~~~~~~~~~~~~~~
 
@@ -442,6 +496,7 @@ may also be searched by label.
 
 Characteristics of controls and subcontrols are discussed below.
 
+
 Control Objects
 ~~~~~~~~~~~~~~~
 
@@ -550,6 +605,7 @@ IImageSubmitControl, which extents ISubmitControl.  These both simply add a
 argument, which is a tuple of (x, y).  These submit the forms, and are
 demonstrated below as we examine each control individually.
 
+
 ItemControl Objects
 ~~~~~~~~~~~~~~~~~~~
 
@@ -580,6 +636,7 @@ Manipulating the value of these controls affects the parent control.
 Checkbox collections behave similarly, as shown below.
 
 Controls with subcontrols--
+
 
 Various Controls
 ~~~~~~~~~~~~~~~~
@@ -914,6 +971,7 @@ The various types of controls are demonstrated here.
     >>> ctrl.multiple
     False
 
+
 Using Submitting Controls
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1175,6 +1233,7 @@ We can pass a content-type explicitly:
 
 Here, the body is left in place because it isn't form data.
 
+
 Performance Testing
 -------------------
 
@@ -1229,7 +1288,7 @@ NB: Setting the handleErrors attribute to False will only change
 
 When the testbrowser is raising HttpErrors, the errors still hit the test.
 Sometimes we don't want that to happen, in situations where there are edge
-cases that will cause the error to be predictabley but infrequently raised.
+cases that will cause the error to be predictably but infrequently raised.
 Time is a primary cause of this.
 
 To get around this, one can set the raiseHttpErrors to False.
@@ -1247,7 +1306,7 @@ The headers are still there, though.
     True
 
 If we don't handle the errors, and allow internal ones to propagate, however,
-this flage doesn't affect things.
+this flag doesn't affect things.
 
     >>> browser.handleErrors = False
     >>> browser.open('http://localhost/invalid')
@@ -1257,6 +1316,7 @@ this flage doesn't affect things.
               name: u'invalid'
 
     >>> browser.raiseHttpErrors = True
+
 
 Hand-Holding
 ------------

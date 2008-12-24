@@ -37,6 +37,20 @@
      permission="zope.Public"
      />
 
+  <browser:page
+     name="set_cookie.html"
+     for="*"
+     class=".ftests.SetCookie"
+     permission="zope.Public"
+     />
+
+  <browser:page
+     name="get_cookie.html"
+     for="*"
+     class=".ftests.GetCookie"
+     permission="zope.Public"
+     />
+
   <browser:resourceDirectory
       name="testbrowser"
       directory="ftests" />

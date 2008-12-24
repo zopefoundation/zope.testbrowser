@@ -19,10 +19,94 @@ __docformat__ = "reStructuredText"
 
 import zope.interface
 import zope.schema
+import zope.interface.common.mapping
+
+
+class AlreadyExpiredError(ValueError):
+    pass
+
+
+class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
+               zope.interface.common.mapping.IExtendedWriteMapping,
+               zope.interface.common.mapping.IMapping): # NOT copy
+    """A mapping of cookies for a given url"""
+
+    url = zope.schema.URI(
+        title=u"URL",
+        description=u"The URL the mapping is currently exposing.",
+        required=True)
+
+    header = zope.schema.TextLine(
+        title=u"Header",
+        description=u"The current value for the Cookie header for the URL",
+        required=True)
+
+    def forURL(url):
+        """Returns another ICookies instance for the given URL."""
+
+    def getinfo(name):
+       """returns dict of settings for the given cookie name.
+
+       This includes only the following cookie values: 
+
+       - name (str)
+       - value (str),
+       - port (int or None),
+       - domain (str),
+       - path (str or None),
+       - secure (bool), and
+       - expires (datetime.datetime with pytz.UTC timezone or None),
+       - comment (str or None),
+       - commenturl (str or None).
+       """
+
+    def iterinfo(name=None):
+        """iterate over the information about all the cookies for the URL.
+        
+        Each result is a dictionary as described for ``getinfo``.
+        
+        If name is given, iterates over all cookies for given name.
+        """
+
+    def create(name, value,
+               domain=None, expires=None, path=None, secure=None, comment=None,
+               commenturl=None, port=None):
+        """Create a new cookie with the given values.
+        
+        If cookie of the same name, domain, and path exists, raises a
+        ValueError.
+        
+        Expires is a string or a datetime.datetime.  timezone-naive datetimes
+        are interpreted as in UTC.  If expires is before now, raises
+        AlreadyExpiredError.
+        
+        If the domain or path do not generally match the current URL, raises
+        ValueError.
+        """
+
+    def change(name, value=None,
+            domain=None, expires=None, path=None, secure=None, comment=None,
+            commenturl=None, port=None):
+        """Change an attribute of an existing cookie.
+        
+        If cookie does not exist, raises a KeyError."""
+
+    def clearAll():
+        """Clear all cookies for the associated browser, irrespective of URL
+        """
+
+    def clearAllSession():
+        """Clear session cookies for associated browser, irrespective of URL
+        """
 
 
 class IBrowser(zope.interface.Interface):
     """A Programmatic Web Browser."""
+
+    cookies = zope.schema.Field(
+        title=u"Cookies",
+        description=(u"An ICookies mapping for the browser's current URL."),
+        required=True)
 
     url = zope.schema.URI(
         title=u"URL",

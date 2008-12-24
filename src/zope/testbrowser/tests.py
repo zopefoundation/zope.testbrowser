@@ -383,6 +383,7 @@ checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'User-Agent: Python-urllib/2.6'), 'User-agent: Python-urllib/2.4'),
     (re.compile(r'Host: localhost'), 'Connection: close'),
     (re.compile(r'Content-Type: '), 'Content-type: '),
+    (re.compile(r'Content-Disposition: '), 'Content-disposition: '),
     ])
 
 TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
@@ -396,6 +397,10 @@ def test_suite():
         checker=checker)
     readme.layer = TestBrowserLayer
 
+    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
+        checker=checker)
+    cookies.layer = TestBrowserLayer
+
     fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags)
     fixed_bugs.layer = TestBrowserLayer
 
@@ -405,7 +410,7 @@ def test_suite():
 
     this_file = doctest.DocTestSuite(checker=checker)
 
-    return unittest.TestSuite((this_file, readme, fixed_bugs, wire))
+    return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

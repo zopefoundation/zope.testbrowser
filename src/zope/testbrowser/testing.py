@@ -131,6 +131,8 @@ class PublisherHTTPHandler(urllib2.HTTPHandler):
                                             data['content-type'])
         return urllib2.AbstractHTTPHandler.do_request_(self, req)
 
+    https_request = http_request
+
     def http_open(self, req):
         """Open an HTTP connection having a ``urllib2`` request."""
         # Here we connect to the publisher.
@@ -139,6 +141,8 @@ class PublisherHTTPHandler(urllib2.HTTPHandler):
             # 2.6. See: LP #280334
             req.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
         return self.do_open(PublisherConnection, req)
+
+    https_open = http_open
 
 
 class PublisherMechanizeBrowser(mechanize.Browser):

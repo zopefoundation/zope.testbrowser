@@ -19,16 +19,21 @@ $Id$
 __docformat__ = "reStructuredText"
 
 
-import ClientForm
 import cStringIO
-import mechanize
+import datetime
 import operator
 import re
 import sys
 import time
 import urllib2
+
+import ClientForm
+import mechanize
 import zope.interface
+
+import zope.testbrowser.cookies
 import zope.testbrowser.interfaces
+
 
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
@@ -166,6 +171,7 @@ class Browser(SetattrErrorsMixin):
         self.mech_browser = mech_browser
         self.timer = PystoneTimer()
         self.raiseHttpErrors = True
+        self.cookies = zope.testbrowser.cookies.Cookies(self.mech_browser)
         self._enable_setattr_errors = True
 
         if url is not None:
@@ -288,6 +294,12 @@ class Browser(SetattrErrorsMixin):
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
+        if (self.mech_browser.request is not None and
+            key.lower() in ('cookie', 'cookie2') and
+            self.cookies.header):
+            # to prevent unpleasant intermittent errors, only set cookies with
+            # the browser headers OR the cookies mapping.
+            raise ValueError('cookies are already set in `cookies` attribute')
         self.mech_browser.addheaders.append( (str(key), str(value)) )
 
     def getLink(self, text=None, url=None, id=None, index=0):

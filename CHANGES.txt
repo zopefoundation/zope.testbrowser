@@ -2,13 +2,17 @@
 CHANGES
 =======
 
-3.5.2 (Unreleased)
-------------------
+Next release (Unreleased)
+-------------------------
 
 - Author e-mail to zope-dev rather than zope3-dev.
 
 - New lines are no longer stripped in XML and HTML code contained in a
   textarea; fix requires ClientForm >= 0.2.10 (LP #268139).
+
+- Added ``cookies`` attribute to browser for easy manipulation of browser
+  cookies.  See brief example in main documentation, plus new ``cookies.txt``
+  documentation.
 
 
 3.5.1 (2008-10-10)

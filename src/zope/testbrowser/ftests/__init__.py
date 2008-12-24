@@ -12,12 +12,30 @@
 #
 ##############################################################################
 
-class Echo:
-    """Simply echo the contents of the request"""
+class View:
 
     def __init__(self, context, request):
+        self.context = context
         self.request = request
+
+class Echo(View):
+    """Simply echo the contents of the request"""
 
     def __call__(self):
         return ('\n'.join('%s: %s' % x for x in self.request.items()) +
             '\nBody: %r' % self.request.bodyStream.read())
+
+class GetCookie(View):
+    """Gets cookie value"""
+
+    def __call__(self):
+        return '\n'.join(
+            ('%s: %s' % (k, v)) for k, v in sorted(
+                self.request.cookies.items()))
+
+class SetCookie(View):
+    """Gets cookie value"""
+
+    def __call__(self):
+        self.request.response.setCookie(
+            **dict((str(k), str(v)) for k, v in self.request.form.items()))
