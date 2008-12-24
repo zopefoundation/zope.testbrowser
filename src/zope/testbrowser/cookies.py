@@ -13,7 +13,6 @@
 ##############################################################################
 
 import Cookie
-import cookielib # XXX hopefully will no longer be needed before release
 import datetime
 import time
 import urllib
@@ -81,7 +80,7 @@ class Cookies(object, UserDict.DictMixin):
 
     @property
     def strict_domain_policy(self):
-        policy = self._jar._policy # XXX To become .get_policy()
+        policy = self._jar.get_policy()
         flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
                  policy.DomainStrictNonDomain)
         return policy.strict_ns_domain & flags == flags
@@ -89,7 +88,7 @@ class Cookies(object, UserDict.DictMixin):
     @strict_domain_policy.setter
     def strict_domain_policy(self, value):
         jar = self._jar
-        policy = jar._policy # XXX To become .get_policy()
+        policy = jar.get_policy()
         flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
                  policy.DomainStrictNonDomain)
         policy.strict_ns_domain |= flags
@@ -132,19 +131,7 @@ class Cookies(object, UserDict.DictMixin):
             id(self), self.url, self.header)
 
     def _raw_cookies(self):
-        # uses protected method of clientcookie, after agonizingly trying not
-        # to. XXX
-        res = self._jar._cookies_for_request(self._request)
-        # _cookies_for_request does not sort by path, as specified by RFC2109
-        # (page 9, section 4.3.4) and RFC2965 (page 12, section 3.3.4).
-        # We sort by path match, and then, just for something stable, we sort
-        # by domain match and by whether the cookie specifies a port.
-        # This maybe should be fixed in clientcookie.
-        res.sort(key = lambda ck:
-            ((ck.path is not None and -(len(ck.path)) or 0),
-             (ck.domain is not None and -(len(ck.domain)) or 0),
-             ck.port is None))
-        return res
+        return self._jar.cookies_for_request(self._request)
 
     def _get_cookies(self, key=None):
         if key is None:
@@ -280,8 +267,7 @@ class Cookies(object, UserDict.DictMixin):
         tmp_domain = domain
         if domain is not None and domain.startswith('.'):
             tmp_domain = domain[1:]
-        # XXX eff_request_host not public; mechanize will expose version
-        self_host = cookielib.eff_request_host(self._request)[1]
+        self_host = mechanize.effective_request_host(self._request)
         if (self_host != tmp_domain and
             not self_host.endswith('.' + tmp_domain)):
             raise ValueError('current url must match given domain')
@@ -351,7 +337,7 @@ class Cookies(object, UserDict.DictMixin):
         policy = self._jar._policy
         if now is None:
             now = int(time.time())
-        policy._now = self._jar._now = now # XXX
+        policy._now = self._jar._now = now # TODO get mechanize to expose this
         if not policy.set_ok(cookies[0], request):
             raise ValueError('policy does not allow this cookie')
         if ck is not None:
