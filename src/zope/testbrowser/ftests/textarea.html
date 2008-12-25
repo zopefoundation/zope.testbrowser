@@ -1,0 +1,18 @@
+<html>
+  <body>
+
+    <h1>Textarea Tests</h1>
+
+    <form action="textarea.html" method="post">
+      <div>
+        <label for="textarea-value">Text Area Control</label>
+        <em tal:condition="request/textarea-value|nothing"
+            tal:content="request/textarea-value"></em>
+          <textarea name="textarea-value" id="textarea-value">&lt;block&gt;
+  &lt;feed/&gt;
+  &amp;
+&lt;/block&gt;</textarea>
+    </form>
+
+  </body>
+</html>
