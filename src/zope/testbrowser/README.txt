@@ -1110,70 +1110,73 @@ disambiguate if no other arguments are provided:
 Submitting a posts body directly
 --------------------------------
 
-In addition to the open method, zope.testbrowser.testing.Browser has a ``post``
-method that allows a request body to be supplied.  This method is particularly
-helpful when testing Ajax methods.
+XXX: Commented out for 3.5.2
 
-Let's visit a page that echos it's request:
+#In addition to the open method, zope.testbrowser.testing.Browser has a ``post``
+#method that allows a request body to be supplied.  This method is particularly
+#helpful when testing Ajax methods.
+#
+#Let's visit a page that echos it's request:
+#
+#    >>> browser.open('http://localhost/@@echo.html')
+#    >>> print browser.contents,
+#    HTTP_USER_AGENT: Python-urllib/2.4
+#    HTTP_CONNECTION: close
+#    HTTP_COOKIE:
+#    HTTP_REFERER: localhost
+#    HTTP_ACCEPT_LANGUAGE: en-US
+#    REQUEST_METHOD: GET
+#    HTTP_HOST: localhost
+#    PATH_INFO: /@@echo.html
+#    SERVER_PROTOCOL: HTTP/1.1
+#    QUERY_STRING:
+#    Body: ''
+#
+#Now, we'll try a post.  The post method takes a URL, a data string,
+#and an optional content type.  If we just pass a string, then
+#a URL-encoded query string is assumed:
+#
+#    >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
+#    >>> print browser.contents,
+#    CONTENT_LENGTH: 7
+#    HTTP_USER_AGENT: Python-urllib/2.4
+#    HTTP_CONNECTION: close
+#    HTTP_COOKIE:
+#    HTTP_REFERER: localhost
+#    HTTP_ACCEPT_LANGUAGE: en-US
+#    y: 2
+#    REQUEST_METHOD: POST
+#    HTTP_HOST: localhost
+#    PATH_INFO: /@@echo.html
+#    CONTENT_TYPE: application/x-www-form-urlencoded
+#    SERVER_PROTOCOL: HTTP/1.1
+#    QUERY_STRING:
+#    x: 1
+#    Body: ''
+#
+#
+#The body is empty because it is consumed to get form data.
+#
+#We can pass a content-type explicitly:
+#
+#    >>> browser.post('http://localhost/@@echo.html',
+#    ...              '{"x":1,"y":2}', 'application/x-javascipt')
+#    >>> print browser.contents,
+#    CONTENT_LENGTH: 13
+#    HTTP_USER_AGENT: Python-urllib/2.4
+#    HTTP_CONNECTION: close
+#    HTTP_COOKIE:
+#    HTTP_REFERER: localhost
+#    HTTP_ACCEPT_LANGUAGE: en-US
+#    REQUEST_METHOD: POST
+#    HTTP_HOST: localhost
+#    PATH_INFO: /@@echo.html
+#    CONTENT_TYPE: application/x-javascipt
+#    SERVER_PROTOCOL: HTTP/1.1
+#    Body: '{"x":1,"y":2}'
+#
+#Here, the body is left in place because it isn't form data.
 
-    >>> browser.open('http://localhost/@@echo.html')
-    >>> print browser.contents,
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    HTTP_REFERER: localhost
-    HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: GET
-    HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
-    SERVER_PROTOCOL: HTTP/1.1
-    QUERY_STRING:
-    Body: ''
-
-Now, we'll try a post.  The post method takes a URL, a data string,
-and an optional content type.  If we just pass a string, then
-a URL-encoded query string is assumed:
-
-    >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
-    >>> print browser.contents,
-    CONTENT_LENGTH: 7
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    HTTP_REFERER: localhost
-    HTTP_ACCEPT_LANGUAGE: en-US
-    y: 2
-    REQUEST_METHOD: POST
-    HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
-    CONTENT_TYPE: application/x-www-form-urlencoded
-    SERVER_PROTOCOL: HTTP/1.1
-    QUERY_STRING:
-    x: 1
-    Body: ''
-
-
-The body is empty because it is consumed to get form data.
-
-We can pass a content-type explicitly:
-
-    >>> browser.post('http://localhost/@@echo.html',
-    ...              '{"x":1,"y":2}', 'application/x-javascipt')
-    >>> print browser.contents,
-    CONTENT_LENGTH: 13
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    HTTP_REFERER: localhost
-    HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: POST
-    HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
-    CONTENT_TYPE: application/x-javascipt
-    SERVER_PROTOCOL: HTTP/1.1
-    Body: '{"x":1,"y":2}'
-
-Here, the body is left in place because it isn't form data.
 
 Performance Testing
 -------------------

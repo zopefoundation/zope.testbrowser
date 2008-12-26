@@ -10,6 +10,9 @@ CHANGES
 - New lines are no longer stripped in XML and HTML code contained in a
   textarea; requires ClientForm >= 0.2.10 (LP #268139).
 
+- Disabled zope.testbrowser.testing.Browser.post method as it does not
+  pass its tests.
+
 3.5.1 (2008-10-10)
 ------------------
 

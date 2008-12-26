@@ -249,10 +249,11 @@ class Browser(SetattrErrorsMixin):
             if self.raiseHttpErrors and code >= 400:
                 raise urllib2.HTTPError(url, code, msg, self.headers, fp=None)
 
-    def post(self, url, data, content_type=None):
-        if content_type is not None:
-            data = {'body': data, 'content-type': content_type}
-        return self.open(url, data)
+    # XXX: Commented out for 3.5.2 as it does not pass its tests
+    #def post(self, url, data, content_type=None):
+    #    if content_type is not None:
+    #        data = {'body': data, 'content-type': content_type}
+    #    return self.open(url, data)
 
     def _start_timer(self):
         self.timer.start()
