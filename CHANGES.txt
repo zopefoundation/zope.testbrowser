@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.5.2 (Unreleased)
+3.5.2 (2008-12-26)
 ------------------
 
 - Author e-mail to zope-dev rather than zope3-dev.
