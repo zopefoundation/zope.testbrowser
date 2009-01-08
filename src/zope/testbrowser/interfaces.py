@@ -45,20 +45,24 @@ class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
         """Returns another ICookies instance for the given URL."""
 
     def getinfo(name):
-       """returns dict of settings for the given cookie name.
-
-       This includes only the following cookie values: 
-
-       - name (str)
-       - value (str),
-       - port (int or None),
-       - domain (str),
-       - path (str or None),
-       - secure (bool), and
-       - expires (datetime.datetime with pytz.UTC timezone or None),
-       - comment (str or None),
-       - commenturl (str or None).
-       """
+        """returns dict of settings for the given cookie name.
+ 
+        This includes only the following cookie values: 
+ 
+        - name (str)
+        - value (str),
+        - port (int or None),
+        - domain (str),
+        - path (str or None),
+        - secure (bool), and
+        - expires (datetime.datetime with pytz.UTC timezone or None),
+        - comment (str or None),
+        - commenturl (str or None).
+        
+        (Method name is not camelCase because it is intended to feel like an
+        extension to the mapping interface, which uses all lower case, e.g.
+        iterkeys.)
+        """
 
     def iterinfo(name=None):
         """iterate over the information about all the cookies for the URL.
@@ -66,6 +70,10 @@ class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
         Each result is a dictionary as described for ``getinfo``.
         
         If name is given, iterates over all cookies for given name.
+       
+        (Method name is not camelCase because it is intended to feel like an
+        extension to the mapping interface, which uses all lower case, e.g.
+        iterkeys.)
         """
 
     def create(name, value,

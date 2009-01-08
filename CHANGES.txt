@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-Next release (Unreleased)
--------------------------
+3.6.0a1 (2009-01-08)
+--------------------
 
 - Author e-mail to zope-dev rather than zope3-dev.
 
