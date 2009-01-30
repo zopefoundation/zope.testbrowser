@@ -1278,7 +1278,7 @@ we get a different, Zope internal error:
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
+    NotFound: Object: <zope.site.folder.Folder object at ...>,
               name: u'invalid'
 
 NB: Setting the handleErrors attribute to False will only change
@@ -1312,7 +1312,7 @@ this flag doesn't affect things.
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.app.folder.folder.Folder object at ...>,
+    NotFound: Object: <zope.site.folder.Folder object at ...>,
               name: u'invalid'
 
     >>> browser.raiseHttpErrors = True

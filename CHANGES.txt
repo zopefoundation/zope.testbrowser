@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+3.6.0a2 (unreleased)
+--------------------
+
+- Test dependency on zope.site.folder instead of zope.app.folder.
+
 3.6.0a1 (2009-01-08)
 --------------------
 
