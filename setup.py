@@ -59,7 +59,6 @@ setup(
         ],
     extras_require = {
         'test': [
-            'zope.app.component',
             'zope.site',
             'zope.app.securitypolicy',
             'zope.app.testing',

@@ -7,6 +7,8 @@ CHANGES
 
 - Test dependency on zope.site.folder instead of zope.app.folder.
 
+- Remove useless test dependency in zope.app.component.
+
 3.6.0a1 (2009-01-08)
 --------------------
 
