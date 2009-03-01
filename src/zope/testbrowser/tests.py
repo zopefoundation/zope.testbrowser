@@ -26,7 +26,6 @@ import re
 import socket
 import sys
 import unittest
-import unittest
 import urllib2
 import zope.app.testing.functional
 import zope.testbrowser.browser
