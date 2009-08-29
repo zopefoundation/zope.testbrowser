@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-3.6.0a3 (unreleased)
---------------------
+3.7.0 (unreleased)
+------------------
 
 - Remove dependencies on zope.app.principalannotation and zope.securitypolicy
   by using the simple PermissiveSecurityPolicy. We aren't testing security
