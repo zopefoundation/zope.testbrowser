@@ -5,20 +5,16 @@
     package="zope.testbrowser"
     >
 
-  <!-- This file is the equivalent of site.zcml and it is -->
-  <!-- used for functional testing setup -->
+  <!-- This file is used for functional testing setup -->
 
+  <include package="zope.securitypolicy" file="meta.zcml" />
   <include package="zope.app.zcmlfiles" />
-  <include package="zope.app.authentication" />
 
   <!-- Principals -->
 
   <unauthenticatedPrincipal
       id="zope.anybody"
       title="Unauthenticated User" />
-
-
-  <include package="zope.securitypolicy" file="meta.zcml" />
 
   <securityPolicy
       component="zope.securitypolicy.zopepolicy.ZopeSecurityPolicy" />
