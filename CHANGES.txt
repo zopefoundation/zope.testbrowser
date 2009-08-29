@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-3.7.0 (unreleased)
-------------------
+3.7.0a1 (2009-08-29)
+--------------------
 
 - Remove dependency on zope.app.publisher in favor of zope.browserpage,
   zope.browserresource and zope.ptresource.
