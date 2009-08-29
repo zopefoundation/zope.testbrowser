@@ -8,9 +8,7 @@
   <!-- This file is used for functional testing setup -->
 
   <include package="zope.component" file="meta.zcml" />
-  <include package="zope.principalregistry" file="meta.zcml" />
   <include package="zope.security" file="meta.zcml" />
-  <include package="zope.securitypolicy" file="meta.zcml" />
   <include package="zope.app.publisher" file="meta.zcml" />
   <include package="zope.app.publication" file="meta.zcml" />
 
@@ -23,25 +21,11 @@
   <include package="zope.traversing" />
 
   <include package="zope.app.appsetup" />
-  <include package="zope.app.principalannotation" file="bootstrap.zcml" />
   <include package="zope.app.publisher" />
   <include package="zope.app.publication" />
 
-  <!-- Principals -->
-
-  <unauthenticatedPrincipal
-      id="zope.anybody"
-      title="Unauthenticated User" />
-
   <securityPolicy
-      component="zope.securitypolicy.zopepolicy.ZopeSecurityPolicy" />
-
-  <role id="zope.Anonymous" title="Everybody"
-                 description="All users have this role implicitly" />
-
-  <!-- Replace the following directive if you don't want public access -->
-  <grant permission="zope.View"
-                  role="zope.Anonymous" />
+      component="zope.security.simplepolicies.PermissiveSecurityPolicy" />
 
   <browser:page
      name="echo.html"

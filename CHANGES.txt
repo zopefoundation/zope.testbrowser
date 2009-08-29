@@ -5,6 +5,10 @@ CHANGES
 3.6.0a3 (unreleased)
 --------------------
 
+- Remove dependencies on zope.app.principalannotation and zope.securitypolicy
+  by using the simple PermissiveSecurityPolicy. We aren't testing security
+  in our tests.
+
 - Replaced the testing dependency on zope.app.zcmlfiles with explicit
   dependencies of a minimal set of packages.
 
