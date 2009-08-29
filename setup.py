@@ -59,10 +59,19 @@ setup(
         ],
     extras_require = {
         'test': [
+            'zope.component',
+            'zope.container',
+            'zope.principalregistry',
+            'zope.publisher',
+            'zope.security',
             'zope.securitypolicy',
             'zope.site',
+            'zope.traversing',
+            'zope.app.appsetup',
+            'zope.app.principalannotation',
+            'zope.app.publisher',
+            'zope.app.publication',
             'zope.app.testing',
-            'zope.app.zcmlfiles',
             ],
         'zope-functional-testing': [
             'zope.app.testing',

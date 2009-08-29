@@ -1312,7 +1312,7 @@ this flag doesn't affect things.
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.site.folder.Folder object at 0x8e00b6c>,
+    NotFound: Object: <zope.site.folder.Folder object at ...>,
         name: u'invalid'
 
     >>> browser.raiseHttpErrors = True

@@ -5,6 +5,9 @@ CHANGES
 3.6.0a3 (unreleased)
 --------------------
 
+- Replaced the testing dependency on zope.app.zcmlfiles with explicit
+  dependencies of a minimal set of packages.
+
 - Remove unneeded zope.app.authentication from ftesting.zcml.
 
 - Test dependency on zope.securitypolicy instead of its app variant.

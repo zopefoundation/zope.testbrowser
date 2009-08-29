@@ -25,15 +25,15 @@ Initially the browser does not point to a URL, and the cookies cannot be used.
 
 Once you send the browser to a URL, the cookies attribute can be used.
 
-    >>> browser.open('http://localhost/')
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> len(browser.cookies)
     0
     >>> browser.cookies.keys()
     []
     >>> browser.url
-    'http://localhost/'
+    'http://localhost/@@/testbrowser/simple.html'
     >>> browser.cookies.url
-    'http://localhost/'
+    'http://localhost/@@/testbrowser/simple.html'
     >>> import zope.testbrowser.interfaces
     >>> from zope.interface.verify import verifyObject
     >>> verifyObject(zope.testbrowser.interfaces.ICookies, browser.cookies)
@@ -49,9 +49,9 @@ the cookies mapping for the given URL.
     >>> browser.cookies.forURL('http://www.example.com').url
     'http://www.example.com'
     >>> browser.url
-    'http://localhost/'
+    'http://localhost/@@/testbrowser/simple.html'
     >>> browser.cookies.url
-    'http://localhost/'
+    'http://localhost/@@/testbrowser/simple.html'
 
 Here, we use a view that will make the server set cookies with the
 values we provide.
@@ -312,9 +312,9 @@ the other page in the browser, or, as already mentioned, you can use the
     >>> sorted(browser.cookies.keys())
     ['foo', 'max', 'sha', 'va', 'wow']
 
-    >>> import zope.app.folder.folder
-    >>> getRootFolder()['inner'] = zope.app.folder.folder.Folder()
-    >>> getRootFolder()['inner']['path'] = zope.app.folder.folder.Folder()
+    >>> import zope.site.folder
+    >>> getRootFolder()['inner'] = zope.site.folder.Folder()
+    >>> getRootFolder()['inner']['path'] = zope.site.folder.Folder()
     >>> import transaction
     >>> transaction.commit()
     >>> browser.open('http://localhost/inner/get_cookie.html')
@@ -745,7 +745,7 @@ So far all of our examples in this section have centered on ``create``.
 ``change`` allows making changes to existing cookies.  Changing expiration
 is a good example.
 
-    >>> browser.open("http://example.net")
+    >>> browser.open("http://localhost/@@/testbrowser/cookies.html")
     >>> browser.cookies['foo'] = 'bar'
     >>> browser.cookies.change('foo', expires=datetime.datetime(2021, 1, 1))
     >>> browser.cookies.getinfo('foo')['expires']
@@ -760,7 +760,8 @@ That's the main story.  Now here are some edge cases.
     >>> browser.cookies.getinfo('foo')['expires']
     datetime.datetime(2020, 1, 1, 0, 0, tzinfo=<UTC>)
 
-    >>> browser.cookies.forURL('http://example.net').change(
+    >>> browser.cookies.forURL(
+    ...   'http://localhost/@@/testbrowser/cookies.html').change(
     ...     'foo',
     ...     expires=zope.testbrowser.cookies.expiration_string(
     ...         datetime.datetime(2019, 1, 1)))
@@ -770,7 +771,7 @@ That's the main story.  Now here are some edge cases.
     'bar'
     >>> browser.cookies.change('foo', expires=datetime.datetime(1999, 1, 1))
     >>> len(browser.cookies)
-    0
+    4
 
 While we are at it, it is worth noting that trying to create a cookie that has
 already expired raises an error.
@@ -789,63 +790,23 @@ clear, clearAll, clearAllSession allow various clears of the cookies.
 
 The ``clear`` method clears all of the cookies for the current page.
 
-    >>> browser.open('https://dev.example.com/inner/path')
-    >>> pprint.pprint(list(browser.cookies.iterinfo()))
-    [{'comment': None,
-      'commenturl': None,
-      'domain': 'dev.example.com',
-      'expires': None,
-      'name': 'tweedle',
-      'path': '/inner/path',
-      'port': None,
-      'secure': False,
-      'value': 'dee'},
-     {'comment': None,
-      'commenturl': None,
-      'domain': '.example.com',
-      'expires': None,
-      'name': 'boo',
-      'path': '/inner',
-      'port': None,
-      'secure': True,
-      'value': 'hoo'}]
-    >>> browser.open('https://dev.example.com/inner')
+    >>> browser.open('http://localhost/@@/testbrowser/cookies.html')
     >>> len(browser.cookies)
-    1
+    4
     >>> browser.cookies.clear()
     >>> len(browser.cookies)
     0
-    >>> browser.open('https://dev.example.com/inner/path')
-    >>> len(browser.cookies)
-    1
 
 The ``clearAllSession`` method clears *all* session cookies (for all domains
 and paths, not just the current URL), as if the browser had been restarted.
 
-    >>> browser.open('http://localhost/inner/path')
-    >>> len(browser.cookies)
-    8
-    >>> len([info for info in browser.cookies.iterinfo()
-    ...      if info['expires'] is not None])
-    3
-    >>> browser.open('https://dev.example.org/inner/path')
-    >>> len(browser.cookies)
-    2
-    >>> len([info for info in browser.cookies.iterinfo()
-    ...      if info['expires'] is not None])
-    0
     >>> browser.cookies.clearAllSession()
     >>> len(browser.cookies)
     0
-    >>> browser.open('http://localhost/inner/path')
-    >>> len(browser.cookies)
-    3
 
 The ``clearAll`` removes all cookies for the browser.
 
-    >>> browser.open('http://example.org/')
     >>> browser.cookies.clearAll()
-    >>> browser.open('http://localhost/inner/path')
     >>> len(browser.cookies)
     0
 

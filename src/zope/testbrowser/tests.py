@@ -383,8 +383,6 @@ checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'Host: localhost'), 'Connection: close'),
     (re.compile(r'Content-Type: '), 'Content-type: '),
     (re.compile(r'Content-Disposition: '), 'Content-disposition: '),
-    (re.compile(r'<zope.(app.folder|site).folder.Folder object at .*?>'),
-        '<zope.site.folder.Folder object at 0x12345678>'),
     ])
 
 TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(

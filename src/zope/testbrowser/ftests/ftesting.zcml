@@ -1,14 +1,31 @@
 <configure
-    xmlns="http://namespaces.zope.org/zope"
-    xmlns:browser="http://namespaces.zope.org/browser"
-    i18n_domain="zope"
-    package="zope.testbrowser"
-    >
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:browser="http://namespaces.zope.org/browser"
+  i18n_domain="zope"
+  package="zope.testbrowser"
+  >
 
   <!-- This file is used for functional testing setup -->
 
+  <include package="zope.component" file="meta.zcml" />
+  <include package="zope.principalregistry" file="meta.zcml" />
+  <include package="zope.security" file="meta.zcml" />
   <include package="zope.securitypolicy" file="meta.zcml" />
-  <include package="zope.app.zcmlfiles" />
+  <include package="zope.app.publisher" file="meta.zcml" />
+  <include package="zope.app.publication" file="meta.zcml" />
+
+  <include package="zope.component" />
+  <include package="zope.container" />
+  <include package="zope.principalregistry" />
+  <include package="zope.publisher" />
+  <include package="zope.security" />
+  <include package="zope.site" />
+  <include package="zope.traversing" />
+
+  <include package="zope.app.appsetup" />
+  <include package="zope.app.principalannotation" file="bootstrap.zcml" />
+  <include package="zope.app.publisher" />
+  <include package="zope.app.publication" />
 
   <!-- Principals -->
 
