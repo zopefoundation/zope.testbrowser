@@ -59,15 +59,17 @@ setup(
         ],
     extras_require = {
         'test': [
+            'zope.browserpage',
+            'zope.browserresource',
             'zope.component',
             'zope.container',
             'zope.principalregistry',
+            'zope.ptresource',
             'zope.publisher',
             'zope.security',
             'zope.site',
             'zope.traversing',
             'zope.app.appsetup',
-            'zope.app.publisher',
             'zope.app.publication',
             'zope.app.testing',
             ],

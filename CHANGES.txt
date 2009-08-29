@@ -5,6 +5,9 @@ CHANGES
 3.7.0 (unreleased)
 ------------------
 
+- Remove dependency on zope.app.publisher in favor of zope.browserpage,
+  zope.browserresource and zope.ptresource.
+
 - Remove dependencies on zope.app.principalannotation and zope.securitypolicy
   by using the simple PermissiveSecurityPolicy. We aren't testing security
   in our tests.

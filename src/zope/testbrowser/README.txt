@@ -1078,12 +1078,7 @@ The form exposes several attributes related to forms:
   - The method (HTTP verb) used to transmit the form data:
 
     >>> form.method
-    'POST'
-
-  - The encoding type of the form data:
-
-    >>> form.enctype
-    'multipart/form-data'
+    'GET'
 
 Besides those attributes, you have also a couple of methods.  Like for the
 browser, you can get control objects, but limited to the current form...
