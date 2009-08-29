@@ -18,7 +18,7 @@
       title="Unauthenticated User" />
 
 
-  <include package="zope.app.securitypolicy" file="meta.zcml"/>
+  <include package="zope.securitypolicy" file="meta.zcml" />
 
   <securityPolicy
       component="zope.securitypolicy.zopepolicy.ZopeSecurityPolicy" />

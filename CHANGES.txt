@@ -5,7 +5,7 @@ CHANGES
 3.6.0a3 (unreleased)
 --------------------
 
-- ...
+- Test dependency on zope.securitypolicy instead of its app variant.
 
 
 3.6.0a2 (2009-01-31)

@@ -59,8 +59,8 @@ setup(
         ],
     extras_require = {
         'test': [
+            'zope.securitypolicy',
             'zope.site',
-            'zope.app.securitypolicy',
             'zope.app.testing',
             'zope.app.zcmlfiles',
             ],
