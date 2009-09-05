@@ -304,6 +304,19 @@ You can pass a string to add_file:
 
     """
 
+def test_new_instance_no_contents_should_not_fail(self):
+    """
+
+    When first instantiated, the browser has no contents.
+    (Regression test for <http://bugs.launchpad.net/zope3/+bug/419119>)
+
+    >>> browser = Browser()
+    >>> print browser.contents
+    None
+
+    """
+
+
 
 def test_strip_linebreaks_from_textarea(self):
     """

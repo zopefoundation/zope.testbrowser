@@ -5,6 +5,8 @@ CHANGES
 3.7.0a2 (unreleased)
 --------------------
 
+- Fixed LP #419119: return None when the browser has no contents instead of
+  raising an exception.
 
 3.7.0a1 (2009-08-29)
 --------------------
