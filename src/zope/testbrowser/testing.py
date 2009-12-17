@@ -26,7 +26,6 @@ import sys
 import transaction
 import unittest
 import urllib2
-import zope.app.testing
 import zope.testbrowser.browser
 
 
@@ -34,7 +33,8 @@ class PublisherConnection(object):
     """A ``urllib2`` compatible connection obejct."""
 
     def __init__(self, host, timeout=None):
-        self.caller = zope.app.testing.functional.HTTPCaller()
+        from zope.app.testing.functional import HTTPCaller
+        self.caller = HTTPCaller()
         self.host = host
 
     def set_debuglevel(self, level):

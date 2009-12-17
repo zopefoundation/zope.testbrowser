@@ -5,6 +5,10 @@ CHANGES
 3.7.0a2 (unreleased)
 --------------------
 
+- Moved zope.app.testing dependency into the scope of the PublisherConnection
+  class. Zope2 specifies its own PublisherConnection which isn't dependent on
+  zope.app.testing.
+
 - Fixed LP #419119: return None when the browser has no contents instead of
   raising an exception.
 
