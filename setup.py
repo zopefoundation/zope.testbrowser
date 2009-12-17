@@ -34,7 +34,7 @@ long_description = (
 
 setup(
     name = 'zope.testbrowser',
-    version = '3.7.0a2',
+    version = '3.7.0',
     url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
     description = 'Programmable browser for functional black-box tests',
