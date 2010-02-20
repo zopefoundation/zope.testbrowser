@@ -24,6 +24,7 @@ import datetime
 import operator
 import re
 import sys
+import os
 import time
 import urllib2
 
@@ -32,6 +33,7 @@ import mechanize
 import zope.interface
 
 import zope.testbrowser.cookies
+import zope.testbrowser.validate
 import zope.testbrowser.interfaces
 
 
@@ -168,6 +170,11 @@ class Browser(SetattrErrorsMixin):
     def __init__(self, url=None, mech_browser=None):
         if mech_browser is None:
             mech_browser = mechanize.Browser()
+
+        if os.environ.get('ZOPE_TESTBROWSER_VALIDATE'):
+            mech_browser.add_handler(
+                zope.testbrowser.validate.ValidatingHandler())
+            
         self.mech_browser = mech_browser
         self.timer = PystoneTimer()
         self.raiseHttpErrors = True

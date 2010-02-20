@@ -1,0 +1,72 @@
+.. -*-doctest-*-
+
+===============
+Validating HTML
+===============
+
+If the ZOPE_TESTBROWSER_VALIDATE environment variable is set, the
+testbrowser will send the HTML response to a request through the the
+W3C validator at the URL in the environment variable.
+
+Set the environment variable to use the local version of he W3C
+validator.
+
+    >>> import os
+    >>> missing = object()
+    >>> orig_environ = os.environ.get(
+    ...     'ZOPE_TESTBROWSER_VALIDATE', missing)
+    >>> os.environ['ZOPE_TESTBROWSER_VALIDATE'
+    ...            ] = 'http://localhost/cgi-bin/check'
+
+Open a browser and visit a page with valid HTML.  The testbrowser
+behaves as it would without the environment variable.
+
+    >>> from zope.testbrowser.testing import Browser
+    >>> browser = Browser()
+    >>> browser.open(
+    ...     'http://localhost/@@/testbrowser/valid.html')
+    >>> print browser.contents
+    <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+    <html>
+      <head>
+        <title>Simple Page</title>
+      </head>
+      <body>
+        <h1>Simple Page</h1>
+      </body>
+    </html>
+
+If invalid HTML is returned to the test browser, the browser will
+raise an error and the browser contents will include the W3C validator
+report output.
+
+    >>> browser.open(
+    ...     'http://localhost/@@/testbrowser/simple.html')
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 500: Invalid HTML
+    >>> print browser.contents
+    <...
+        <h2 id="results" class="invalid">This page is <strong>not</strong> Valid (no Doctype found)!</h2>
+    ...
+
+When the environment variable is not in place, the browser does
+nothing with invalid HTML.
+
+    >>> if orig_environ is missing:
+    ...     del os.environ['ZOPE_TESTBROWSER_VALIDATE']
+    ... else:
+    ...     os.environ['ZOPE_TESTBROWSER_VALIDATE'] = orig_environ
+
+    >>> browser = Browser()
+    >>> browser.open(
+    ...     'http://localhost/@@/testbrowser/simple.html')
+    >>> print browser.contents
+    <html>
+      <head>
+        <title>Simple Page</title>
+      </head>
+      <body>
+        <h1>Simple Page</h1>
+      </body>
+    </html>

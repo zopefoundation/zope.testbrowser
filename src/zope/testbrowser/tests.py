@@ -420,9 +420,14 @@ def test_suite():
     wire.level = 2
     wire.layer = TestBrowserLayer
 
+    validate = FunctionalDocFileSuite('validate.txt', optionflags=flags)
+    validate.level = 2
+    validate.layer = TestBrowserLayer
+
     this_file = doctest.DocTestSuite(checker=checker)
 
-    return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
+    return unittest.TestSuite(
+        (this_file, readme, fixed_bugs, wire, validate, cookies))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
