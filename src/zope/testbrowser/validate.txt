@@ -50,6 +50,18 @@ report output.
         <h2 id="results" class="invalid">This page is <strong>not</strong> Valid (no Doctype found)!</h2>
     ...
 
+The original HTML is available in a header.
+
+    >>> print browser.headers['X-W3C-Validator-Source']
+    <html>
+      <head>
+        <title>Simple Page</title>
+      </head>
+      <body>
+        <h1>Simple Page</h1>
+      </body>
+    </html>
+
 When the environment variable is not in place, the browser does
 nothing with invalid HTML.
 
