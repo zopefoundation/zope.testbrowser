@@ -2,8 +2,10 @@
 CHANGES
 =======
 
-3.7.1 (unreleased)
+3.8.0 (unreleased)
 ------------------
+
+- Added ``follow`` convenience method which gets and follows a link.
 
 
 3.7.0 (2009-12-17)

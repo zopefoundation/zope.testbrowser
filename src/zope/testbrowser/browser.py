@@ -328,6 +328,10 @@ class Browser(SetattrErrorsMixin):
         args['nr'] = index
         return Link(self.mech_browser.find_link(**args), self)
 
+    def follow(self, *args, **kw):
+        """Select a link and follow it."""
+        self.getLink(*args, **kw).click()
+
     def _findByLabel(self, label, forms, include_subcontrols=False):
         # forms are iterable of mech_forms
         matches = re.compile(r'(^|\b|\W)%s(\b|\W|$)'

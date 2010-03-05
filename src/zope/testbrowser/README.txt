@@ -326,6 +326,41 @@ Getting a nonexistent link raises an exception.
     ...
     LinkNotFoundError
 
+A convenience method is provided to follow links; this uses the same
+arguments as `getLink`, but clicks on the link instead of returning the
+link object.
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.contents
+    '...<a href="navigate.html?message=By+Link+Text">Link Text</a>...'
+    >>> browser.follow('Link Text')
+    >>> browser.url
+    'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
+    >>> browser.contents
+    '...Message: <em>By Link Text</em>...'
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.follow(url='?message=By+URL')
+    >>> browser.url
+    'http://localhost/@@/testbrowser/navigate.html?message=By+URL'
+    >>> browser.contents
+    '...Message: <em>By URL</em>...'
+
+    >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
+    >>> browser.follow(id='zope3')
+    >>> browser.url
+    'http://localhost/@@/testbrowser/navigate.html?message=Zope+3+Name'
+    >>> browser.contents
+    '...Message: <em>Zope 3 Name</em>...'
+
+Attempting to follow links that don't exist raises the same exception as
+asking for the link object:
+
+    >>> browser.follow('This does not exist')
+    Traceback (most recent call last):
+    ...
+    LinkNotFoundError
+
 
 Other Navigation
 ----------------
