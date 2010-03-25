@@ -5,6 +5,9 @@ CHANGES
 3.4.4 (unreleased)
 ------------------
 
+- Fix test failures due to Content-Disposition header capitalization
+  differences.
+
 3.4.3 (2008-10-13)
 ------------------
 
