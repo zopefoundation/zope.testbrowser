@@ -18,6 +18,7 @@ $Id$
 import re
 import sys
 import unittest
+import doctest
 import httplib
 import urllib2
 from cStringIO import StringIO
@@ -26,7 +27,7 @@ import mechanize
 
 import transaction
 from zope.testbrowser import browser
-from zope.testing import renormalizing, doctest
+from zope.testing import renormalizing
 
 from zope.app.testing import functional
 from zope.app.folder.folder import Folder

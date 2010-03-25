@@ -11,6 +11,8 @@ CHANGES
 - Pin dependency versions to Zope 3.4 KGS, because the 3.4 series of
   zope.testbrowser doesn't work with newer versions of, e.g. zope.component.
 
+- Avoid deprecated zope.testing.doctest.
+
 3.4.3 (2008-10-13)
 ------------------
 
