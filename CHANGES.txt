@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.4.4 (unreleased)
+3.4.4 (2010-03-26)
 ------------------
 
 - Fix test failures due to Content-Disposition header capitalization
