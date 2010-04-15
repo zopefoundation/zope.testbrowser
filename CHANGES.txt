@@ -5,7 +5,7 @@ CHANGES
 3.8.1 (unreleased)
 ------------------
 
-- TBD
+- LP #98396:  testbrowser resolves relative URLs incorrectly.
 
 
 3.8.0 (2010-03-05)
