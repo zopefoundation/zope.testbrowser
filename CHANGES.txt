@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.8.1 (unreleased)
+3.8.1 (2010-04-19)
 ------------------
 
 - Pinned dependency on mechanize to prevent use of the upcoming
