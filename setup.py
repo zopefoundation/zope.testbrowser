@@ -56,7 +56,8 @@ setup(
     tests_require = ['zope.testing'],
     install_requires = [
         'ClientForm',
-        'mechanize',
+        # mechanize 0.2.0 folds in ClientForm, makes incompatible API changes
+        'mechanize<0.2dev',
         'setuptools',
         'zope.interface',
         'zope.schema',

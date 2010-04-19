@@ -5,6 +5,9 @@ CHANGES
 3.8.1 (unreleased)
 ------------------
 
+- Pinned dependency on mechanize to prevent use of the upcoming
+  0.2.0 release before we have time to adjust to its API changes.
+
 - LP #98396:  testbrowser resolves relative URLs incorrectly.
 
 
