@@ -15,16 +15,11 @@
 
 $Id$
 """
-
-
 import cStringIO
 import httplib
 import mechanize
-import re
 import socket
 import sys
-import transaction
-import unittest
 import urllib2
 import zope.testbrowser.browser
 

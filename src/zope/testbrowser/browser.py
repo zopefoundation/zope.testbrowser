@@ -20,8 +20,6 @@ __docformat__ = "reStructuredText"
 
 
 import cStringIO
-import datetime
-import operator
 import re
 import sys
 import time

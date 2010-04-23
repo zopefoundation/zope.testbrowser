@@ -15,9 +15,8 @@
 
 $Id$
 """
+import unittest
 
-from zope.app.testing.functional import FunctionalDocFileSuite
-from zope.testing import doctest
 import cStringIO
 import httplib
 import mechanize
@@ -25,8 +24,10 @@ import os
 import re
 import socket
 import sys
-import unittest
 import urllib2
+
+from zope.app.testing.functional import FunctionalDocFileSuite
+from zope.testing import doctest
 import zope.app.testing.functional
 import zope.testbrowser.browser
 import zope.testing.renormalizing
