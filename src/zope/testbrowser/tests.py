@@ -18,6 +18,7 @@ $Id$
 import unittest
 
 import cStringIO
+import doctest
 import httplib
 import mechanize
 import os
@@ -27,7 +28,6 @@ import sys
 import urllib2
 
 from zope.app.testing.functional import FunctionalDocFileSuite
-from zope.testing import doctest
 import zope.app.testing.functional
 import zope.testbrowser.browser
 import zope.testing.renormalizing

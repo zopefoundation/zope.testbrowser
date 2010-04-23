@@ -5,7 +5,7 @@ CHANGES
 3.8.2 (unreleased)
 ------------------
 
-- TBD
+- Use stdlib ``doctest`` module, instead of ``zope.testing.doctest``.
 
 
 3.8.1 (2010-04-19)
