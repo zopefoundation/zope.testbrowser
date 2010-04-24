@@ -30,6 +30,7 @@ import urllib2
 from zope.app.testing.functional import FunctionalDocFileSuite
 import zope.app.testing.functional
 import zope.testbrowser.browser
+import zope.testbrowser.testing
 import zope.testing.renormalizing
 
 
@@ -462,6 +463,39 @@ TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
     __name__, 'TestBrowserLayer', allow_teardown=True)
 
 
+class RefererTests(zope.app.testing.functional.FunctionalTestCase):
+    # Explicit suite of tests that verify the behaviour of the testing
+    # testbrowser's referer handling.
+
+    layer = TestBrowserLayer
+
+    def setUp(self):
+        super(RefererTests, self).setUp()
+        self.b = zope.testbrowser.testing.Browser()
+
+    # Broken until zope.app.testing catches up
+    #def test_open(self):
+    #    self.b.open('http://localhost/echo.html')
+    #    self.assert_('HTTP_REFERER:' not in self.b.contents)
+
+    def test_explicit_referer(self):
+        self.b.addHeader('Referer', 'http://localhost/somewhere/before')
+        self.b.open('http://localhost/echo.html')
+        self.assert_('HTTP_REFERER: http://localhost/somewhere/before\n' in
+                     self.b.contents)
+
+    def test_link_referer(self):
+        self.b.open('http://localhost/navigate.html')
+        self.b.getLink('Link Test').click()
+
+
+    def submit_control
+
+    def imagesubmit
+
+    def form_submit
+
+
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
 
@@ -482,4 +516,7 @@ def test_suite():
 
     this_file = doctest.DocTestSuite(checker=checker)
 
-    return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
+    referer = unittest.makeSuite(RefererTests)
+
+    return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies,
+                               referer))
