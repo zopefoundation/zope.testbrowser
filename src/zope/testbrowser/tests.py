@@ -42,8 +42,7 @@ def set_next_response(body, headers=None, status='200', reason='OK'):
         headers = (
             'Content-Type: text/html\r\n'
             'Content-Length: %s\r\n'
-            % len(body)
-            )
+            % len(body))
     next_response_body = body
     next_response_headers = headers
     next_response_status = status
@@ -63,7 +62,6 @@ class FauxConnection(object):
         # the publisher expects to be able to split on whitespace, so we have
         # to make sure there is none in the URL
         return url.replace(' ', '%20')
-
 
     def request(self, method, url, body=None, headers=None):
         if body is None:
@@ -102,6 +100,7 @@ class FauxConnection(object):
                             next_response_status,
                             next_response_reason,
                             )
+
 
 class FauxResponse(object):
 
@@ -170,6 +169,7 @@ class Browser(zope.testbrowser.browser.Browser):
              url='http://localhost/'):
         set_next_response(body, headers, status, reason)
         zope.testbrowser.browser.Browser.open(self, url)
+
 
 def test_submit_duplicate_name():
     """
@@ -245,6 +245,7 @@ regression caused by the original fix for the above):
 
 """
 
+
 def test_file_upload():
     """
 
@@ -306,6 +307,7 @@ You can pass a string to add_file:
 
     """
 
+
 def test_new_instance_no_contents_should_not_fail(self):
     """
 
@@ -317,7 +319,6 @@ def test_new_instance_no_contents_should_not_fail(self):
     None
 
     """
-
 
 
 def test_strip_linebreaks_from_textarea(self):
@@ -364,7 +365,8 @@ after the start tag, the textarea value will start and end with a line break.
     >>> browser.getControl(name='textarea').value
     '\\nFoo\\n'
 
-Also, if there is some other whitespace after the start tag, it will be preserved.
+Also, if there is some other whitespace after the start tag, it will be
+preserved.
 
     >>> browser.open('''
     ... <html><body>
@@ -378,6 +380,7 @@ Also, if there is some other whitespace after the start tag, it will be preserve
     >>> browser.getControl(name='textarea').value
     '  Foo  '
     """
+
 
 def test_relative_link():
     """
@@ -430,23 +433,25 @@ def test_relative_link():
     """
 
 
-
 class win32CRLFtransformer(object):
     def sub(self, replacement, text):
-        return text.replace(r'\r','')
+        return text.replace(r'\r', '')
 
 checker = zope.testing.renormalizing.RENormalizing([
-    (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-'*30),
-    (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary='+'-'*30),
-    (re.compile(r'^---{10}.*', re.M), '-'*30),
-    (re.compile(r'boundary=-{10}.*'), 'boundary='+'-'*30),
+    (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-' * 30),
+    (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary=' + '-' * 30),
+    (re.compile(r'^---{10}.*', re.M), '-' * 30),
+    (re.compile(r'boundary=-{10}.*'), 'boundary=' + '-' * 30),
     (re.compile(r'User-agent:\s+\S+'), 'User-agent: Python-urllib/2.4'),
-    (re.compile(r'HTTP_USER_AGENT:\s+\S+'), 'HTTP_USER_AGENT: Python-urllib/2.4'),
+    (re.compile(r'HTTP_USER_AGENT:\s+\S+'),
+     'HTTP_USER_AGENT: Python-urllib/2.4'),
     (re.compile(r'Content-[Ll]ength:.*'), 'Content-Length: 123'),
     (re.compile(r'Status: 200.*'), 'Status: 200 OK'),
     (win32CRLFtransformer(), None),
-    (re.compile(r'User-Agent: Python-urllib/2.5'), 'User-agent: Python-urllib/2.4'),
-    (re.compile(r'User-Agent: Python-urllib/2.6'), 'User-agent: Python-urllib/2.4'),
+    (re.compile(r'User-Agent: Python-urllib/2.5'),
+     'User-agent: Python-urllib/2.4'),
+    (re.compile(r'User-Agent: Python-urllib/2.6'),
+     'User-agent: Python-urllib/2.4'),
     (re.compile(r'Host: localhost'), 'Connection: close'),
     (re.compile(r'Content-Type: '), 'Content-type: '),
     (re.compile(r'Content-Disposition: '), 'Content-disposition: '),
@@ -455,6 +460,7 @@ checker = zope.testing.renormalizing.RENormalizing([
 TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
     os.path.join(os.path.split(__file__)[0], 'ftests/ftesting.zcml'),
     __name__, 'TestBrowserLayer', allow_teardown=True)
+
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
@@ -477,6 +483,3 @@ def test_suite():
     this_file = doctest.DocTestSuite(checker=checker)
 
     return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
