@@ -196,20 +196,14 @@ def test_submit_duplicate_name():
     <SubmitControl name='submit_me' type='submit'>
     >>> browser.getControl('BAD').value
     'BAD'
-    >>> browser.getControl('BAD').click() # doctest: +REPORT_NDIFF
+    >>> browser.getControl('BAD').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
-    Content-length: 176
-    Connection: close
-    Content-type: multipart/form-data; boundary=---------------------------100167997466992641913031254
-    Host: localhost
-    User-agent: Python-urllib/2.4
-    <BLANKLINE>
-    -----------------------------100167997466992641913031254
+    ...
+    Content-type: multipart/form-data; ...
     Content-disposition: form-data; name="submit_me"
     <BLANKLINE>
     BAD
-    -----------------------------100167997466992641913031254--
-    <BLANKLINE>
+    ...
 
 
     This also works if the labels have whitespace around them (this tests a
@@ -228,21 +222,14 @@ def test_submit_duplicate_name():
     <SubmitControl name='submit_me' type='submit'>
     >>> browser.getControl('BAD').value
     ' BAD '
-    >>> browser.getControl('BAD').click() # doctest: +REPORT_NDIFF
+    >>> browser.getControl('BAD').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
-    Content-length: 176
-    Connection: close
-    Content-type: multipart/form-data; boundary=---------------------------100167997466992641913031254
-    Host: localhost
-    User-agent: Python-urllib/2.4
-    <BLANKLINE>
-    -----------------------------100167997466992641913031254
+    ...
+    Content-type: multipart/form-data; ...
     Content-disposition: form-data; name="submit_me"
     <BLANKLINE>
      BAD 
-    -----------------------------100167997466992641913031254--
-    <BLANKLINE>
-
+    ...
 """
 
 
@@ -269,44 +256,30 @@ def test_file_upload():
 
     >>> browser.getControl(name='foo').add_file(
     ...     cStringIO.StringIO('sample_data'), 'text/foo', 'x.foo')
-    >>> browser.getControl('OK').click()
+    >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
-    Content-length: 173
-    Connection: close
-    Content-type: multipart/form-data; boundary=127.0.0.11000318041146699896411
-    Host: localhost
-    User-agent: Python-urllib/2.99
-    <BLANKLINE>
-    --127.0.0.11000318041146699896411
+    ...
+    Content-type: multipart/form-data; ...
     Content-disposition: form-data; name="foo"; filename="x.foo"
     Content-type: text/foo
     <BLANKLINE>
     sample_data
-    --127.0.0.11000318041146699896411--
-    <BLANKLINE>
+    ...
 
 
     You can pass a string to add_file:
 
     >>> browser.getControl(name='foo').add_file(
     ...     'blah blah blah', 'text/blah', 'x.blah')
-    >>> browser.getControl('OK').click()
+    >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
-    Content-length: 178
-    Connection: close
-    Content-type: multipart/form-data; boundary=127.0.0.11000318541146700017052
-    Host: localhost
-    User-agent: Python-urllib/2.98
-    <BLANKLINE>
-    --127.0.0.11000318541146700017052
+    ...
+    Content-type: multipart/form-data; ...
     Content-disposition: form-data; name="foo"; filename="x.blah"
     Content-type: text/blah
     <BLANKLINE>
     blah blah blah
-    --127.0.0.11000318541146700017052--
-    <BLANKLINE>
-
-
+    ...
     """
 
 
