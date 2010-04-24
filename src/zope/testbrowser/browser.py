@@ -410,8 +410,9 @@ class Browser(SetattrErrorsMixin):
             label = None
         self._start_timer()
         try:
-            self.mech_browser.open(form.click(
-                id=control.id, name=control.name, label=label, coord=coord))
+            self.mech_browser.form = form
+            self.mech_browser.submit(id=control.id, name=control.name,
+                                     label=label, coord=coord)
         except Exception, e:
             fix_exception_name(e)
             raise
