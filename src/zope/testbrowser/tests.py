@@ -171,13 +171,13 @@ class Browser(zope.testbrowser.browser.Browser):
 
 def test_submit_duplicate_name():
     """
-
-This test was inspired by bug #723 as testbrowser would pick up the wrong
-button when having the same name twice in a form.
+    This test was inspired by bug #723 as testbrowser would pick up the wrong
+    button when having the same name twice in a form.
 
     >>> browser = Browser()
 
-When given a form with two submit buttons that have the same name:
+
+    When given a form with two submit buttons that have the same name:
 
     >>> browser.open('''\
     ... <html><body>
@@ -189,7 +189,8 @@ When given a form with two submit buttons that have the same name:
     GET / HTTP/1.1
     ...
 
-We can specify the second button through it's label/value:
+
+    We can specify the second button through it's label/value:
 
     >>> browser.getControl('BAD')
     <SubmitControl name='submit_me' type='submit'>
@@ -210,8 +211,9 @@ We can specify the second button through it's label/value:
     -----------------------------100167997466992641913031254--
     <BLANKLINE>
 
-This also works if the labels have whitespace around them (this tests a
-regression caused by the original fix for the above):
+
+    This also works if the labels have whitespace around them (this tests a
+    regression caused by the original fix for the above):
 
     >>> browser.open('''\
     ... <html><body>
@@ -249,7 +251,8 @@ def test_file_upload():
 
     >>> browser = Browser()
 
-When given a form with a file-upload
+
+    When given a form with a file-upload
 
     >>> browser.open('''\
     ... <html><body>
@@ -261,7 +264,8 @@ When given a form with a file-upload
     GET / HTTP/1.1
     ...
 
-Fill in the form value using add_file:
+
+    Fill in the form value using add_file:
 
     >>> browser.getControl(name='foo').add_file(
     ...     cStringIO.StringIO('sample_data'), 'text/foo', 'x.foo')
@@ -281,8 +285,8 @@ Fill in the form value using add_file:
     --127.0.0.11000318041146699896411--
     <BLANKLINE>
 
-You can pass a string to add_file:
 
+    You can pass a string to add_file:
 
     >>> browser.getControl(name='foo').add_file(
     ...     'blah blah blah', 'text/blah', 'x.blah')
@@ -308,26 +312,23 @@ You can pass a string to add_file:
 
 def test_new_instance_no_contents_should_not_fail(self):
     """
-
     When first instantiated, the browser has no contents.
     (Regression test for <http://bugs.launchpad.net/zope3/+bug/419119>)
 
     >>> browser = Browser()
     >>> print browser.contents
     None
-
     """
 
 
 def test_strip_linebreaks_from_textarea(self):
     """
-
     >>> browser = Browser()
 
-According to http://www.w3.org/TR/html4/appendix/notes.html#h-B.3.1 line break
-immediately after start tags or immediately before end tags must be ignored,
-but real browsers only ignore a line break after a start tag.  So if we give
-the following form:
+    According to http://www.w3.org/TR/html4/appendix/notes.html#h-B.3.1 line
+    break immediately after start tags or immediately before end tags must be
+    ignored, but real browsers only ignore a line break after a start tag.
+    So if we give the following form:
 
     >>> browser.open('''
     ... <html><body>
@@ -340,13 +341,16 @@ the following form:
     GET / HTTP/1.1
     ...
 
-The value of the textarea won't contain the first line break:
+
+    The value of the textarea won't contain the first line break:
 
     >>> browser.getControl(name='textarea').value
     'Foo\\n'
 
-Of course, if we add line breaks, so that there are now two line breaks
-after the start tag, the textarea value will start and end with a line break.
+
+    Of course, if we add line breaks, so that there are now two line breaks
+    after the start tag, the textarea value will start and end with a line
+    break.
 
     >>> browser.open('''
     ... <html><body>
@@ -363,8 +367,9 @@ after the start tag, the textarea value will start and end with a line break.
     >>> browser.getControl(name='textarea').value
     '\\nFoo\\n'
 
-Also, if there is some other whitespace after the start tag, it will be
-preserved.
+
+    Also, if there is some other whitespace after the start tag, it will be
+    preserved.
 
     >>> browser.open('''
     ... <html><body>
@@ -398,6 +403,7 @@ def test_relative_link():
     >>> link.url
     'http://localhost/foo'
 
+
     It's possible to have a relative URL consisting of only a query part. In
     that case it should simply be appended to the base URL.
 
@@ -413,6 +419,7 @@ def test_relative_link():
     >>> link.url
     'http://localhost/bar?key=value'
 
+
     In the example above, the base URL was the page URL, but we can also
     specify a base URL using a <base> tag.
 
@@ -427,7 +434,6 @@ def test_relative_link():
     >>> link = browser.getLink('link')
     >>> link.url
     'http://localhost/base?key=value'
-
     """
 
 
