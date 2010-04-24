@@ -144,14 +144,13 @@ class PublisherMechanizeBrowser(mechanize.Browser):
     """Special ``mechanize`` browser using the Zope Publisher HTTP handler."""
 
     default_schemes = ['http']
-    default_others = ['_http_error', '_http_request_upgrade',
-                      '_http_default_error']
+    default_others = ['_http_error', '_http_default_error']
     default_features = ['_redirect', '_cookies', '_referer', '_refresh',
                         '_equiv', '_basicauth', '_digestauth']
 
     def __init__(self, *args, **kws):
         inherited_handlers = ['_unknown', '_http_error',
-            '_http_request_upgrade', '_http_default_error', '_basicauth',
+            '_http_default_error', '_basicauth',
             '_digestauth', '_redirect', '_cookies', '_referer',
             '_refresh', '_equiv', '_gzip']
 

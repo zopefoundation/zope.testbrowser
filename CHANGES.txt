@@ -5,6 +5,9 @@ CHANGES
 3.8.2 (unreleased)
 ------------------
 
+- LP #568806: Update dependency ``mechanize >= 0.2.0``, which now includes
+  the ``ClientForm`` APIs.
+
 - Use stdlib ``doctest`` module, instead of ``zope.testing.doctest``.
 
 

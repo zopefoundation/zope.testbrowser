@@ -25,7 +25,6 @@ import sys
 import time
 import urllib2
 
-import ClientForm
 import mechanize
 import zope.interface
 
@@ -41,7 +40,7 @@ def disambiguate(intermediate, msg, index):
     if intermediate:
         if index is None:
             if len(intermediate) > 1:
-                raise ClientForm.AmbiguityError(msg)
+                raise mechanize.AmbiguityError(msg)
             else:
                 return intermediate[0]
         else:
@@ -52,7 +51,7 @@ def disambiguate(intermediate, msg, index):
     raise LookupError(msg)
 
 def controlFactory(control, form, browser):
-    if isinstance(control, ClientForm.Item):
+    if isinstance(control, mechanize.Item):
         # it is a subcontrol
         return ItemControl(control, form, browser)
     else:
@@ -477,7 +476,7 @@ class Control(SetattrErrorsMixin):
             self.filename = None
             self.content_type = None
 
-        # for some reason ClientForm thinks we shouldn't be able to modify
+        # for some reason mechanize thinks we shouldn't be able to modify
         # hidden fields, but while testing it is sometimes very important
         if self.mech_control.type == 'hidden':
             self.mech_control.readonly = False
@@ -550,7 +549,7 @@ class ListControl(Control):
     def displayValue():
         """See zope.testbrowser.interfaces.IListControl"""
         # not implemented for anything other than select;
-        # would be nice if ClientForm implemented for checkbox and radio.
+        # would be nice if mechanize implemented for checkbox and radio.
         # attribute error for all others.
 
         def fget(self):
@@ -699,7 +698,7 @@ class Form(SetattrErrorsMixin):
         """Initialize the Form
 
         browser - a Browser instance
-        form - a ClientForm instance
+        form - a mechanize.HTMLForm instance
         """
         self.browser = browser
         self.mech_form = form

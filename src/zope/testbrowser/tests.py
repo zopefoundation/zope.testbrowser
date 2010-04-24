@@ -141,7 +141,6 @@ class FauxMechanizeBrowser(mechanize.Browser):
         "http": FauxHTTPHandler,
 
         "_http_error": mechanize.HTTPErrorProcessor,
-        "_http_request_upgrade": mechanize.HTTPRequestUpgradeProcessor,
         "_http_default_error": urllib2.HTTPDefaultErrorHandler,
 
         # feature handlers
@@ -154,8 +153,7 @@ class FauxMechanizeBrowser(mechanize.Browser):
         }
 
     default_schemes = ["http"]
-    default_others = ["_http_error", "_http_request_upgrade",
-                      "_http_default_error"]
+    default_others = ["_http_error", "_http_default_error"]
     default_features = ["_authen", "_redirect", "_cookies"]
 
 
@@ -483,3 +481,18 @@ def test_suite():
     this_file = doctest.DocTestSuite(checker=checker)
 
     return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
+
+def run_suite(suite):
+    runner = unittest.TextTestRunner(sys.stdout, verbosity=1)
+    result = runner.run(suite)
+    if not result.wasSuccessful():
+        if len(result.errors) == 1 and not result.failures:
+            err = result.errors[0][1]
+        elif len(result.failures) == 1 and not result.errors:
+            err = result.failures[0][1]
+        else:
+            err = "errors occurred; run in verbose mode for details"
+        print err
+
+if __name__ == "__main__":
+    run_suite(test_suite())

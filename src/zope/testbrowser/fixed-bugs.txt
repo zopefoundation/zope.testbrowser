@@ -65,8 +65,7 @@ Labeled Radio Buttons
 
 The .getControl() method was sometimes unable to find radio buttons by label.
 
-    >>> import ClientForm
-    >>> # ClientForm._show_debug_messages()
+    >>> # import mechanize._form; mechanize._form._show_debug_messages()
     >>> browser.open('http://localhost/@@/testbrowser/radio.html')
     >>> browser.getControl('One').optionValue
     '1'
@@ -83,7 +82,6 @@ Earlier versions of mechanize used to incorrectly follow links containing
 fragments. We upgraded our dependency to a newer version of mechanize and make
 sure this regression doesn't come back:
 
-    >>> import ClientForm
     >>> browser.open('http://localhost/@@/testbrowser/fragment.html#asdf')
     >>> browser.url
     'http://localhost/@@/testbrowser/fragment.html#asdf'
