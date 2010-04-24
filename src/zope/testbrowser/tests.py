@@ -25,7 +25,6 @@ import os
 import re
 import socket
 import sys
-import urllib2
 
 from zope.app.testing.functional import FunctionalDocFileSuite
 import zope.app.testing.functional
@@ -50,7 +49,7 @@ def set_next_response(body, headers=None, status='200', reason='OK'):
 
 
 class FauxConnection(object):
-    """A ``urllib2`` compatible connection object."""
+    """A ``mechanize`` compatible connection object."""
 
     def __init__(self, host, timeout=None):
         pass
@@ -89,10 +88,10 @@ class FauxConnection(object):
         print request_string.replace('\r', '')
 
     def getresponse(self):
-        """Return a ``urllib2`` compatible response.
+        """Return a ``mechanize`` compatible response.
 
         The goal of this method is to convert the Zope Publisher's response to
-        a ``urllib2`` compatible response, which is also understood by
+        a ``mechanize`` compatible response, which is also understood by
         mechanize.
         """
         return FauxResponse(next_response_body,
@@ -115,16 +114,16 @@ class FauxResponse(object):
         return self.content_as_file.read(amt)
 
     def close(self):
-        """To overcome changes in urllib2 and socket in python2.5"""
+        """To overcome changes in mechanize and socket in python2.5"""
         pass
 
 
-class FauxHTTPHandler(urllib2.HTTPHandler):
+class FauxHTTPHandler(mechanize.HTTPHandler):
 
-    http_request = urllib2.AbstractHTTPHandler.do_request_
+    http_request = mechanize.HTTPHandler.do_request_
 
     def http_open(self, req):
-        """Open an HTTP connection having a ``urllib2`` request."""
+        """Open an HTTP connection having a ``mechanize`` request."""
         # Here we connect to the publisher.
 
         if sys.version_info > (2, 6) and not hasattr(req, 'timeout'):
@@ -141,10 +140,10 @@ class FauxMechanizeBrowser(mechanize.Browser):
         "http": FauxHTTPHandler,
 
         "_http_error": mechanize.HTTPErrorProcessor,
-        "_http_default_error": urllib2.HTTPDefaultErrorHandler,
+        "_http_default_error": mechanize.HTTPDefaultErrorHandler,
 
         # feature handlers
-        "_authen": urllib2.HTTPBasicAuthHandler,
+        "_authen": mechanize.HTTPBasicAuthHandler,
         "_redirect": mechanize.HTTPRedirectHandler,
         "_cookies": mechanize.HTTPCookieProcessor,
         "_refresh": mechanize.HTTPRefreshProcessor,

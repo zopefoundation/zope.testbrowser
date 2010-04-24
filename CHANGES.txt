@@ -6,7 +6,9 @@ CHANGES
 ------------------
 
 - LP #568806: Update dependency ``mechanize >= 0.2.0``, which now includes
-  the ``ClientForm`` APIs.
+  the ``ClientForm`` APIs.  Remove use of ``urllib2`` APIs (incompatible
+  with ``mechanize 0.2.0``) in favor of ``mechanize`` equivalents.
+  Thanks to John J. Lee for the patch.
 
 - Use stdlib ``doctest`` module, instead of ``zope.testing.doctest``.
 

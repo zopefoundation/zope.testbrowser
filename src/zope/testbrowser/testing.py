@@ -20,12 +20,11 @@ import httplib
 import mechanize
 import socket
 import sys
-import urllib2
 import zope.testbrowser.browser
 
 
 class PublisherConnection(object):
-    """A ``urllib2`` compatible connection obejct."""
+    """A ``mechanize`` compatible connection object."""
 
     def __init__(self, host, timeout=None):
         from zope.app.testing.functional import HTTPCaller
@@ -77,10 +76,10 @@ class PublisherConnection(object):
         self.response = self.caller(request_string, handle_errors)
 
     def getresponse(self):
-        """Return a ``urllib2`` compatible response.
+        """Return a ``mechanize`` compatible response.
 
         The goal of ths method is to convert the Zope Publisher's reseponse to
-        a ``urllib2`` compatible response, which is also understood by
+        a ``mechanize`` compatible response, which is also understood by
         mechanize.
         """
         real_response = self.response._response
@@ -96,7 +95,7 @@ class PublisherConnection(object):
 
 
 class PublisherResponse(object):
-    """``urllib2`` compatible response object."""
+    """``mechanize`` compatible response object."""
 
     def __init__(self, content, headers, status, reason):
         self.content = content
@@ -109,11 +108,11 @@ class PublisherResponse(object):
         return self.content_as_file.read(amt)
 
     def close(self):
-        """To overcome changes in urllib2 and socket in python2.5"""
+        """To overcome changes in mechanize and socket in python2.5"""
         pass
 
 
-class PublisherHTTPHandler(urllib2.HTTPHandler):
+class PublisherHTTPHandler(mechanize.HTTPHandler):
     """Special HTTP handler to use the Zope Publisher."""
 
     def http_request(self, req):
@@ -124,12 +123,12 @@ class PublisherHTTPHandler(urllib2.HTTPHandler):
                 req.add_data(data['body'])
                 req.add_unredirected_header('Content-type',
                                             data['content-type'])
-        return urllib2.AbstractHTTPHandler.do_request_(self, req)
+        return mechanize.HTTPHandler.do_request_(self, req)
 
     https_request = http_request
 
     def http_open(self, req):
-        """Open an HTTP connection having a ``urllib2`` request."""
+        """Open an HTTP connection having a ``mechanize`` request."""
         # Here we connect to the publisher.
         if sys.version_info > (2, 6) and not hasattr(req, 'timeout'):
             # Workaround mechanize incompatibility with Python

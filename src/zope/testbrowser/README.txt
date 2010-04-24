@@ -1290,7 +1290,7 @@ application errors, such as invalid URLs:
     ...
     HTTPError: HTTP Error 404: Not Found
 
-Note that the above error was thrown by ``urllib2`` and not by the
+Note that the above error was thrown by ``mechanize`` and not by the
 publisher.  For debugging purposes, however, it can be very useful to see the
 original exception caused by the application.  In those cases you can set the
 ``handleErrors`` property of the browser to ``False``.  It is defaulted to

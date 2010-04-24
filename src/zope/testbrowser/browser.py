@@ -23,7 +23,6 @@ import cStringIO
 import re
 import sys
 import time
-import urllib2
 
 import mechanize
 import zope.interface
@@ -239,7 +238,7 @@ class Browser(SetattrErrorsMixin):
                 except Exception, e:
                     fix_exception_name(e)
                     raise
-            except urllib2.HTTPError, e:
+            except mechanize.HTTPError, e:
                 if e.code >= 200 and e.code <= 299:
                     # 200s aren't really errors
                     pass
@@ -254,7 +253,7 @@ class Browser(SetattrErrorsMixin):
             code, msg = self.headers['Status'].split(' ', 1)
             code = int(code)
             if self.raiseHttpErrors and code >= 400:
-                raise urllib2.HTTPError(url, code, msg, self.headers, fp=None)
+                raise mechanize.HTTPError(url, code, msg, self.headers, fp=None)
 
     def post(self, url, data, content_type=None):
         if content_type is not None:
@@ -743,7 +742,7 @@ class Form(SetattrErrorsMixin):
             if index is not None or coord != (1,1):
                 raise ValueError(
                     'May not use index or coord without a control')
-            request = self.mech_form._switch_click("request", urllib2.Request)
+            request = self.mech_form._switch_click("request", mechanize.Request)
             self.browser._start_timer()
             self.browser.mech_browser.open(request)
             self.browser._stop_timer()
