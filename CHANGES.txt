@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.9.0 (unreleased)
+3.9.0 (2010-05-17)
 ------------------
 
 - LP #568806: Update dependency ``mechanize >= 0.2.0``, which now includes
