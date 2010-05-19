@@ -281,6 +281,36 @@ def test_file_upload():
     ...
     """
 
+def test_submit_gets_referrer():
+    """
+    Test for bug #98437: No HTTP_REFERER was sent when submitting a form.
+
+    >>> browser = Browser()
+
+
+    A simple form for testing, like abobe.
+
+    >>> browser.open('''\
+    ... <html><body>
+    ...   <form id="form" action="." method="post"
+    ...                   enctype="multipart/form-data">
+    ...      <input type="submit" name="submit_me" value="GOOD" />
+    ...   </form></body></html>
+    ... ''') # doctest: +ELLIPSIS
+    GET / HTTP/1.1
+    ...
+
+
+    Now submit the form, and see that we get an referrer along:
+
+    >>> form = browser.getForm(id='form')
+    >>> form.submit(name='submit_me') # doctest: +ELLIPSIS
+    POST / HTTP/1.1
+    ...
+    Referer: http://localhost/
+    ...
+"""
+
 
 def test_new_instance_no_contents_should_not_fail(self):
     """

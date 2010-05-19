@@ -5,7 +5,8 @@ CHANGES
 3.9.1 (unreleased)
 ------------------
 
-- TBD
+- LP #98437: use mechanize's built-in ``submit()`` to submit forms, allowing
+  mechanize to set the "Referer:" (sic) header appropriately.
 
 
 3.9.0 (2010-05-17)
