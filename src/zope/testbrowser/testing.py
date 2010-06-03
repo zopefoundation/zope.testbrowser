@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Zope 3-specific testing code
-
-$Id$
 """
 import cStringIO
 import httplib

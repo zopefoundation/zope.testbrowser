@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Mechanize-based Functional Doctest interfaces
-
-$Id$
 """
 
 __docformat__ = "reStructuredText"

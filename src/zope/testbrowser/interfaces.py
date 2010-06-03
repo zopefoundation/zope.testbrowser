@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Browser-like functional doctest interfaces
-
-$Id$
 """
 __docformat__ = "reStructuredText"
 

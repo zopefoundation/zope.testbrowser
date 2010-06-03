@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Real test for file-upload and beginning of a better internal test framework
-
-$Id$
 """
 import unittest
 
