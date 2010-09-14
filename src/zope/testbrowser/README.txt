@@ -1209,7 +1209,6 @@ Let's visit a page that echos it's request:
     HTTP_USER_AGENT: Python-urllib/2.4
     HTTP_CONNECTION: close
     HTTP_COOKIE:
-    HTTP_REFERER: localhost
     HTTP_ACCEPT_LANGUAGE: en-US
     REQUEST_METHOD: GET
     HTTP_HOST: localhost
@@ -1228,7 +1227,6 @@ a URL-encoded query string is assumed:
     HTTP_USER_AGENT: Python-urllib/2.4
     HTTP_CONNECTION: close
     HTTP_COOKIE:
-    HTTP_REFERER: localhost
     HTTP_ACCEPT_LANGUAGE: en-US
     y: 2
     REQUEST_METHOD: POST
@@ -1252,7 +1250,6 @@ We can pass a content-type explicitly:
     HTTP_USER_AGENT: Python-urllib/2.4
     HTTP_CONNECTION: close
     HTTP_COOKIE:
-    HTTP_REFERER: localhost
     HTTP_ACCEPT_LANGUAGE: en-US
     REQUEST_METHOD: POST
     HTTP_HOST: localhost
