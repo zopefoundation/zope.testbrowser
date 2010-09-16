@@ -27,6 +27,9 @@ CHANGES
 
 - Use stdlib ``doctest`` module, instead of ``zope.testing.doctest``.
 
+- **Caution:** This version is no longer fully compatible with Python 2.4:
+  ``handleErrors = False`` no longer works.
+
 
 3.8.1 (2010-04-19)
 ------------------
