@@ -17,8 +17,8 @@ $Id$
 """
 
 from zope.app.testing.functional import FunctionalDocFileSuite
-from zope.testing import doctest
 import cStringIO
+import doctest
 import httplib
 import mechanize
 import os

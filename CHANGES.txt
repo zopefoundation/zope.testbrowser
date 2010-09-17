@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+3.8.2 (unreleased)
+------------------
+
+- Using stdlib's ``doctest`` module, instead of ``zope.testing.doctest``.
+
+
 3.8.1 (2010-04-19)
 ------------------
 
