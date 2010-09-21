@@ -405,15 +405,17 @@ class Browser(SetattrErrorsMixin):
             label = labels[0].text
         else:
             label = None
-        self._start_timer()
         try:
-            self.mech_browser.form = form
-            self.mech_browser.submit(id=control.id, name=control.name,
-                                     label=label, coord=coord)
-        except Exception, e:
-            fix_exception_name(e)
-            raise
-        self._stop_timer()
+            self._start_timer()
+            try:
+                self.mech_browser.form = form
+                self.mech_browser.submit(id=control.id, name=control.name,
+                                         label=label, coord=coord)
+            except Exception, e:
+                fix_exception_name(e)
+                raise
+        finally:
+            self._stop_timer()
 
     def _changed(self):
         self._counter += 1
@@ -433,9 +435,15 @@ class Link(SetattrErrorsMixin):
         if self._browser_counter != self.browser._counter:
             raise zope.testbrowser.interfaces.ExpiredError
         self.browser._start_timer()
-        self.browser.mech_browser.follow_link(self.mech_link)
-        self.browser._stop_timer()
-        self.browser._changed()
+        try:
+            try:
+                self.browser.mech_browser.follow_link(self.mech_link)
+            except Exception, e:
+                fix_exception_name(e)
+                raise
+        finally:
+            self.browser._stop_timer()
+            self.browser._changed()
 
     @property
     def url(self):
@@ -622,8 +630,10 @@ class SubmitControl(Control):
     def click(self):
         if self._browser_counter != self.browser._counter:
             raise zope.testbrowser.interfaces.ExpiredError
-        self.browser._clickSubmit(self.mech_form, self.mech_control, (1,1))
-        self.browser._changed()
+        try:
+            self.browser._clickSubmit(self.mech_form, self.mech_control, (1,1))
+        finally:
+            self.browser._changed()
 
 
 class ImageControl(Control):
@@ -632,8 +642,10 @@ class ImageControl(Control):
     def click(self, coord=(1,1)):
         if self._browser_counter != self.browser._counter:
             raise zope.testbrowser.interfaces.ExpiredError
-        self.browser._clickSubmit(self.mech_form, self.mech_control, coord)
-        self.browser._changed()
+        try:
+            self.browser._clickSubmit(self.mech_form, self.mech_control, coord)
+        finally:
+            self.browser._changed()
 
 
 class ItemControl(SetattrErrorsMixin):
@@ -729,23 +741,31 @@ class Form(SetattrErrorsMixin):
         if self._browser_counter != self.browser._counter:
             raise zope.testbrowser.interfaces.ExpiredError
         form = self.mech_form
-        if label is not None or name is not None:
-            intermediate, msg = self.browser._get_all_controls(
-                label, name, (form,))
-            intermediate = [
-                (control, form) for (control, form) in intermediate if
-                control.type in ('submit', 'submitbutton', 'image')]
-            control, form = disambiguate(intermediate, msg, index)
-            self.browser._clickSubmit(form, control, coord)
-        else: # JavaScript sort of submit
-            if index is not None or coord != (1,1):
-                raise ValueError(
-                    'May not use index or coord without a control')
-            request = self.mech_form._switch_click("request", mechanize.Request)
-            self.browser._start_timer()
-            self.browser.mech_browser.open(request)
-            self.browser._stop_timer()
-        self.browser._changed()
+        try:
+            if label is not None or name is not None:
+                intermediate, msg = self.browser._get_all_controls(
+                    label, name, (form,))
+                intermediate = [
+                    (control, form) for (control, form) in intermediate if
+                    control.type in ('submit', 'submitbutton', 'image')]
+                control, form = disambiguate(intermediate, msg, index)
+                self.browser._clickSubmit(form, control, coord)
+            else: # JavaScript sort of submit
+                if index is not None or coord != (1,1):
+                    raise ValueError(
+                        'May not use index or coord without a control')
+                request = self.mech_form._switch_click("request", mechanize.Request)
+                self.browser._start_timer()
+                try:
+                    try:
+                        self.browser.mech_browser.open(request)
+                    except Exception, e:
+                        fix_exception_name(e)
+                        raise
+                finally:
+                    self.browser._stop_timer()
+        finally:
+            self.browser._changed()
 
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""

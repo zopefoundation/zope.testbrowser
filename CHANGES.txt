@@ -5,7 +5,15 @@ CHANGES
 3.10.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Fixed a bug that caused the ``Browser`` to keep it's previous ``contents``
+  The places are:
+  - Link.click()
+  - SubmitControl.click()
+  - ImageControl.click()
+  - Form.submit()
+
+- Also adjusted exception messages at the above places to match
+  pre version 3.4.1 messages.
 
 
 3.10.0 (2010-09-14)

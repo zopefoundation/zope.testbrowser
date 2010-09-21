@@ -91,8 +91,113 @@ sure this regression doesn't come back:
 
 
 Textareas with HTML/XML
-======================
+=======================
 
     >>> browser.open('http://localhost/@@/testbrowser/textarea.html')
     >>> browser.getControl('Text Area').value
     '<block>\r\n  <feed/>\r\n    &\r\n</block>'
+
+
+.click() with non-200 status
+============================
+
+The problem was that with the below controls testbrowser forgot to do
+after-processing after an exception in mechanize.
+That means ``_stop_timer()`` and ``_changed()`` were not executed if an exception
+was raised. Not calling ``_changed()`` resulted in not refreshing ``contents``.
+The ``contents`` property gets cached on any first access and should be reset
+on any navigation.
+The problem is that e.g. a simple 403 status raises an exception.
+
+This is how it works with a simple open():
+
+    >>> browser.handleErrors=False
+
+    >>> browser.open('http://localhost/set_status.html')
+    >>> print browser.contents
+    Everything fine
+
+    >>> browser.open('http://localhost/set_status.html?status=403')
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+    >>> print browser.contents
+    Just set a status of 403
+
+
+These are the various controls:
+
+A link:
+
+    >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
+    >>> print browser.contents
+    <html>...
+
+    >>> browser.getLink('403').click()
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+    >>> print browser.contents
+    Just set a status of 403
+
+A submit button:
+
+    >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
+    >>> print browser.contents
+    <html>...
+
+    >>> browser.getControl(name='status').value = '404'
+    >>> browser.getControl('Submit This').click()
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 404: Not Found
+
+    >>> print browser.contents
+    Just set a status of 404
+
+A submit image control:
+
+    >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
+    >>> print browser.contents
+    <html>...
+
+    >>> browser.getControl(name='status').value = '403'
+    >>> browser.getControl(name='image-value').click()
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+    >>> print browser.contents
+    Just set a status of 403
+
+A javascript-ish form submit:
+
+    >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
+    >>> print browser.contents
+    <html>...
+
+    >>> browser.getControl(name='status').value = '404'
+    >>> browser.getForm(name='theform').submit()
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 404: Not Found
+
+    >>> print browser.contents
+    Just set a status of 404
+
+A non-javascript-ish form submit:
+
+    >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
+    >>> print browser.contents
+    <html>...
+
+    >>> browser.getControl(name='status').value = '403'
+    >>> browser.getForm(name='theform').submit(name='submit-value')
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+    >>> print browser.contents
+    Just set a status of 403

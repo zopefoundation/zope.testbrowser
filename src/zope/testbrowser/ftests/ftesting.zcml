@@ -49,6 +49,13 @@
      permission="zope.Public"
      />
 
+  <browser:page
+     name="set_status.html"
+     for="*"
+     class=".ftests.SetStatus"
+     permission="zope.Public"
+     />
+
   <browser:resourceDirectory
       name="testbrowser"
       directory="ftests" />
