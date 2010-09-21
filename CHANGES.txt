@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.10.1 (unreleased)
+3.10.1 (2010-09-21)
 -------------------
 
 - Fixed a bug that caused the ``Browser`` to keep it's previous ``contents``
