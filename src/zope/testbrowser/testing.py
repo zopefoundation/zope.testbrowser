@@ -49,16 +49,14 @@ class PublisherConnection(object):
             url = '/'
 
         url = self._quote(url)
-        # Extract the handle_error option header
-        if sys.version_info >= (2,5):
-            handle_errors_key = 'X-Zope-Handle-Errors'
-        else:
-            handle_errors_key = 'X-zope-handle-errors'
-        handle_errors_header = headers.get(handle_errors_key, True)
+
+        # Do not handle errors if the DO_NOT_HANDLE_ERRORS_KEY is found in the
+        # headers.
+        handle_errors_key = zope.testbrowser.browser.DO_NOT_HANDLE_ERRORS_KEY
+        handle_errors = True
         if handle_errors_key in headers:
+            handle_errors = False
             del headers[handle_errors_key]
-        # Translate string to boolean.
-        handle_errors = {'false': False}.get(handle_errors_header, True)
 
         # Construct the headers.
         header_chunks = []

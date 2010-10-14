@@ -2,11 +2,13 @@
 CHANGES
 =======
 
-3.10.2 (unreleased)
+3.11.0 (unreleased)
 -------------------
 
 - Fixed Python2.7 compatibility in Browser.handleErrors.
 
+- Browser.handleErrors uses the X-Zope-Do-Not-Handle-Errors header in favor
+  of X-Zope-Handle-Errors.
 
 3.10.1 (2010-09-21)
 -------------------

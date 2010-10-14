@@ -33,6 +33,8 @@ RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
 compressText = lambda text: _compress_re.sub(' ', text.strip())
 
+DO_NOT_HANDLE_ERRORS_KEY = 'X-Zope-Do-Not-Handle-Errors'
+
 def disambiguate(intermediate, msg, index):
     if intermediate:
         if index is None:
@@ -208,25 +210,20 @@ class Browser(SetattrErrorsMixin):
     @apply
     def handleErrors():
         """See zope.testbrowser.interfaces.IBrowser"""
-        header_key = 'X-zope-handle-errors'
-
+        
         def get(self):
             headers = self.mech_browser.addheaders
-            value = dict(headers).get(header_key, True)
-            return {'false': False}.get(value, True)
+            return DO_NOT_HANDLE_ERRORS_KEY not in dict(headers)
 
         def set(self, value):
             headers = self.mech_browser.addheaders
-            current_value = get(self)
-            if current_value == value:
-                return
-
             # Remove the current header...
-            for key, header_value in headers[:]:
-                if key == header_key:
-                    headers.remove((key, header_value))
-            # ... Before adding the new one.
-            headers.append((header_key, {False: 'false'}.get(value, 'true')))
+            for header_key, header_value in headers[:]:
+                if header_key == DO_NOT_HANDLE_ERRORS_KEY:
+                    headers.remove((header_key, header_value))
+            # ...before possibly adding the new one.
+            if value is False:
+                headers.append((DO_NOT_HANDLE_ERRORS_KEY, 'true'))
 
         return property(get, set)
 
