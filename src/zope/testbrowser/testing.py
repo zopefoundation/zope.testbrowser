@@ -58,7 +58,7 @@ class PublisherConnection(object):
         if handle_errors_key in headers:
             del headers[handle_errors_key]
         # Translate string to boolean.
-        handle_errors = {'false': False}.get(handle_errors_header, True)
+        handle_errors = {'False': False}.get(handle_errors_header, True)
 
         # Construct the headers.
         header_chunks = []
