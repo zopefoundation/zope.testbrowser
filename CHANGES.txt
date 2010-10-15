@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.10.3 (unreleased)
+3.10.3 (2010-10-15)
 -------------------
 
 - Fixed backwards compatibility with zope.app.wsgi.testlayer.
