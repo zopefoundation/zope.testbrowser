@@ -1214,19 +1214,16 @@ In addition to the open method, zope.testbrowser.testing.Browser has a ``post``
 method that allows a request body to be supplied.  This method is particularly
 helpful when testing Ajax methods.
 
-Let's visit a page that echos it's request:
+Let's visit a page that echos some interesting values from it's request:
 
     >>> browser.open('http://localhost/@@echo.html')
     >>> print browser.contents
     HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
-    HTTP_COOKIE:
     HTTP_HOST: localhost
     HTTP_USER_AGENT: Python-urllib/2.4
     PATH_INFO: /@@echo.html
-    QUERY_STRING:
     REQUEST_METHOD: GET
-    SERVER_PROTOCOL: HTTP/1.1
     Body: ''
 
 Now, we'll try a post.  The post method takes a URL, a data string,
@@ -1239,17 +1236,13 @@ a URL-encoded query string is assumed:
     CONTENT_TYPE: application/x-www-form-urlencoded
     HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
-    HTTP_COOKIE:
     HTTP_HOST: localhost
     HTTP_USER_AGENT: Python-urllib/2.4
     PATH_INFO: /@@echo.html
-    QUERY_STRING:
     REQUEST_METHOD: POST
-    SERVER_PROTOCOL: HTTP/1.1
     x: 1
     y: 2
     Body: ''
-
 
 The body is empty because it is consumed to get form data.
 
@@ -1257,17 +1250,15 @@ We can pass a content-type explicitly:
 
     >>> browser.post('http://localhost/@@echo.html',
     ...              '{"x":1,"y":2}', 'application/x-javascipt')
-    >>> print browser.contents # doctest: +REPORT_NDIFF
+    >>> print browser.contents
     CONTENT_LENGTH: 13
     CONTENT_TYPE: application/x-javascipt
     HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
-    HTTP_COOKIE:
     HTTP_HOST: localhost
     HTTP_USER_AGENT: Python-urllib/2.4
     PATH_INFO: /@@echo.html
     REQUEST_METHOD: POST
-    SERVER_PROTOCOL: HTTP/1.1
     Body: '{"x":1,"y":2}'
 
 Here, the body is left in place because it isn't form data.

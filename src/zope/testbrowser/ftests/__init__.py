@@ -22,13 +22,10 @@ _interesting_environ = ('CONTENT_LENGTH',
                         'CONTENT_TYPE',
                         'HTTP_ACCEPT_LANGUAGE',
                         'HTTP_CONNECTION',
-                        'HTTP_COOKIE',
                         'HTTP_HOST',
                         'HTTP_USER_AGENT',
                         'PATH_INFO',
-                        'QUERY_STRING',
-                        'REQUEST_METHOD',
-                        'SERVER_PROTOCOL')
+                        'REQUEST_METHOD')
 
 class Echo(View):
     """Simply echo the interesting parts of the request"""
