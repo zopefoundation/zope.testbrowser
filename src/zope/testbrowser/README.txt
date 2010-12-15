@@ -1217,16 +1217,16 @@ helpful when testing Ajax methods.
 Let's visit a page that echos it's request:
 
     >>> browser.open('http://localhost/@@echo.html')
-    >>> print browser.contents,
-    HTTP_USER_AGENT: Python-urllib/2.4
+    >>> print browser.contents
+    HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
     HTTP_COOKIE:
-    HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: GET
     HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
     PATH_INFO: /@@echo.html
-    SERVER_PROTOCOL: HTTP/1.1
     QUERY_STRING:
+    REQUEST_METHOD: GET
+    SERVER_PROTOCOL: HTTP/1.1
     Body: ''
 
 Now, we'll try a post.  The post method takes a URL, a data string,
@@ -1234,20 +1234,20 @@ and an optional content type.  If we just pass a string, then
 a URL-encoded query string is assumed:
 
     >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
-    >>> print browser.contents,
+    >>> print browser.contents
     CONTENT_LENGTH: 7
-    HTTP_USER_AGENT: Python-urllib/2.4
+    CONTENT_TYPE: application/x-www-form-urlencoded
+    HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
     HTTP_COOKIE:
-    HTTP_ACCEPT_LANGUAGE: en-US
-    y: 2
-    REQUEST_METHOD: POST
     HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
     PATH_INFO: /@@echo.html
-    CONTENT_TYPE: application/x-www-form-urlencoded
-    SERVER_PROTOCOL: HTTP/1.1
     QUERY_STRING:
+    REQUEST_METHOD: POST
+    SERVER_PROTOCOL: HTTP/1.1
     x: 1
+    y: 2
     Body: ''
 
 
@@ -1257,16 +1257,16 @@ We can pass a content-type explicitly:
 
     >>> browser.post('http://localhost/@@echo.html',
     ...              '{"x":1,"y":2}', 'application/x-javascipt')
-    >>> print browser.contents,
+    >>> print browser.contents # doctest: +REPORT_NDIFF
     CONTENT_LENGTH: 13
-    HTTP_USER_AGENT: Python-urllib/2.4
+    CONTENT_TYPE: application/x-javascipt
+    HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
     HTTP_COOKIE:
-    HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: POST
     HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
     PATH_INFO: /@@echo.html
-    CONTENT_TYPE: application/x-javascipt
+    REQUEST_METHOD: POST
     SERVER_PROTOCOL: HTTP/1.1
     Body: '{"x":1,"y":2}'
 
