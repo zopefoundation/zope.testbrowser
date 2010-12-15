@@ -5,8 +5,9 @@ Detailed Documentation
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
 
-    >>> from zope.testbrowser.browser import Browser
-    >>> browser = Browser()
+    XXX: what to do with this?
+    XXX>>> from zope.testbrowser.browser import Browser
+    XXX>>> browser = Browser()
 
 This version of the browser object can be used to access any web site just as
 you would do using a normal web browser.
@@ -15,7 +16,9 @@ There is also a special version of the ``Browser`` class used to do functional
 testing of Zope 3 applications, it can be imported from
 ``zope.testbrowser.testing``:
 
-    >>> from zope.testbrowser.testing import Browser
+    XXX: what to do with this?
+    XXX>>> from zope.testbrowser.testing import Browser
+
     >>> browser = Browser()
 
 An initial page to load can be passed to the ``Browser`` constructor:

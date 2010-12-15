@@ -14,7 +14,6 @@
 """Real test for file-upload and beginning of a better internal test framework
 """
 import unittest
-
 import cStringIO
 import doctest
 import httplib
@@ -24,11 +23,15 @@ import re
 import socket
 import sys
 
+from webtest import TestApp
+from zope.app.wsgi import WSGIPublisherApplication
 from zope.app.testing.functional import FunctionalDocFileSuite
 import zope.app.testing.functional
-import zope.testbrowser.browser
 import zope.testing.renormalizing
 
+import zope.testbrowser.browser
+from zope.testbrowser.testing import Browser as TestingBrowser
+from zope.testbrowser.wsgi import Browser as WSGIBrowser
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
     global next_response_body
@@ -469,23 +472,52 @@ TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
 
-    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
-        checker=checker)
-    readme.layer = TestBrowserLayer
-
-    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
-        checker=checker)
-    cookies.layer = TestBrowserLayer
-
-    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags)
-    fixed_bugs.layer = TestBrowserLayer
-
+    this_file = doctest.DocTestSuite(checker=checker)
     wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
 
-    this_file = doctest.DocTestSuite(checker=checker)
+    tests = [this_file, wire]
 
-    return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
+    # test using the connection to the zope3 functional testing suite
+    globals = dict(Browser=TestingBrowser)
+
+    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
+        checker=checker, globs=globals)
+    readme.layer = TestBrowserLayer
+
+    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
+        checker=checker, globs=globals)
+    cookies.layer = TestBrowserLayer
+
+    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags,
+        globs=globals)
+    fixed_bugs.layer = TestBrowserLayer
+
+    tests.extend([readme, cookies, fixed_bugs])
+
+    # re-run the above tests using the WSGI connectior
+    def make_browser(*args, **kw):
+        app = WSGIPublisherApplication(TestBrowserLayer.setup.db)
+        test_app = TestApp(app)
+        return WSGIBrowser(test_app, *args, **kw)
+    globals = dict(Browser=make_browser)
+
+    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
+        checker=checker, globs=globals)
+    readme.layer = TestBrowserLayer
+
+    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
+        checker=checker, globs=globals)
+    cookies.layer = TestBrowserLayer
+
+    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags,
+        globs=globals)
+    fixed_bugs.layer = TestBrowserLayer
+
+    tests.extend([readme, cookies, fixed_bugs])
+
+    return unittest.TestSuite(tests)
+
 
 def run_suite(suite):
     runner = unittest.TextTestRunner(sys.stdout, verbosity=1)

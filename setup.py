@@ -57,6 +57,8 @@ setup(
         ],
     extras_require = {
         'test': [
+            'WebTest',
+            'zope.app.wsgi',
             'zope.browserpage',
             'zope.browserresource',
             'zope.component',

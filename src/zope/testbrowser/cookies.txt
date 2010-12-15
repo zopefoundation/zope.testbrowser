@@ -9,7 +9,8 @@ The cookies mapping has an extended mapping interface that allows getting,
 setting, and deleting the cookies that the browser is remembering for the
 current url, or for an explicitly provided URL.
 
-    >>> from zope.testbrowser.testing import Browser
+    XXX: what to do with this?
+    XXX>>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
 
 Initially the browser does not point to a URL, and the cookies cannot be used.
