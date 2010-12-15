@@ -5,23 +5,32 @@ Detailed Documentation
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
 
-    XXX: what to do with this?
-    XXX>>> from zope.testbrowser.browser import Browser
-    XXX>>> browser = Browser()
+    >>> from zope.testbrowser.browser import Browser as RealBrowser
+    >>> browser = RealBrowser()
 
 This version of the browser object can be used to access any web site just as
 you would do using a normal web browser.
+
+WSGI applications can also be tested directly when wrapped by WebTest:
+
+    >>> from zope.testbrowser.wsgi import Browser as WSGIBrowser
+    >>> from webtest import TestApp
+    >>> from wsgiref.simple_server import demo_app
+    >>> browser = WSGIBrowser(TestApp(demo_app), url='http://localhost/')
+    >>> print browser.contents
+    Hello world!
+    ...
 
 There is also a special version of the ``Browser`` class used to do functional
 testing of Zope 3 applications, it can be imported from
 ``zope.testbrowser.testing``:
 
-    XXX: what to do with this?
-    XXX>>> from zope.testbrowser.testing import Browser
+    >>> from zope.testbrowser.testing import Browser as TestingBrowser
+    >>> browser = TestingBrowser()
 
-    >>> browser = Browser()
-
-An initial page to load can be passed to the ``Browser`` constructor:
+To allow this test to be run against different implementations, we will use a
+Browser object from the test globals. An initial page to load can be passed to
+the ``Browser`` constructor:
 
     >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
