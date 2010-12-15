@@ -480,9 +480,8 @@ def test_suite():
     fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags)
     fixed_bugs.layer = TestBrowserLayer
 
-    wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
+    wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags)
     wire.level = 2
-    wire.layer = TestBrowserLayer
 
     this_file = doctest.DocTestSuite(checker=checker)
 

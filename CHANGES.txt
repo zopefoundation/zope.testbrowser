@@ -5,8 +5,8 @@ CHANGES
 3.10.4 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Move the over-the-wire.txt doctest out of the TestBrowserLayer as it doesn't
+  need or use it.
 
 3.10.3 (2010-10-15)
 -------------------
