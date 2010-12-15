@@ -16,13 +16,15 @@
 import cStringIO
 import Cookie
 import httplib
-import mechanize
 import socket
 import sys
+
+import mechanize
+
 import zope.testbrowser.browser
+import zope.testbrowser.testing
 
-
-class TestAppConnection(object):
+class WSGIConnection(object):
     """A ``mechanize`` compatible connection object."""
 
     def __init__(self, test_app, host, timeout=None):
@@ -109,90 +111,33 @@ class TestAppConnection(object):
         headers.insert(0, ('Status', response.status))
         headers = '\r\n'.join('%s: %s' % h for h in headers)
         content = response.body
-        return PublisherResponse(content, headers, status, reason)
+        return zope.testbrowser.testing.PublisherResponse(content, headers, status, reason)
 
 
-class PublisherResponse(object):
-    """``mechanize`` compatible response object."""
-
-    def __init__(self, content, headers, status, reason):
-        self.content = content
-        self.status = status
-        self.reason = reason
-        self.msg = httplib.HTTPMessage(cStringIO.StringIO(headers), 0)
-        self.content_as_file = cStringIO.StringIO(self.content)
-
-    def read(self, amt=None):
-        return self.content_as_file.read(amt)
-
-    def close(self):
-        """To overcome changes in mechanize and socket in python2.5"""
-        pass
-
-
-class PublisherHTTPHandler(mechanize.HTTPHandler):
-    """Special HTTP handler to use the Zope Publisher."""
+class WSGIHTTPHandler(zope.testbrowser.testing.PublisherHTTPHandler):
 
     def __init__(self, test_app, *args, **kw):
-        mechanize.HTTPHandler.__init__(self, *args, **kw)
         self._test_app = test_app
+        zope.testbrowser.testing.PublisherHTTPHandler.__init__(self, *args, **kw)
 
-    def http_request(self, req):
-        # look at data and set content type
-        if req.has_data():
-            data = req.get_data()
-            if isinstance(data, dict):
-                req.add_data(data['body'])
-                req.add_unredirected_header('Content-type',
-                                            data['content-type'])
-        return mechanize.HTTPHandler.do_request_(self, req)
-
-    https_request = http_request
-
-    def http_open(self, req):
-        """Open an HTTP connection having a ``mechanize`` request."""
-        # Here we connect to the publisher.
-        if sys.version_info > (2, 6) and not hasattr(req, 'timeout'):
-            # Workaround mechanize incompatibility with Python
-            # 2.6. See: LP #280334
-            req.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
-        def do_open(*args, **kw):
-            return TestAppConnection(self._test_app, *args, **kw)
-        return self.do_open(do_open, req)
-
-    https_open = http_open
+    def _connect(self, *args, **kw):
+        return WSGIConnection(self._test_app, *args, **kw)
 
 
-class PublisherMechanizeBrowser(mechanize.Browser):
+class WSGIMechanizeBrowser(zope.testbrowser.testing.PublisherMechanizeBrowser):
     """Special ``mechanize`` browser using the Zope Publisher HTTP handler."""
 
-    default_schemes = ['http']
-    default_others = ['_http_error', '_http_default_error']
-    default_features = ['_redirect', '_cookies', '_referer', '_refresh',
-                        '_equiv', '_basicauth', '_digestauth']
+    def __init__(self, test_app, *args, **kw):
+        self._test_app = test_app
+        zope.testbrowser.testing.PublisherMechanizeBrowser.__init__(self, *args, **kw)
 
-    def __init__(self, test_app, *args, **kws):
-        inherited_handlers = ['_unknown', '_http_error',
-            '_http_default_error', '_basicauth',
-            '_digestauth', '_redirect', '_cookies', '_referer',
-            '_refresh', '_equiv', '_gzip']
-
-        def http_handler(*args, **kw):
-            return PublisherHTTPHandler(test_app, *args, **kw)
-
-        self.handler_classes = {"http": http_handler}
-        for name in inherited_handlers:
-            self.handler_classes[name] = mechanize.Browser.handler_classes[name]
-
-        kws['request_class'] = kws.get('request_class',
-                                       mechanize._request.Request)
-
-        mechanize.Browser.__init__(self, *args, **kws)
+    def _http_handler(self, *args, **kw):
+        return WSGIHTTPHandler(self._test_app, *args, **kw)
 
 
 class Browser(zope.testbrowser.browser.Browser):
     """A Zope `testbrowser` Browser that uses the Zope Publisher."""
 
     def __init__(self, test_app, url=None):
-        mech_browser = PublisherMechanizeBrowser(test_app)
+        mech_browser = WSGIMechanizeBrowser(test_app)
         super(Browser, self).__init__(url=url, mech_browser=mech_browser)

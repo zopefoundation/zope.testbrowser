@@ -115,6 +115,9 @@ class PublisherResponse(object):
 class PublisherHTTPHandler(mechanize.HTTPHandler):
     """Special HTTP handler to use the Zope Publisher."""
 
+    def _connect(self, *args, **kw):
+        return PublisherConnection(*args, **kw)
+
     def http_request(self, req):
         # look at data and set content type
         if req.has_data():
@@ -134,7 +137,7 @@ class PublisherHTTPHandler(mechanize.HTTPHandler):
             # Workaround mechanize incompatibility with Python
             # 2.6. See: LP #280334
             req.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
-        return self.do_open(PublisherConnection, req)
+        return self.do_open(self._connect, req)
 
     https_open = http_open
 
@@ -147,13 +150,14 @@ class PublisherMechanizeBrowser(mechanize.Browser):
     default_features = ['_redirect', '_cookies', '_referer', '_refresh',
                         '_equiv', '_basicauth', '_digestauth']
 
+
     def __init__(self, *args, **kws):
         inherited_handlers = ['_unknown', '_http_error',
             '_http_default_error', '_basicauth',
             '_digestauth', '_redirect', '_cookies', '_referer',
             '_refresh', '_equiv', '_gzip']
 
-        self.handler_classes = {"http": PublisherHTTPHandler}
+        self.handler_classes = {"http": self._http_handler}
         for name in inherited_handlers:
             self.handler_classes[name] = mechanize.Browser.handler_classes[name]
 
@@ -162,6 +166,8 @@ class PublisherMechanizeBrowser(mechanize.Browser):
 
         mechanize.Browser.__init__(self, *args, **kws)
 
+    def _http_handler(self, *args, **kw):
+        return PublisherHTTPHandler(*args, **kw)
 
 class Browser(zope.testbrowser.browser.Browser):
     """A Zope `testbrowser` Browser that uses the Zope Publisher."""
