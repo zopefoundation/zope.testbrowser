@@ -2,11 +2,12 @@
 CHANGES
 =======
 
-3.10.4 (unreleased)
+3.11.0 (unreleased)
 -------------------
 
-- Move the over-the-wire.txt doctest out of the TestBrowserLayer as it doesn't
-  need or use it.
+- Integrate with WebTest. ``zope.testbrowser.wsgi.Browser`` is a new
+  ``Browser`` implementation that can wrap a ``webtest.TestApp``. This allows
+  simple and direct testing of WSGI applications.
 
 3.10.3 (2010-10-15)
 -------------------
