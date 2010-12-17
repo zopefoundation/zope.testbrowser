@@ -514,7 +514,11 @@ def test_suite():
         globs=globals)
     fixed_bugs.layer = TestBrowserLayer
 
-    tests.extend([readme, cookies, fixed_bugs])
+    wsgi = FunctionalDocFileSuite('wsgi.txt', optionflags=flags,
+        checker=checker, globs=globals)
+    wsgi.layer = TestBrowserLayer
+
+    tests.extend([readme, cookies, fixed_bugs, wsgi])
 
     return unittest.TestSuite(tests)
 

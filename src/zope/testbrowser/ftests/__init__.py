@@ -41,6 +41,14 @@ class Echo(View):
         items.append('Body: %r' % self.request.bodyStream.read())
         return '\n'.join(items)
 
+
+class EchoOne(View):
+    """Echo one variable from the request"""
+
+    def __call__(self):
+        return repr(self.request.get(self.request.form['var']))
+
+
 class GetCookie(View):
     """Gets cookie value"""
 

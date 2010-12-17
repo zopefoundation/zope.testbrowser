@@ -69,6 +69,11 @@ class WSGIConnection(object):
             extra_environ['wsgi.handleErrors'] = False # zope.app.wsgi does this
             extra_environ['paste.throw_errors'] = True # the paste way of doing this
 
+        scheme_key = 'X-Zope-Scheme'
+        extra_environ['wsgi.url_scheme'] = headers.get(scheme_key, 'http')
+        if scheme_key in headers:
+            del headers[scheme_key]
+
         app = self._test_app
 
         # Here we do a complicated dance to sync the webtest apps idea of what
@@ -122,6 +127,10 @@ class WSGIHTTPHandler(zope.testbrowser.testing.PublisherHTTPHandler):
 
     def _connect(self, *args, **kw):
         return WSGIConnection(self._test_app, *args, **kw)
+
+    def https_request(self, req):
+        req.add_unredirected_header('X-Zope-Scheme', 'https')
+        return self.http_request(req)
 
 
 class WSGIMechanizeBrowser(zope.testbrowser.testing.PublisherMechanizeBrowser):

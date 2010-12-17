@@ -36,6 +36,13 @@
      />
 
   <browser:page
+     name="echo_one.html"
+     for="*"
+     class=".ftests.EchoOne"
+     permission="zope.Public"
+     />
+
+  <browser:page
      name="set_cookie.html"
      for="*"
      class=".ftests.SetCookie"

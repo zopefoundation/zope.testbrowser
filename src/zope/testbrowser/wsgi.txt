@@ -1,0 +1,20 @@
+Detailed tests for WSGI Browser
+===============================
+
+    >>> browser = Browser()
+
+HTTPS support
+-------------
+
+Depending on the scheme of the request the variable wsgi.url_scheme will be set
+correctly on the request:
+
+    >>> browser.open('http://localhost/echo_one.html?var=wsgi.url_scheme')
+    >>> print browser.contents
+    'http'
+    
+    >>> browser.open('https://localhost/echo_one.html?var=wsgi.url_scheme')
+    >>> print browser.contents
+    'https'
+
+see http://www.python.org/dev/peps/pep-3333/ for details.
