@@ -69,7 +69,7 @@ setup(
             'zope.traversing',
             'zope.app.appsetup',
             'zope.app.publication',
-            'zope.app.testing >= 3.8',
+            'zope.app.testing >= 3.8.1',
             ],
         'zope-functional-testing': [
             'zope.app.testing',

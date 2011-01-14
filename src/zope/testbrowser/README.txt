@@ -1209,6 +1209,7 @@ Let's visit a page that echos it's request:
     HTTP_USER_AGENT: Python-urllib/2.4
     HTTP_CONNECTION: close
     HTTP_COOKIE:
+    REMOTE_ADDR: 127.0.0.1
     HTTP_ACCEPT_LANGUAGE: en-US
     REQUEST_METHOD: GET
     HTTP_HOST: localhost
@@ -1227,6 +1228,7 @@ a URL-encoded query string is assumed:
     HTTP_USER_AGENT: Python-urllib/2.4
     HTTP_CONNECTION: close
     HTTP_COOKIE:
+    REMOTE_ADDR: 127.0.0.1
     HTTP_ACCEPT_LANGUAGE: en-US
     y: 2
     REQUEST_METHOD: POST
@@ -1244,17 +1246,18 @@ The body is empty because it is consumed to get form data.
 We can pass a content-type explicitly:
 
     >>> browser.post('http://localhost/@@echo.html',
-    ...              '{"x":1,"y":2}', 'application/x-javascipt')
+    ...              '{"x":1,"y":2}', 'application/x-javascript')
     >>> print browser.contents,
     CONTENT_LENGTH: 13
     HTTP_USER_AGENT: Python-urllib/2.4
     HTTP_CONNECTION: close
     HTTP_COOKIE:
+    REMOTE_ADDR: 127.0.0.1
     HTTP_ACCEPT_LANGUAGE: en-US
     REQUEST_METHOD: POST
     HTTP_HOST: localhost
     PATH_INFO: /@@echo.html
-    CONTENT_TYPE: application/x-javascipt
+    CONTENT_TYPE: application/x-javascript
     SERVER_PROTOCOL: HTTP/1.1
     Body: '{"x":1,"y":2}'
 

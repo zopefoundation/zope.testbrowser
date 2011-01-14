@@ -8,6 +8,8 @@ CHANGES
 - Move the over-the-wire.txt doctest out of the TestBrowserLayer as it doesn't
   need or use it.
 
+- Fix test compatibility with zope.app.testing 3.8.1.
+
 3.10.3 (2010-10-15)
 -------------------
 
