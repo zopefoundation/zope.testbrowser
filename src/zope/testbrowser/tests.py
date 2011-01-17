@@ -24,7 +24,6 @@ import socket
 import sys
 
 from webtest import TestApp
-from zope.app.wsgi import WSGIPublisherApplication
 from zope.app.testing.functional import FunctionalDocFileSuite
 import zope.app.testing.functional
 import zope.testing.renormalizing
@@ -32,6 +31,7 @@ import zope.testing.renormalizing
 import zope.testbrowser.browser
 from zope.testbrowser.testing import Browser as TestingBrowser
 from zope.testbrowser.wsgi import Browser as WSGIBrowser
+from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
     global next_response_body
@@ -462,6 +462,12 @@ checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'Host: localhost'), 'Connection: close'),
     (re.compile(r'Content-Type: '), 'Content-type: '),
     (re.compile(r'Content-Disposition: '), 'Content-disposition: '),
+    (re.compile(r'; charset=UTF-8'), ';charset=utf-8'),
+    # webtest quotes cookies differently to zope.publisher
+    (re.compile(r'\'comment\': \'"silly billy"\','), "'comment': 'silly%20billy',"),
+    # webtest seems to expire cookies one second before the date set in set_cookie
+    (re.compile(r"'expires': datetime.datetime\(2029, 12, 31, 23, 59, 59, tzinfo=<UTC>\),"), "'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),"),
+    (re.compile(r"Object: <WSGI application>,"), "Object: <zope.site.folder.Folder object at ...>,"),
     ])
 
 TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
@@ -497,26 +503,27 @@ def test_suite():
 
     # re-run the above tests using the WSGI connectior
     def make_browser(*args, **kw):
-        app = WSGIPublisherApplication(TestBrowserLayer.setup.db)
+        app = WSGITestApplication()
         test_app = TestApp(app)
         return WSGIBrowser(test_app, *args, **kw)
     globals = dict(Browser=make_browser)
 
-    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
+    readme = doctest.DocFileSuite('README.txt', optionflags=flags,
         checker=checker, globs=globals)
-    readme.layer = TestBrowserLayer
 
-    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
-        checker=checker, globs=globals)
-    cookies.layer = TestBrowserLayer
+    def setUp(test):
+        root = {}
+        def fakeGetRootFolder():
+            return root
+        test.globs['getRootFolder'] = fakeGetRootFolder
+    cookies = doctest.DocFileSuite('cookies.txt', optionflags=flags,
+        checker=checker, globs=globals, setUp=setUp)
 
-    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags,
+    fixed_bugs = doctest.DocFileSuite('fixed-bugs.txt', optionflags=flags,
         globs=globals)
-    fixed_bugs.layer = TestBrowserLayer
 
-    wsgi = FunctionalDocFileSuite('wsgi.txt', optionflags=flags,
+    wsgi = doctest.DocFileSuite('wsgi.txt', optionflags=flags,
         checker=checker, globs=globals)
-    wsgi.layer = TestBrowserLayer
 
     tests.extend([readme, cookies, fixed_bugs, wsgi])
 
