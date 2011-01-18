@@ -491,8 +491,15 @@ def test_suite():
         checker=checker, globs=globals)
     readme.layer = TestBrowserLayer
 
+    def setUp(test):
+        folder = test.globs['getRootFolder']()
+        import zope.site.folder
+        folder['inner'] = zope.site.folder.Folder()
+        folder['inner']['path'] = zope.site.folder.Folder()
+        import transaction
+        transaction.commit()
     cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
-        checker=checker, globs=globals)
+        checker=checker, globs=globals, setUp=setUp)
     cookies.layer = TestBrowserLayer
 
     fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags,
@@ -511,13 +518,8 @@ def test_suite():
     readme = doctest.DocFileSuite('README.txt', optionflags=flags,
         checker=checker, globs=globals)
 
-    def setUp(test):
-        root = {}
-        def fakeGetRootFolder():
-            return root
-        test.globs['getRootFolder'] = fakeGetRootFolder
     cookies = doctest.DocFileSuite('cookies.txt', optionflags=flags,
-        checker=checker, globs=globals, setUp=setUp)
+        checker=checker, globs=globals)
 
     fixed_bugs = doctest.DocFileSuite('fixed-bugs.txt', optionflags=flags,
         globs=globals)
