@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Zope 3-specific testing code
+"""WSGI-specific testing code
 """
 import cStringIO
 import Cookie
@@ -35,8 +35,8 @@ class WSGIConnection(object):
         pass
 
     def _quote(self, url):
-        # the publisher expects to be able to split on whitespace, so we have
-        # to make sure there is none in the URL
+        # XXX: is this necessary with WebTest? Was cargeo-culted from the 
+        # Zope Publisher Connection
         return url.replace(' ', '%20')
 
     def request(self, method, url, body=None, headers=None):
@@ -103,7 +103,7 @@ class WSGIConnection(object):
     def getresponse(self):
         """Return a ``mechanize`` compatible response.
 
-        The goal of ths method is to convert the Zope Publisher's reseponse to
+        The goal of ths method is to convert the WebTest's reseponse to
         a ``mechanize`` compatible response, which is also understood by
         mechanize.
         """
@@ -116,14 +116,14 @@ class WSGIConnection(object):
         headers.insert(0, ('Status', response.status))
         headers = '\r\n'.join('%s: %s' % h for h in headers)
         content = response.body
-        return zope.testbrowser.testing.PublisherResponse(content, headers, status, reason)
+        return zope.testbrowser.testing.Response(content, headers, status, reason)
 
 
-class WSGIHTTPHandler(zope.testbrowser.testing.PublisherHTTPHandler):
+class WSGIHTTPHandler(zope.testbrowser.testing.HTTPHandler):
 
     def __init__(self, test_app, *args, **kw):
         self._test_app = test_app
-        zope.testbrowser.testing.PublisherHTTPHandler.__init__(self, *args, **kw)
+        zope.testbrowser.testing.HTTPHandler.__init__(self, *args, **kw)
 
     def _connect(self, *args, **kw):
         return WSGIConnection(self._test_app, *args, **kw)
@@ -133,19 +133,19 @@ class WSGIHTTPHandler(zope.testbrowser.testing.PublisherHTTPHandler):
         return self.http_request(req)
 
 
-class WSGIMechanizeBrowser(zope.testbrowser.testing.PublisherMechanizeBrowser):
-    """Special ``mechanize`` browser using the Zope Publisher HTTP handler."""
+class WSGIMechanizeBrowser(zope.testbrowser.testing.MechanizeBrowser):
+    """Special ``mechanize`` browser using the WSGI HTTP handler."""
 
     def __init__(self, test_app, *args, **kw):
         self._test_app = test_app
-        zope.testbrowser.testing.PublisherMechanizeBrowser.__init__(self, *args, **kw)
+        zope.testbrowser.testing.MechanizeBrowser.__init__(self, *args, **kw)
 
     def _http_handler(self, *args, **kw):
         return WSGIHTTPHandler(self._test_app, *args, **kw)
 
 
 class Browser(zope.testbrowser.browser.Browser):
-    """A Zope `testbrowser` Browser that uses the Zope Publisher."""
+    """A WSGI `testbrowser` Browser that uses a WebTest wrapped WSGI app."""
 
     def __init__(self, test_app, url=None):
         mech_browser = WSGIMechanizeBrowser(test_app)
