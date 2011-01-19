@@ -59,7 +59,6 @@ setup(
         'test': [
             'WebTest',
             'zope.browserpage',
-            'zope.browserresource',
             'zope.component',
             'zope.container',
             'zope.principalregistry',

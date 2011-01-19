@@ -484,31 +484,14 @@ def test_suite():
 
     tests = [this_file, wire]
 
-    # test using the connection to the zope3 functional testing suite
-    globals = dict(Browser=TestingBrowser)
+    # Zope Publisher Tests
+    zope_publisher = FunctionalDocFileSuite('zope-publisher.txt', optionflags=flags,
+        checker=checker)
+    zope_publisher.layer = TestBrowserLayer
 
-    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
-        checker=checker, globs=globals)
-    readme.layer = TestBrowserLayer
+    tests.append(zope_publisher)
 
-    def setUp(test):
-        folder = test.globs['getRootFolder']()
-        import zope.site.folder
-        folder['inner'] = zope.site.folder.Folder()
-        folder['inner']['path'] = zope.site.folder.Folder()
-        import transaction
-        transaction.commit()
-    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
-        checker=checker, globs=globals, setUp=setUp)
-    cookies.layer = TestBrowserLayer
-
-    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags,
-        globs=globals)
-    fixed_bugs.layer = TestBrowserLayer
-
-    tests.extend([readme, cookies, fixed_bugs])
-
-    # re-run the above tests using the WSGI connectior
+    # WSGI Browser tests
     def make_browser(*args, **kw):
         app = WSGITestApplication()
         test_app = TestApp(app)

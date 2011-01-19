@@ -47,31 +47,3 @@ class EchoOne(View):
 
     def __call__(self):
         return repr(self.request.get(self.request.form['var']))
-
-
-class GetCookie(View):
-    """Gets cookie value"""
-
-    def __call__(self):
-        return '\n'.join(
-            ('%s: %s' % (k, v)) for k, v in sorted(
-                self.request.cookies.items()))
-
-class SetCookie(View):
-    """Sets cookie value"""
-
-    def __call__(self):
-        self.request.response.setCookie(
-            **dict((str(k), str(v)) for k, v in self.request.form.items()))
-
-
-class SetStatus(View):
-    """Sets HTTP status"""
-
-    def __call__(self):
-        status = self.request.get('status')
-        if status:
-            self.request.response.setStatus(int(status))
-            return 'Just set a status of %s' % status
-        else:
-            return 'Everything fine'
