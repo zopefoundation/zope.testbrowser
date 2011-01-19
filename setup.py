@@ -62,7 +62,6 @@ setup(
             'zope.component',
             'zope.container',
             'zope.principalregistry',
-            'zope.ptresource',
             'zope.publisher',
             'zope.security',
             'zope.site',
