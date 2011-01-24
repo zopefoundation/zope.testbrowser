@@ -13,8 +13,6 @@
 ##############################################################################
 """Real test for file-upload and beginning of a better internal test framework
 """
-import unittest
-
 import cStringIO
 import doctest
 import httplib
@@ -23,10 +21,10 @@ import os
 import re
 import socket
 import sys
-
-from zope.app.testing.functional import FunctionalDocFileSuite
+import unittest
 import zope.app.testing.functional
 import zope.testbrowser.browser
+import zope.testbrowser.tests.helper
 import zope.testing.renormalizing
 
 
@@ -225,7 +223,7 @@ def test_submit_duplicate_name():
     Content-type: multipart/form-data; ...
     Content-disposition: form-data; name="submit_me"
     <BLANKLINE>
-     BAD 
+     BAD
     ...
 """
 
@@ -437,68 +435,7 @@ def test_relative_link():
     """
 
 
-class win32CRLFtransformer(object):
-    def sub(self, replacement, text):
-        return text.replace(r'\r', '')
-
-checker = zope.testing.renormalizing.RENormalizing([
-    (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-' * 30),
-    (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary=' + '-' * 30),
-    (re.compile(r'^---{10}.*', re.M), '-' * 30),
-    (re.compile(r'boundary=-{10}.*'), 'boundary=' + '-' * 30),
-    (re.compile(r'User-agent:\s+\S+'), 'User-agent: Python-urllib/2.4'),
-    (re.compile(r'HTTP_USER_AGENT:\s+\S+'),
-     'HTTP_USER_AGENT: Python-urllib/2.4'),
-    (re.compile(r'Content-[Ll]ength:.*'), 'Content-Length: 123'),
-    (re.compile(r'Status: 200.*'), 'Status: 200 OK'),
-    (win32CRLFtransformer(), None),
-    (re.compile(r'User-Agent: Python-urllib/2.5'),
-     'User-agent: Python-urllib/2.4'),
-    (re.compile(r'User-Agent: Python-urllib/2.6'),
-     'User-agent: Python-urllib/2.4'),
-    (re.compile(r'Host: localhost'), 'Connection: close'),
-    (re.compile(r'Content-Type: '), 'Content-type: '),
-    (re.compile(r'Content-Disposition: '), 'Content-disposition: '),
-    ])
-
-TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
-    os.path.join(os.path.split(__file__)[0], 'ftests/ftesting.zcml'),
-    __name__, 'TestBrowserLayer', allow_teardown=True)
-
-
 def test_suite():
-    flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-
-    readme = FunctionalDocFileSuite('README.txt', optionflags=flags,
-        checker=checker)
-    readme.layer = TestBrowserLayer
-
-    cookies = FunctionalDocFileSuite('cookies.txt', optionflags=flags,
-        checker=checker)
-    cookies.layer = TestBrowserLayer
-
-    fixed_bugs = FunctionalDocFileSuite('fixed-bugs.txt', optionflags=flags)
-    fixed_bugs.layer = TestBrowserLayer
-
-    wire = FunctionalDocFileSuite('over_the_wire.txt', optionflags=flags)
-    wire.level = 2
-    wire.layer = TestBrowserLayer
-
-    this_file = doctest.DocTestSuite(checker=checker)
-
-    return unittest.TestSuite((this_file, readme, fixed_bugs, wire, cookies))
-
-def run_suite(suite):
-    runner = unittest.TextTestRunner(sys.stdout, verbosity=1)
-    result = runner.run(suite)
-    if not result.wasSuccessful():
-        if len(result.errors) == 1 and not result.failures:
-            err = result.errors[0][1]
-        elif len(result.failures) == 1 and not result.errors:
-            err = result.failures[0][1]
-        else:
-            err = "errors occurred; run in verbose mode for details"
-        print err
-
-if __name__ == "__main__":
-    run_suite(test_suite())
+    return doctest.DocTestSuite(
+        checker=zope.testbrowser.tests.helper.checker,
+        optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS)
