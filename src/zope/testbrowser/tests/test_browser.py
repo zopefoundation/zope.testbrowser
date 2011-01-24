@@ -17,15 +17,10 @@ import cStringIO
 import doctest
 import httplib
 import mechanize
-import os
-import re
 import socket
 import sys
-import unittest
-import zope.app.testing.functional
 import zope.testbrowser.browser
 import zope.testbrowser.tests.helper
-import zope.testing.renormalizing
 
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
@@ -276,6 +271,7 @@ def test_file_upload():
     blah blah blah
     ...
     """
+
 
 def test_submit_gets_referrer():
     """

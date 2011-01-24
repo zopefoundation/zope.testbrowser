@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2004 Zope Foundation and Contributors.
+# Copyright (c) 2004-2011 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -11,28 +11,15 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Real test for file-upload and beginning of a better internal test framework
-"""
-import unittest
-
-import cStringIO
 import doctest
-import httplib
-import mechanize
-import os
-import re
-import socket
-import sys
-
-from zope.app.testing.functional import FunctionalDocFileSuite
-import zope.app.testing.functional
-import zope.testbrowser.browser
-import zope.testing.renormalizing
 import pkg_resources
+import unittest
+import zope.app.testing.functional
 
 
 TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
-    pkg_resources.resource_filename('zope.testbrowser', 'ftests/ftesting.zcml'),
+    pkg_resources.resource_filename(
+        'zope.testbrowser', 'ftests/ftesting.zcml'),
     __name__, 'TestBrowserLayer', allow_teardown=True)
 
 
