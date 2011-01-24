@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.11.0 (unreleased)
+3.11.0 (2011-01-24)
 -------------------
 
 - Added `wsgi_intercept` support (came from ``zope.app.wsgi.testlayer``).
