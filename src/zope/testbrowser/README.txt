@@ -40,6 +40,7 @@ To use this browser you have to:
 
 Example:
 
+    >>> import zope.testbrowser.wsgi
     >>> class SimpleLayer(zope.testbrowser.wsgi.Layer):
     ...     def make_wsgi_app(self):
     ...         return simple_app
