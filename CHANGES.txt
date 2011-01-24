@@ -2,16 +2,22 @@
 CHANGES
 =======
 
+3.11.0 (unreleased)
+-------------------
+
+- Added `wsgi_intercept` support (came from ``zope.app.wsgi.testlayer``).
+
+
 3.10.3 (2010-10-15)
 -------------------
 
-- Fixed backwards compatibility with zope.app.wsgi.testlayer.
+- Fixed backwards compatibility with ``zope.app.wsgi.testlayer``.
 
 
 3.10.2 (2010-10-15)
 -------------------
 
-- Fixed Python2.7 compatibility in Browser.handleErrors.
+- Fixed Python 2.7 compatibility in Browser.handleErrors.
 
 
 3.10.1 (2010-09-21)

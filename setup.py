@@ -74,6 +74,9 @@ setup(
         'zope-functional-testing': [
             'zope.app.testing',
             ],
+        'wsgi': [
+            'wsgi_intercept',
+            ]
         },
     include_package_data = True,
     zip_safe = False,
