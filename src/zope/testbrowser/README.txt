@@ -2,12 +2,6 @@
 Detailed Documentation
 ======================
 
-Different Browsers
-------------------
-
-HTTP Browser
-~~~~~~~~~~~~
-
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
 
@@ -17,39 +11,6 @@ simulates a web browser similar to Mozilla Firefox or IE.
 This version of the browser object can be used to access any web site just as
 you would do using a normal web browser.
 
-WSGI Test Browser
-~~~~~~~~~~~~~~~~~
-
-There is also a special version of the ``Browser`` class which uses
-`wsgi_intercept`_ and can be used to do functional testing of WSGI
-applications, it can be imported from ``zope.testbrowser.wsgi``:
-
-    >>> from zope.testbrowser.wsgi import Browser
-    >>> browser = Browser()
-
-.. _`wsgi_intercept`: http://pypi.python.org/pypi/wsgi_intercept
-
-To use this browser you have to:
-
-  * use the `wsgi` extra of the ``zope.testbrowser`` egg,
-
-  * write a subclass of ``zope.testbrowser.wsgi.Layer`` and override the
-    ``make_wsgi_app`` method,
-
-  * use an instance of the class as the test layer of your test.
-
-Example:
-
-    >>> import zope.testbrowser.wsgi
-    >>> class SimpleLayer(zope.testbrowser.wsgi.Layer):
-    ...     def make_wsgi_app(self):
-    ...         return simple_app
-
-Where ``simple_app`` is the callable of your WSGI application.
-
-Zope 3 Test Browser
-~~~~~~~~~~~~~~~~~~~
-
 There is also a special version of the ``Browser`` class used to do functional
 testing of Zope 3 applications, it can be imported from
 ``zope.testbrowser.testing``:
@@ -57,11 +18,7 @@ testing of Zope 3 applications, it can be imported from
     >>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
 
-Bowser Usage
-------------
-
-All browsers are used the same way.  An initial page to load can be passed
-to the ``Browser`` constructor:
+An initial page to load can be passed to the ``Browser`` constructor:
 
     >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
