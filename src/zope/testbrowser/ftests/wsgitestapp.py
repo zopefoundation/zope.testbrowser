@@ -23,28 +23,7 @@ from zope.pagetemplate.pagetemplatefile import PageTemplateFile
 from zope.testbrowser import ftests
 
 class NotFound(Exception):
-
-    def __init__(self, ob, name):
-        self.ob = ob
-        self.name = name
-
-    def __str__(self):
-        return 'Object: %s, name: %r' % (self.ob, self.name)
-
-
-class ZopeRequestAdapter(object):
-    """Adapt a webob request into enough of a zope.publisher request for the tests to pass"""
-
-    def __init__(self, request, response=None):
-        self._request = request
-        self._response = response
-
-    @property
-    def form(self):
-        return self._request.params
-
-    def __getitem__(self, name):
-        return self._request.params[name]
+    pass
 
 _HERE = os.path.dirname(__file__)
 
@@ -61,7 +40,7 @@ class WSGITestApplication(object):
     def __call__(self, environ, start_response):
         req = Request(environ)
         handler = {'/set_status.html': set_status,
-                   '/@@echo.html': echo,
+                   '/echo.html': echo,
                    '/echo_one.html': echo_one,
                    '/set_cookie.html': set_cookie,
                    '/get_cookie.html': get_cookie,
@@ -85,7 +64,7 @@ class WSGITestApplication(object):
         return resp(environ, start_response)
 
 def handle_notfound(req):
-    raise NotFound('<WSGI application>', unicode(req.path_info[1:]))
+    raise NotFound(req.path_info)
 
 def handle_resource(req):
     filename = req.path_info.split('/')[-1]
@@ -93,8 +72,7 @@ def handle_resource(req):
     path = os.path.join(_HERE, filename)
     if type == 'text/html':
         pt = MyPageTemplateFile(path)
-        zreq = ZopeRequestAdapter(req)
-        contents = pt(zreq)
+        contents = pt(req)
     else:
         contents = open(path, 'r').read()
     return Response(contents, content_type=type)
@@ -116,9 +94,18 @@ def set_cookie(req):
     resp.set_cookie(name, value, **cookie_parms)
     return resp
 
+_interesting_environ = ('CONTENT_LENGTH',
+                        'CONTENT_TYPE',
+                        'HTTP_ACCEPT_LANGUAGE',
+                        'HTTP_CONNECTION',
+                        'HTTP_HOST',
+                        'HTTP_USER_AGENT',
+                        'PATH_INFO',
+                        'REQUEST_METHOD')
+
 def echo(req):
     items = []
-    for k in ftests._interesting_environ:
+    for k in _interesting_environ:
         v = req.environ.get(k, None)
         if v is None:
             continue

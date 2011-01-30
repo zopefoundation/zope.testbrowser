@@ -1250,13 +1250,13 @@ helpful when testing Ajax methods.
 
 Let's visit a page that echos some interesting values from it's request:
 
-    >>> browser.open('http://localhost/@@echo.html')
+    >>> browser.open('http://localhost/echo.html')
     >>> print browser.contents
     HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
     HTTP_HOST: localhost
     HTTP_USER_AGENT: Python-urllib/2.4
-    PATH_INFO: /@@echo.html
+    PATH_INFO: /echo.html
     REQUEST_METHOD: GET
     Body: ''
 
@@ -1264,7 +1264,7 @@ Now, we'll try a post.  The post method takes a URL, a data string,
 and an optional content type.  If we just pass a string, then
 a URL-encoded query string is assumed:
 
-    >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
+    >>> browser.post('http://localhost/echo.html', 'x=1&y=2')
     >>> print browser.contents
     CONTENT_LENGTH: 7
     CONTENT_TYPE: application/x-www-form-urlencoded
@@ -1272,7 +1272,7 @@ a URL-encoded query string is assumed:
     HTTP_CONNECTION: close
     HTTP_HOST: localhost
     HTTP_USER_AGENT: Python-urllib/2.4
-    PATH_INFO: /@@echo.html
+    PATH_INFO: /echo.html
     REQUEST_METHOD: POST
     x: 1
     y: 2
@@ -1282,7 +1282,7 @@ The body is empty because it is consumed to get form data.
 
 We can pass a content-type explicitly:
 
-    >>> browser.post('http://localhost/@@echo.html',
+    >>> browser.post('http://localhost/echo.html',
     ...              '{"x":1,"y":2}', 'application/x-javascript')
     >>> print browser.contents
     CONTENT_LENGTH: 13
@@ -1291,7 +1291,7 @@ We can pass a content-type explicitly:
     HTTP_CONNECTION: close
     HTTP_HOST: localhost
     HTTP_USER_AGENT: Python-urllib/2.4
-    PATH_INFO: /@@echo.html
+    PATH_INFO: /echo.html
     REQUEST_METHOD: POST
     Body: '{"x":1,"y":2}'
 
@@ -1342,8 +1342,7 @@ we get a different, Zope internal error:
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.site.folder.Folder object at ...>,
-              name: u'invalid'
+    NotFound: /invalid
 
 NB: Setting the handleErrors attribute to False will only change
     anything if the http server you're testing is using Zope 3's
@@ -1376,8 +1375,7 @@ this flag doesn't affect things.
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.site.folder.Folder object at ...>,
-        name: u'invalid'
+    NotFound: /invalid
 
     >>> browser.raiseHttpErrors = True
 

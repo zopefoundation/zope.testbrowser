@@ -3,8 +3,8 @@
 
     <h1>Forms Tests</h1>
 
-    <em tal:condition="request/text-value|nothing"
-        tal:content="request/text-value" />
+    <em tal:condition="request/params/text-value|nothing"
+        tal:content="request/params/text-value" />
 
     <form id="1" name="one" action="forms.html">
       <input type="text" name="text-value" value="First Text" />
@@ -28,8 +28,8 @@
       <label for="text-value-4">Text Control</label>
       <input type="text" name="text-value" id="text-value-4"
              value="Fourth Text" />
-      <em tal:condition="python: 'hidden-4' in request.form and
-                                 'submit-4' not in request.form"
+      <em tal:condition="python: 'hidden-4' in request.params and
+                                 'submit-4' not in request.params"
         >Submitted without the submit button.</em>
       <input type="submit" name="submit-4" value="Don't Submit Me" />
       <input type="hidden" name="hidden-4" value="marker" />
