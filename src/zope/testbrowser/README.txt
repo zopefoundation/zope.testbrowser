@@ -11,8 +11,8 @@ HTTP Browser
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
 
-    >>> from zope.testbrowser.browser import Browser
-    >>> browser = Browser()
+    >>> from zope.testbrowser.browser import Browser as RealBrowser
+    >>> browser = RealBrowser()
 
 This version of the browser object can be used to access any web site just as
 you would do using a normal web browser.
@@ -24,8 +24,8 @@ There is also a special version of the ``Browser`` class which uses
 `wsgi_intercept`_ and can be used to do functional testing of WSGI
 applications, it can be imported from ``zope.testbrowser.wsgi``:
 
-    >>> from zope.testbrowser.wsgi import Browser
-    >>> browser = Browser()
+    >>> from zope.testbrowser.wsgi import Browser as WSGIBrowser
+    >>> browser = WSGIBrowser()
 
 .. _`wsgi_intercept`: http://pypi.python.org/pypi/wsgi_intercept
 
@@ -50,18 +50,28 @@ Where ``simple_app`` is the callable of your WSGI application.
 Zope 3 Test Browser
 ~~~~~~~~~~~~~~~~~~~
 
+WSGI applications can also be tested directly when wrapped by WebTest:
+
+    >>> from zope.testbrowser.webtest import Browser as WSGIBrowser
+    >>> from wsgiref.simple_server import demo_app
+    >>> browser = WSGIBrowser(demo_app, url='http://localhost/')
+    >>> print browser.contents
+    Hello world!
+    ...
+
 There is also a special version of the ``Browser`` class used to do functional
 testing of Zope 3 applications, it can be imported from
 ``zope.testbrowser.testing``:
 
-    >>> from zope.testbrowser.testing import Browser
-    >>> browser = Browser()
+    >>> from zope.testbrowser.testing import Browser as TestingBrowser
+    >>> browser = TestingBrowser()
 
 Bowser Usage
 ------------
 
-All browsers are used the same way.  An initial page to load can be passed
-to the ``Browser`` constructor:
+To allow this test to be run against different implementations, we will use a
+Browser object from the test globals. An initial page to load can be passed to
+the ``Browser`` constructor:
 
     >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
@@ -1245,20 +1255,16 @@ In addition to the open method, zope.testbrowser.testing.Browser has a ``post``
 method that allows a request body to be supplied.  This method is particularly
 helpful when testing Ajax methods.
 
-Let's visit a page that echos it's request:
+Let's visit a page that echos some interesting values from it's request:
 
     >>> browser.open('http://localhost/@@echo.html')
-    >>> print browser.contents,
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    REMOTE_ADDR: 127.0.0.1
+    >>> print browser.contents
     HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: GET
+    HTTP_CONNECTION: close
     HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
     PATH_INFO: /@@echo.html
-    SERVER_PROTOCOL: HTTP/1.1
-    QUERY_STRING:
+    REQUEST_METHOD: GET
     Body: ''
 
 Now, we'll try a post.  The post method takes a URL, a data string,
@@ -1266,23 +1272,18 @@ and an optional content type.  If we just pass a string, then
 a URL-encoded query string is assumed:
 
     >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
-    >>> print browser.contents,
+    >>> print browser.contents
     CONTENT_LENGTH: 7
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    REMOTE_ADDR: 127.0.0.1
-    HTTP_ACCEPT_LANGUAGE: en-US
-    y: 2
-    REQUEST_METHOD: POST
-    HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
     CONTENT_TYPE: application/x-www-form-urlencoded
-    SERVER_PROTOCOL: HTTP/1.1
-    QUERY_STRING:
+    HTTP_ACCEPT_LANGUAGE: en-US
+    HTTP_CONNECTION: close
+    HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
+    PATH_INFO: /@@echo.html
+    REQUEST_METHOD: POST
     x: 1
+    y: 2
     Body: ''
-
 
 The body is empty because it is consumed to get form data.
 
@@ -1290,18 +1291,15 @@ We can pass a content-type explicitly:
 
     >>> browser.post('http://localhost/@@echo.html',
     ...              '{"x":1,"y":2}', 'application/x-javascript')
-    >>> print browser.contents,
+    >>> print browser.contents
     CONTENT_LENGTH: 13
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    REMOTE_ADDR: 127.0.0.1
-    HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: POST
-    HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
     CONTENT_TYPE: application/x-javascript
-    SERVER_PROTOCOL: HTTP/1.1
+    HTTP_ACCEPT_LANGUAGE: en-US
+    HTTP_CONNECTION: close
+    HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
+    PATH_INFO: /@@echo.html
+    REQUEST_METHOD: POST
     Body: '{"x":1,"y":2}'
 
 Here, the body is left in place because it isn't form data.

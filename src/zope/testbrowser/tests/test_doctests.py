@@ -16,26 +16,40 @@ import pkg_resources
 import unittest
 import zope.app.testing.functional
 
+import zope.testbrowser.ftests.wsgitestapp
+import zope.testbrowser.webtest
+
 
 TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
     pkg_resources.resource_filename(
         'zope.testbrowser', 'ftests/ftesting.zcml'),
     __name__, 'TestBrowserLayer', allow_teardown=True)
 
+def make_browser(*args, **kw):
+    app = zope.testbrowser.ftests.wsgitestapp.WSGITestApplication()
+    return zope.testbrowser.webtest.Browser(app, *args, **kw)
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    suite = zope.app.testing.functional.FunctionalDocFileSuite(
+    
+    zope_publisher = zope.app.testing.functional.FunctionalDocFileSuite('zope-publisher.txt',
+        optionflags=flags,
+        package='zope.testbrowser',
+        checker=zope.testbrowser.tests.helper.checker)
+    zope_publisher.layer = TestBrowserLayer
+
+    suite = doctest.DocFileSuite(
         'README.txt',
         'cookies.txt',
+        'wsgi.txt',
         'fixed-bugs.txt',
         optionflags=flags,
+        globs=dict(Browser=make_browser),
         checker=zope.testbrowser.tests.helper.checker,
         package='zope.testbrowser')
-    suite.layer = TestBrowserLayer
 
     wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags,
                                 package='zope.testbrowser')
     wire.level = 2
 
-    return unittest.TestSuite((suite, wire))
+    return unittest.TestSuite((zope_publisher, suite, wire))

@@ -8,15 +8,12 @@
   <!-- This file is used for functional testing setup -->
 
   <include package="zope.browserpage" file="meta.zcml" />
-  <include package="zope.browserresource" file="meta.zcml" />
   <include package="zope.component" file="meta.zcml" />
   <include package="zope.security" file="meta.zcml" />
   <include package="zope.app.publication" file="meta.zcml" />
 
-  <include package="zope.browserresource" />
   <include package="zope.container" />
   <include package="zope.principalregistry" />
-  <include package="zope.ptresource" />
   <include package="zope.publisher" />
   <include package="zope.security" />
   <include package="zope.site" />
@@ -36,28 +33,10 @@
      />
 
   <browser:page
-     name="set_cookie.html"
+     name="echo_one.html"
      for="*"
-     class=".ftests.SetCookie"
+     class=".ftests.EchoOne"
      permission="zope.Public"
      />
-
-  <browser:page
-     name="get_cookie.html"
-     for="*"
-     class=".ftests.GetCookie"
-     permission="zope.Public"
-     />
-
-  <browser:page
-     name="set_status.html"
-     for="*"
-     class=".ftests.SetStatus"
-     permission="zope.Public"
-     />
-
-  <browser:resourceDirectory
-      name="testbrowser"
-      directory="ftests" />
 
 </configure>

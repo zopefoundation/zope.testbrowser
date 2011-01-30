@@ -24,12 +24,10 @@ Browser.addHeader().
 
 The tests below failed before the change was put in place.
 
-    >>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
     >>> browser.addHeader('Cookie', 'test')
     >>> browser.open(u'http://localhost/@@/testbrowser/simple.html')
 
-    >>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
     >>> browser.addHeader(u'Cookie', 'test')
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')

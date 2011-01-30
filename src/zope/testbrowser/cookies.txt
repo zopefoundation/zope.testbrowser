@@ -9,7 +9,6 @@ The cookies mapping has an extended mapping interface that allows getting,
 setting, and deleting the cookies that the browser is remembering for the
 current url, or for an explicitly provided URL.
 
-    >>> from zope.testbrowser.testing import Browser
     >>> browser = Browser()
 
 Initially the browser does not point to a URL, and the cookies cannot be used.
@@ -221,11 +220,14 @@ Here are some examples.
 
 Max-age is converted to an "expires" value.
 
+    XXX: When using zope.app.testing.functional, silly billy ends up being
+         silly%20billy, webtest gives us a ' ', which is right? -jinty
+
     >>> browser.open(
     ...     'http://localhost/set_cookie.html?name=max&value=min&'
     ...     'max-age=3000&&comment=silly+billy')
     >>> pprint.pprint(browser.cookies.getinfo('max')) # doctest: +ELLIPSIS
-    {'comment': 'silly%20billy',
+    {'comment': 'silly billy',
      'commenturl': None,
      'domain': 'localhost.local',
      'expires': datetime.datetime(..., tzinfo=<UTC>),
@@ -254,7 +256,7 @@ page using the ``iterinfo`` method.
       'port': None,
       'secure': False,
       'value': 'bar'},
-     {'comment': 'silly%20billy',
+     {'comment': 'silly billy',
       'commenturl': None,
       'domain': 'localhost.local',
       'expires': datetime.datetime(..., tzinfo=<UTC>),
@@ -312,11 +314,6 @@ the other page in the browser, or, as already mentioned, you can use the
     >>> sorted(browser.cookies.keys())
     ['foo', 'max', 'sha', 'va', 'wow']
 
-    >>> import zope.site.folder
-    >>> getRootFolder()['inner'] = zope.site.folder.Folder()
-    >>> getRootFolder()['inner']['path'] = zope.site.folder.Folder()
-    >>> import transaction
-    >>> transaction.commit()
     >>> browser.open('http://localhost/inner/get_cookie.html')
     >>> print browser.contents # has gewgaw
     foo: bar
