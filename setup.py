@@ -57,12 +57,11 @@ setup(
         ],
     extras_require = {
         'test': [
+            'WebTest',
             'zope.browserpage',
-            'zope.browserresource',
             'zope.component',
             'zope.container',
             'zope.principalregistry',
-            'zope.ptresource',
             'zope.publisher',
             'zope.security',
             'zope.site',

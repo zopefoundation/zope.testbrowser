@@ -5,7 +5,9 @@ CHANGES
 3.11.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Integrate with WebTest. ``zope.testbrowser.wsgi.Browser`` is a new
+  ``Browser`` implementation that can wrap a ``webtest.TestApp``. This allows
+  simple and direct testing of WSGI applications.
 
 
 3.11.1 (2011-01-24)
