@@ -5,9 +5,15 @@ CHANGES
 4.0.0 (unreleased)
 -------------------
 
-- Integrate with WebTest. ``zope.testbrowser.wsgi.Browser`` is a new
-  ``Browser`` implementation that can wrap a ``webtest.TestApp``. This allows
-  simple and direct testing of WSGI applications.
+- Integrate with WebTest. ``zope.testbrowser.webtest.Browser`` is a new
+  ``Browser`` implementation that uses ``webtest.TestApp`` to drive a WSGI
+  application. This allows simple and direct testing of WSGI applications.
+
+- Re-write the test application as a pure WSGI application using WebOb. Run the
+  existing tests using the WebTest based Browser
+
+- Move zope.app.testing based Browser into zope.app.testing (leaving backwards
+  compatibility imports in-place).
 
 
 3.11.1 (2011-01-24)
