@@ -27,7 +27,7 @@ long_description = (
 
 setup(
     name = 'zope.testbrowser',
-    version='3.11.2dev',
+    version='4.0.0dev',
     url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
     description = 'Programmable browser for functional black-box tests',
@@ -57,21 +57,18 @@ setup(
         ],
     extras_require = {
         'test': [
-            'WebTest',
-            'zope.browserpage',
-            'zope.component',
-            'zope.container',
-            'zope.principalregistry',
-            'zope.publisher',
-            'zope.security',
-            'zope.site',
-            'zope.traversing',
-            'zope.app.appsetup',
-            'zope.app.publication',
-            'zope.app.testing >= 3.8.1',
+            'zope.testing',
+            'zope.pagetemplate',
+            'zope.testbrowser [webtest,wsgi]',
+            ],
+        'test_bbb': [
+            'zope.testbrowser [test,zope-functional-testing]',
             ],
         'zope-functional-testing': [
-            'zope.app.testing',
+            'zope.app.testing >= 3.9.0dev',
+            ],
+        'webtest': [
+            'WebTest',
             ],
         'wsgi': [
             'wsgi_intercept',

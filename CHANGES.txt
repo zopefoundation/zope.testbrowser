@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.11.2 (unreleased)
+4.0.0 (unreleased)
 -------------------
 
 - Integrate with WebTest. ``zope.testbrowser.wsgi.Browser`` is a new

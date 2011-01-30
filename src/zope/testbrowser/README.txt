@@ -59,13 +59,6 @@ WSGI applications can also be tested directly when wrapped by WebTest:
     Hello world!
     ...
 
-There is also a special version of the ``Browser`` class used to do functional
-testing of Zope 3 applications, it can be imported from
-``zope.testbrowser.testing``:
-
-    >>> from zope.testbrowser.testing import Browser as TestingBrowser
-    >>> browser = TestingBrowser()
-
 Bowser Usage
 ------------
 

@@ -26,7 +26,7 @@ import mechanize
 from webtest import TestApp
 
 import zope.testbrowser.browser
-import zope.testbrowser.testing
+import zope.testbrowser.connection
 
 class WSGIConnection(object):
     """A ``mechanize`` compatible connection object."""
@@ -111,14 +111,14 @@ class WSGIConnection(object):
         headers.insert(0, ('Status', response.status))
         headers = '\r\n'.join('%s: %s' % h for h in headers)
         content = response.body
-        return zope.testbrowser.testing.Response(content, headers, status, reason)
+        return zope.testbrowser.connection.Response(content, headers, status, reason)
 
 
-class WSGIHTTPHandler(zope.testbrowser.testing.HTTPHandler):
+class WSGIHTTPHandler(zope.testbrowser.connection.HTTPHandler):
 
     def __init__(self, test_app, *args, **kw):
         self._test_app = test_app
-        zope.testbrowser.testing.HTTPHandler.__init__(self, *args, **kw)
+        zope.testbrowser.connection.HTTPHandler.__init__(self, *args, **kw)
 
     def _connect(self, *args, **kw):
         return WSGIConnection(self._test_app, *args, **kw)
@@ -128,12 +128,12 @@ class WSGIHTTPHandler(zope.testbrowser.testing.HTTPHandler):
         return self.http_request(req)
 
 
-class WSGIMechanizeBrowser(zope.testbrowser.testing.MechanizeBrowser):
+class WSGIMechanizeBrowser(zope.testbrowser.connection.MechanizeBrowser):
     """Special ``mechanize`` browser using the WSGI HTTP handler."""
 
     def __init__(self, test_app, *args, **kw):
         self._test_app = test_app
-        zope.testbrowser.testing.MechanizeBrowser.__init__(self, *args, **kw)
+        zope.testbrowser.connection.MechanizeBrowser.__init__(self, *args, **kw)
 
     def _http_handler(self, *args, **kw):
         return WSGIHTTPHandler(self._test_app, *args, **kw)

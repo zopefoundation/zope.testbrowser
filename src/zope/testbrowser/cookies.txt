@@ -227,7 +227,7 @@ Max-age is converted to an "expires" value.
     ...     'http://localhost/set_cookie.html?name=max&value=min&'
     ...     'max-age=3000&&comment=silly+billy')
     >>> pprint.pprint(browser.cookies.getinfo('max')) # doctest: +ELLIPSIS
-    {'comment': 'silly billy',
+    {'comment': '"silly billy"',
      'commenturl': None,
      'domain': 'localhost.local',
      'expires': datetime.datetime(..., tzinfo=<UTC>),
@@ -256,7 +256,7 @@ page using the ``iterinfo`` method.
       'port': None,
       'secure': False,
       'value': 'bar'},
-     {'comment': 'silly billy',
+     {'comment': '"silly billy"',
       'commenturl': None,
       'domain': 'localhost.local',
       'expires': datetime.datetime(..., tzinfo=<UTC>),
