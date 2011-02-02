@@ -16,11 +16,12 @@ import pkg_resources
 import unittest
 
 import zope.testbrowser.ftests.wsgitestapp
-import zope.testbrowser.webtest
+import zope.testbrowser.wsgi
 
 def make_browser(*args, **kw):
-    app = zope.testbrowser.ftests.wsgitestapp.WSGITestApplication()
-    return zope.testbrowser.webtest.Browser(app, *args, **kw)
+    assert 'wsgi_app' not in kw
+    kw['wsgi_app'] = zope.testbrowser.ftests.wsgitestapp.WSGITestApplication()
+    return zope.testbrowser.wsgi.Browser(*args, **kw)
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS

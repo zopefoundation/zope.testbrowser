@@ -21,17 +21,23 @@ WSGI Test Browser
 ~~~~~~~~~~~~~~~~~
 
 There is also a special version of the ``Browser`` class which uses
-`wsgi_intercept`_ and can be used to do functional testing of WSGI
+`WebTest`_ and can be used to do functional testing of WSGI
 applications, it can be imported from ``zope.testbrowser.wsgi``:
 
     >>> from zope.testbrowser.wsgi import Browser as WSGIBrowser
-    >>> browser = WSGIBrowser()
+    >>> from wsgiref.simple_server import demo_app
+    >>> browser = WSGIBrowser('http://localhost/', wsgi_app=demo_app)
+    >>> print browser.contents
+    Hello world!
+    ...
 
-.. _`wsgi_intercept`: http://pypi.python.org/pypi/wsgi_intercept
+.. _`WebTest`: http://pypi.python.org/pypi/WebTest
 
 To use this browser you have to:
 
   * use the `wsgi` extra of the ``zope.testbrowser`` egg,
+
+You can also use it with zope layers by:
 
   * write a subclass of ``zope.testbrowser.wsgi.Layer`` and override the
     ``make_wsgi_app`` method,
@@ -46,18 +52,6 @@ Example:
     ...         return simple_app
 
 Where ``simple_app`` is the callable of your WSGI application.
-
-Zope 3 Test Browser
-~~~~~~~~~~~~~~~~~~~
-
-WSGI applications can also be tested directly when wrapped by WebTest:
-
-    >>> from zope.testbrowser.webtest import Browser as WSGIBrowser
-    >>> from wsgiref.simple_server import demo_app
-    >>> browser = WSGIBrowser(demo_app, url='http://localhost/')
-    >>> print browser.contents
-    Hello world!
-    ...
 
 Bowser Usage
 ------------

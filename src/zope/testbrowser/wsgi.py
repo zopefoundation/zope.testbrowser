@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2010-2011 Zope Foundation and Contributors.
+# Copyright (c) 2010 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -11,93 +11,150 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import base64
-import re
-import wsgi_intercept
-import wsgi_intercept.mechanize_intercept
+"""WSGI-specific testing code
+"""
+
+from __future__ import absolute_import
+
+import cStringIO
+import Cookie
+import httplib
+import socket
+import sys
+
+import mechanize
+from webtest import TestApp
+
 import zope.testbrowser.browser
+import zope.testbrowser.connection
+
+class WSGIConnection(object):
+    """A ``mechanize`` compatible connection object."""
+
+    def __init__(self, test_app, host, timeout=None):
+        self._test_app = TestApp(test_app)
+        self.host = host
+
+    def set_debuglevel(self, level):
+        pass
+
+    def _quote(self, url):
+        # XXX: is this necessary with WebTest? Was cargeo-culted from the 
+        # Zope Publisher Connection
+        return url.replace(' ', '%20')
+
+    def request(self, method, url, body=None, headers=None):
+        """Send a request to the publisher.
+
+        The response will be stored in ``self.response``.
+        """
+        if body is None:
+            body = ''
+
+        if url == '':
+            url = '/'
+
+        url = self._quote(url)
+
+        # Extract the handle_error option header
+        if sys.version_info >= (2,5):
+            handle_errors_key = 'X-Zope-Handle-Errors'
+        else:
+            handle_errors_key = 'X-zope-handle-errors'
+        handle_errors_header = headers.get(handle_errors_key, True)
+        if handle_errors_key in headers:
+            del headers[handle_errors_key]
+
+        # Translate string to boolean.
+        handle_errors = {'False': False}.get(handle_errors_header, True)
+        extra_environ = {}
+        if not handle_errors:
+            # There doesn't seem to be a "Right Way" to do this
+            extra_environ['wsgi.handleErrors'] = False # zope.app.wsgi does this
+            extra_environ['paste.throw_errors'] = True # the paste way of doing this
+
+        scheme_key = 'X-Zope-Scheme'
+        extra_environ['wsgi.url_scheme'] = headers.get(scheme_key, 'http')
+        if scheme_key in headers:
+            del headers[scheme_key]
+
+        app = self._test_app
+
+        # clear our app cookies so that our testbrowser cookie headers don't
+        # get stomped
+        app.cookies.clear()
+
+        # pass the request to webtest
+        if method == 'GET':
+            assert not body, body
+            response = app.get(url, headers=headers, expect_errors=True, extra_environ=extra_environ)
+        elif method == 'POST':
+            response = app.post(url, body, headers=headers, expect_errors=True, extra_environ=extra_environ)
+        else:
+            raise Exception('Couldnt handle method %s' % method)
+
+        self.response = response
+
+    def getresponse(self):
+        """Return a ``mechanize`` compatible response.
+
+        The goal of ths method is to convert the WebTest's reseponse to
+        a ``mechanize`` compatible response, which is also understood by
+        mechanize.
+        """
+        response = self.response
+        status = int(response.status[:3])
+        reason = response.status[4:]
+
+        headers = response.headers.items()
+        headers.sort()
+        headers.insert(0, ('Status', response.status))
+        headers = '\r\n'.join('%s: %s' % h for h in headers)
+        content = response.body
+        return zope.testbrowser.connection.Response(content, headers, status, reason)
 
 
-# List of hostname where the test browser/http function replies to
-TEST_HOSTS = ['localhost', '127.0.0.1']
+class WSGIHTTPHandler(zope.testbrowser.connection.HTTPHandler):
+
+    def __init__(self, test_app, *args, **kw):
+        self._test_app = test_app
+        zope.testbrowser.connection.HTTPHandler.__init__(self, *args, **kw)
+
+    def _connect(self, *args, **kw):
+        return WSGIConnection(self._test_app, *args, **kw)
+
+    def https_request(self, req):
+        req.add_unredirected_header('X-Zope-Scheme', 'https')
+        return self.http_request(req)
 
 
-class InterceptBrowser(wsgi_intercept.mechanize_intercept.Browser):
+class WSGIMechanizeBrowser(zope.testbrowser.connection.MechanizeBrowser):
+    """Special ``mechanize`` browser using the WSGI HTTP handler."""
 
-    default_schemes = ['http']
-    default_others = ['_http_error',
-                      '_http_default_error']
-    default_features = ['_redirect', '_cookies', '_referer', '_refresh',
-                        '_equiv', '_basicauth', '_digestauth']
+    def __init__(self, test_app, *args, **kw):
+        self._test_app = test_app
+        zope.testbrowser.connection.MechanizeBrowser.__init__(self, *args, **kw)
+
+    def _http_handler(self, *args, **kw):
+        return WSGIHTTPHandler(self._test_app, *args, **kw)
 
 
 class Browser(zope.testbrowser.browser.Browser):
-    """Override the zope.testbrowser.browser.Browser interface so that it
-    uses InterceptBrowser.
-    """
+    """A WSGI `testbrowser` Browser that uses a WebTest wrapped WSGI app."""
 
-    def __init__(self, *args, **kw):
-        kw['mech_browser'] = InterceptBrowser()
-        super(Browser, self).__init__(*args, **kw)
+    def __init__(self, url=None, wsgi_app=None):
+        if wsgi_app is None:
+            wsgi_app = _APP_UNDER_TEST
+        if wsgi_app is None:
+            raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
+        mech_browser = WSGIMechanizeBrowser(wsgi_app)
+        super(Browser, self).__init__(url=url, mech_browser=mech_browser)
 
-
-# Compatibility helpers to behave like zope.app.testing
-
-basicre = re.compile('Basic (.+)?:(.+)?$')
-
-
-def auth_header(header):
-    """This function takes an authorization HTTP header and encode the
-    couple user, password into base 64 like the HTTP protocol wants
-    it.
-    """
-    match = basicre.match(header)
-    if match:
-        u, p = match.group(1, 2)
-        if u is None:
-            u = ''
-        if p is None:
-            p = ''
-        auth = base64.encodestring('%s:%s' % (u, p))
-        return 'Basic %s' % auth[:-1]
-    return header
-
-
-def is_wanted_header(header):
-    """Return True if the given HTTP header key is wanted.
-    """
-    key, value = header
-    return key.lower() not in ('x-content-type-warning', 'x-powered-by')
-
-
-class AuthorizationMiddleware(object):
-    """This middleware makes the WSGI application compatible with the
-    HTTPCaller behavior defined in zope.app.testing.functional:
-    - It modifies the HTTP Authorization header to encode user and
-      password into base64 if it is Basic authentication.
-    """
-
-    def __init__(self, wsgi_stack):
-        self.wsgi_stack = wsgi_stack
-
-    def __call__(self, environ, start_response):
-        # Handle authorization
-        auth_key = 'HTTP_AUTHORIZATION'
-        if auth_key in environ:
-            environ[auth_key] = auth_header(environ[auth_key])
-
-        # Remove unwanted headers
-        def application_start_response(status, headers, exc_info=None):
-            headers = filter(is_wanted_header, headers)
-            start_response(status, headers)
-
-        for entry in self.wsgi_stack(environ, application_start_response):
-            yield entry
-
+_APP_UNDER_TEST = None # setup and torn down by the Layer class
 
 class Layer(object):
     """Test layer which sets up WSGI application for use with
-    wsgi_intercept/testbrowser.
+    WebTest/testbrowser.
 
     """
 
@@ -117,13 +174,10 @@ class Layer(object):
 
     def setUp(self):
         self.cooperative_super('setUp')
-        self.app = self.make_wsgi_app()
-        factory = lambda: AuthorizationMiddleware(self.app)
-
-        for host in TEST_HOSTS:
-            wsgi_intercept.add_wsgi_intercept(host, 80, factory)
+        global _APP_UNDER_TEST
+        _APP_UNDER_TEST = self.make_wsgi_app()
 
     def tearDown(self):
-        for host in TEST_HOSTS:
-            wsgi_intercept.remove_wsgi_intercept(host, 80)
+        global _APP_UNDER_TEST
+        _APP_UNDER_TEST = None
         self.cooperative_super('tearDown')
