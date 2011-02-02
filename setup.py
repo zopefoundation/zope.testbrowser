@@ -59,7 +59,7 @@ setup(
         'test': [
             'zope.testing',
             'zope.pagetemplate',
-            'zope.testbrowser [webtest,wsgi]',
+            'zope.testbrowser [wsgi]',
             ],
         'test_bbb': [
             'zope.testbrowser [test,zope-functional-testing]',
@@ -67,11 +67,8 @@ setup(
         'zope-functional-testing': [
             'zope.app.testing >= 3.9.0dev',
             ],
-        'webtest': [
-            'WebTest',
-            ],
         'wsgi': [
-            'wsgi_intercept',
+            'WebTest',
             ]
         },
     include_package_data = True,
