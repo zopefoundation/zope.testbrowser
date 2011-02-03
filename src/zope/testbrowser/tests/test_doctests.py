@@ -34,3 +34,6 @@ def test_suite():
     wire.level = 2
 
     return unittest.TestSuite((suite, wire))
+
+# additional_tests is for setuptools "setup.py test" support
+additional_tests = test_suite

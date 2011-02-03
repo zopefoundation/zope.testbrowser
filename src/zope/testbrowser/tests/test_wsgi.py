@@ -13,32 +13,30 @@
 ##############################################################################
 
 import unittest
+from wsgiref.simple_server import demo_app
+
 import zope.testbrowser.wsgi
-
-
-# Copied from PEP #333
-def simple_app(environ, start_response):
-    """Simplest possible application object"""
-    status = '200 OK'
-    response_headers = [('Content-type', 'text/plain')]
-    start_response(status, response_headers)
-    return ['Hello world!\n']
 
 
 class SimpleLayer(zope.testbrowser.wsgi.Layer):
 
     def make_wsgi_app(self):
-        return simple_app
+        return demo_app
 
 SIMPLE_LAYER = SimpleLayer()
 
 
-class TestWSGI(unittest.TestCase):
+class TestWSGILayer(unittest.TestCase):
 
-    layer = SIMPLE_LAYER
+    def setUp(self):
+        # test the layer without depending on zope.testrunner
+        SIMPLE_LAYER.setUp()
 
-    def test_(self):
+    def tearDown(self):
+        SIMPLE_LAYER.tearDown()
+
+    def test_layer(self):
+        """When the layer is setup, the wsgi_app argument is unnecessary"""
         browser = zope.testbrowser.wsgi.Browser()
         browser.open('http://localhost')
-        self.assertEqual('Hello world!\n', browser.contents)
-        # XXX test for authorization header munging is missing
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))

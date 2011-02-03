@@ -25,6 +25,10 @@ long_description = (
     + open('CHANGES.txt').read()
     )
 
+tests_require = ['zope.testing',
+                 'zope.pagetemplate',
+                 'WebTest'],
+
 setup(
     name = 'zope.testbrowser',
     version='4.0.0dev',
@@ -46,7 +50,8 @@ setup(
     packages = find_packages('src'),
     package_dir = {'': 'src'},
     namespace_packages = ['zope',],
-    tests_require = ['zope.testing'],
+    test_suite = 'zope.testbrowser.tests',
+    tests_require = tests_require,
     install_requires = [
         # mechanize 0.2.0 folds in ClientForm, makes incompatible API changes
         'mechanize>=0.2.0',
@@ -56,11 +61,7 @@ setup(
         'pytz',
         ],
     extras_require = {
-        'test': [
-            'zope.testing',
-            'zope.pagetemplate',
-            'zope.testbrowser [wsgi]',
-            ],
+        'test': tests_require,
         'test_bbb': [
             'zope.testbrowser [test,zope-functional-testing]',
             ],

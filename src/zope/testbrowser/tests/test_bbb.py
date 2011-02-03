@@ -16,17 +16,9 @@ import unittest
 class TestZopeAppTesting(unittest.TestCase):
 
     def test_import(self):
+        try:
+            import zope.app.testing
+        except ImportError:
+            return
         from zope.testbrowser.testing import Browser
         browser = Browser()
-
-def test_suite():
-    suite = unittest.TestSuite()
-    loader = unittest.TestLoader().loadTestsFromTestCase
-
-    try:
-        import zope.app.testing
-        suite.addTest(loader(TestZopeAppTesting))
-    except ImportError:
-        pass
-
-    return suite

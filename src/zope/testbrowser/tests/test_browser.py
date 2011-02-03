@@ -435,3 +435,6 @@ def test_suite():
     return doctest.DocTestSuite(
         checker=zope.testbrowser.tests.helper.checker,
         optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS)
+
+# additional_tests is for setuptools "setup.py test" support
+additional_tests = test_suite
