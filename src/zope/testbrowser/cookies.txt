@@ -9,7 +9,11 @@ The cookies mapping has an extended mapping interface that allows getting,
 setting, and deleting the cookies that the browser is remembering for the
 current url, or for an explicitly provided URL.
 
-    >>> browser = Browser()
+    >>> from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
+    >>> from zope.testbrowser.wsgi import Browser
+
+    >>> wsgi_app = WSGITestApplication()
+    >>> browser = Browser(wsgi_app=wsgi_app)
 
 Initially the browser does not point to a URL, and the cookies cannot be used.
 

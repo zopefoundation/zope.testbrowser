@@ -5,6 +5,9 @@ Fixed Bugs
 This file includes tests for bugs that were found and then fixed that don't fit
 into the more documentation-centric sections above.
 
+    >>> from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
+    >>> from zope.testbrowser.wsgi import Browser
+    >>> wsgi_app = WSGITestApplication()
 
 Unicode URLs
 ============
@@ -24,11 +27,11 @@ Browser.addHeader().
 
 The tests below failed before the change was put in place.
 
-    >>> browser = Browser()
+    >>> browser = Browser(wsgi_app=wsgi_app)
     >>> browser.addHeader('Cookie', 'test')
     >>> browser.open(u'http://localhost/@@/testbrowser/simple.html')
 
-    >>> browser = Browser()
+    >>> browser = Browser(wsgi_app=wsgi_app)
     >>> browser.addHeader(u'Cookie', 'test')
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
 

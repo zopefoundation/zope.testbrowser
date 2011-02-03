@@ -11,8 +11,8 @@ HTTP Browser
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
 
-    >>> from zope.testbrowser.browser import Browser as RealBrowser
-    >>> browser = RealBrowser()
+    >>> from zope.testbrowser.browser import Browser
+    >>> browser = Browser()
 
 This version of the browser object can be used to access any web site just as
 you would do using a normal web browser.
@@ -24,9 +24,9 @@ There is also a special version of the ``Browser`` class which uses
 `WebTest`_ and can be used to do functional testing of WSGI
 applications, it can be imported from ``zope.testbrowser.wsgi``:
 
-    >>> from zope.testbrowser.wsgi import Browser as WSGIBrowser
+    >>> from zope.testbrowser.wsgi import Browser
     >>> from wsgiref.simple_server import demo_app
-    >>> browser = WSGIBrowser('http://localhost/', wsgi_app=demo_app)
+    >>> browser = Browser('http://localhost/', wsgi_app=demo_app)
     >>> print browser.contents
     Hello world!
     ...
@@ -56,11 +56,14 @@ Where ``simple_app`` is the callable of your WSGI application.
 Bowser Usage
 ------------
 
-To allow this test to be run against different implementations, we will use a
-Browser object from the test globals. An initial page to load can be passed to
-the ``Browser`` constructor:
+We will test this browser against a WSGI test application:
 
-    >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
+    >>> from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
+    >>> wsgi_app = WSGITestApplication()
+
+An initial page to load can be passed to the ``Browser`` constructor:
+
+    >>> browser = Browser('http://localhost/@@/testbrowser/simple.html', wsgi_app=wsgi_app)
     >>> browser.url
     'http://localhost/@@/testbrowser/simple.html'
 
@@ -1223,7 +1226,7 @@ If a form is requested that does not exists, an exception will be raised.
 If the HTML page contains only one form, no arguments to `getForm` are
 needed:
 
-    >>> oneform = Browser()
+    >>> oneform = Browser(wsgi_app=wsgi_app)
     >>> oneform.open('http://localhost/@@/testbrowser/oneform.html')
     >>> form = oneform.getForm()
 
@@ -1399,3 +1402,20 @@ instance attributes accidentally.
     Traceback (most recent call last):
     ...
     AttributeError: 'Link' object has no attribute 'nonexistant'
+
+
+HTTPS support
+-------------
+
+Depending on the scheme of the request the variable wsgi.url_scheme will be set
+correctly on the request:
+
+    >>> browser.open('http://localhost/echo_one.html?var=wsgi.url_scheme')
+    >>> print browser.contents
+    'http'
+    
+    >>> browser.open('https://localhost/echo_one.html?var=wsgi.url_scheme')
+    >>> print browser.contents
+    'https'
+
+see http://www.python.org/dev/peps/pep-3333/ for details.
