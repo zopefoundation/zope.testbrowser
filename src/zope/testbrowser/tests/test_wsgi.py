@@ -40,3 +40,4 @@ class TestWSGILayer(unittest.TestCase):
         browser = zope.testbrowser.wsgi.Browser()
         browser.open('http://localhost')
         self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        # XXX test for authorization header munging is missing
