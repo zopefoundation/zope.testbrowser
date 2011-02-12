@@ -20,8 +20,6 @@ from datetime import datetime
 from webob import Request, Response
 from zope.pagetemplate.pagetemplatefile import PageTemplateFile
 
-from zope.testbrowser import ftests
-
 class NotFound(Exception):
     pass
 
@@ -30,9 +28,8 @@ _HERE = os.path.dirname(__file__)
 class MyPageTemplateFile(PageTemplateFile):
 
     def pt_getContext(self, args, *extra_args, **kw):
-        request = args[0]
         namespace = super(MyPageTemplateFile, self).pt_getContext(args, *extra_args, **kw)
-        namespace['request'] = request
+        namespace['request'] = args[0]
         return namespace
 
 class WSGITestApplication(object):

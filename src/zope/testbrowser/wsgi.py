@@ -14,15 +14,8 @@
 """WSGI-specific testing code
 """
 
-from __future__ import absolute_import
-
-import cStringIO
-import Cookie
-import httplib
-import socket
 import sys
 
-import mechanize
 from webtest import TestApp
 
 import zope.testbrowser.browser

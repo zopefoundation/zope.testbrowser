@@ -22,7 +22,7 @@ WSGI Test Browser
 
 There is also a special version of the ``Browser`` class which uses
 `WebTest`_ and can be used to do functional testing of WSGI
-applications, it can be imported from ``zope.testbrowser.wsgi``:
+applications. It can be imported from ``zope.testbrowser.wsgi``:
 
     >>> from zope.testbrowser.wsgi import Browser
     >>> from wsgiref.simple_server import demo_app
@@ -1310,11 +1310,11 @@ pystones is usually a better choice.
     True
 
 
-Handling Errors when using Zope 3's Publisher
----------------------------------------------
+Handling Errors
+---------------
 
-A very useful feature of the publisher is the automatic graceful handling of
-application errors, such as invalid URLs:
+Often WSGI middleware or the application itself gracefully handle application
+errors, such as invalid URLs:
 
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
@@ -1322,7 +1322,7 @@ application errors, such as invalid URLs:
     HTTPError: HTTP Error 404: Not Found
 
 Note that the above error was thrown by ``mechanize`` and not by the
-publisher.  For debugging purposes, however, it can be very useful to see the
+application.  For debugging purposes, however, it can be very useful to see the
 original exception caused by the application.  In those cases you can set the
 ``handleErrors`` property of the browser to ``False``.  It is defaulted to
 ``True``:
@@ -1330,21 +1330,21 @@ original exception caused by the application.  In those cases you can set the
     >>> browser.handleErrors
     True
 
-So when we tell the publisher not to handle the errors,
+So when we tell the application not to handle the errors,
 
     >>> browser.handleErrors = False
 
-we get a different, Zope internal error:
+we get a different, internal error from the application:
 
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
     NotFound: /invalid
 
-NB: Setting the handleErrors attribute to False will only change
-    anything if the http server you're testing is using Zope 3's
-    publisher or can otherwise respond appropriately to an
-    'X-zope-handle-errors' header in requests.
+NB: Setting the handleErrors attribute to False will only change anything if
+    the WSGI application obeys the wsgi.handleErrors or paste.throw_errors
+    WSGI environment variables. i.e. it does not catch and handle the original
+    exception when these are set appropriately.
 
 When the testbrowser is raising HttpErrors, the errors still hit the test.
 Sometimes we don't want that to happen, in situations where there are edge
