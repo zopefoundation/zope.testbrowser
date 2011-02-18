@@ -33,10 +33,14 @@ RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
 compressText = lambda text: _compress_re.sub(' ', text.strip())
 
-def disambiguate(intermediate, msg, index):
+def disambiguate(intermediate, msg, index, choice_repr=None):
     if intermediate:
         if index is None:
             if len(intermediate) > 1:
+                if choice_repr:
+                    msg += ' matches:' + ''.join([
+                                '\n  %s' % choice_repr(choice)
+                                for choice in intermediate])
                 raise mechanize.AmbiguityError(msg)
             else:
                 return intermediate[0]
@@ -46,6 +50,15 @@ def disambiguate(intermediate, msg, index):
             except KeyError:
                 msg = '%s index %d' % (msg, index)
     raise LookupError(msg)
+
+def control_form_tuple_repr((ctrl, form)):
+    if isinstance(ctrl, mechanize._form.Control):
+        # mechanize._form controls have a useful __str__ and a useless __repr__
+        return str(ctrl)
+    else:
+        # mechanize._form list control items have a useful __repr__ and a
+        # too-terse __str__.
+        return repr(ctrl)
 
 def controlFactory(control, form, browser):
     if isinstance(control, mechanize.Item):
@@ -368,7 +381,8 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         intermediate, msg = self._get_all_controls(
             label, name, self.mech_browser.forms(), include_subcontrols=True)
-        control, form = disambiguate(intermediate, msg, index)
+        control, form = disambiguate(intermediate, msg, index,
+                                     control_form_tuple_repr)
         return controlFactory(control, form, self)
 
     def _get_all_controls(self, label, name, forms, include_subcontrols=False):
@@ -624,7 +638,8 @@ class ListControl(Control):
             options = self.mech_control.get_items(name=value)
             msg = 'value %r' % value
         res = controlFactory(
-            disambiguate(options, msg, index), self.mech_form, self.browser)
+            disambiguate(options, msg, index, control_form_tuple_repr),
+            self.mech_form, self.browser)
         res.__dict__['control'] = self
         return res
 
@@ -753,7 +768,8 @@ class Form(SetattrErrorsMixin):
                 intermediate = [
                     (control, form) for (control, form) in intermediate if
                     control.type in ('submit', 'submitbutton', 'image')]
-                control, form = disambiguate(intermediate, msg, index)
+                control, form = disambiguate(intermediate, msg, index,
+                                             control_form_tuple_repr)
                 self.browser._clickSubmit(form, control, coord)
             else: # JavaScript sort of submit
                 if index is not None or coord != (1,1):
@@ -778,5 +794,6 @@ class Form(SetattrErrorsMixin):
             raise zope.testbrowser.interfaces.ExpiredError
         intermediate, msg = self.browser._get_all_controls(
             label, name, (self.mech_form,), include_subcontrols=True)
-        control, form = disambiguate(intermediate, msg, index)
+        control, form = disambiguate(intermediate, msg, index,
+                                     control_form_tuple_repr)
         return controlFactory(control, form, self.browser)

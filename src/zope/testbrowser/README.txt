@@ -463,7 +463,9 @@ AmbiguityError.
     >>> browser.getControl('Ambiguous Control')
     Traceback (most recent call last):
     ...
-    AmbiguityError: label 'Ambiguous Control'
+    AmbiguityError: label 'Ambiguous Control' matches:
+      <TextControl(ambiguous-control-name=First)>
+      <TextControl(ambiguous-control-name=Second)>
 
 This is also true if an option in a control is ambiguous in relation to
 the control itself.
@@ -471,7 +473,9 @@ the control itself.
     >>> browser.getControl('Sub-control Ambiguity')
     Traceback (most recent call last):
     ...
-    AmbiguityError: label 'Sub-control Ambiguity'
+    AmbiguityError: label 'Sub-control Ambiguity' matches:
+      <SelectControl(ambiguous-subcontrol=[*, ambiguous])>
+      <Item name='ambiguous' id=None contents='Sub-control Ambiguity Exemplified' value='ambiguous' label='Sub-control Ambiguity Exemplified'>
 
 Ambiguous controls may be specified using an index value.  We use the control's
 value attribute to show the two controls; this attribute is properly introduced
@@ -536,7 +540,9 @@ Get also accepts one other search argument, 'name'.  Only one of 'label' and
     >>> browser.getControl(name='ambiguous-control-name')
     Traceback (most recent call last):
     ...
-    AmbiguityError: name 'ambiguous-control-name'
+    AmbiguityError: name 'ambiguous-control-name' matches:
+      <TextControl(ambiguous-control-name=First)>
+      <TextControl(ambiguous-control-name=Second)>
     >>> browser.getControl(name='does-not-exist')
     Traceback (most recent call last):
     ...
@@ -675,7 +681,11 @@ These fields have four other attributes and an additional method:
     >>> browser.getControl('Third') # ambiguous in the browser, so useful
     Traceback (most recent call last):
     ...
-    AmbiguityError: label 'Third'
+    AmbiguityError: label 'Third' matches:
+      <Item name='3' id=None contents='Tres' value='3' label='Third'>
+      <Item name='3' id=None contents='Trois' value='3' label='Third'>
+      <Item name='3' id='multi-checkbox-value-3' __label={'__text': 'Three\n        '} checked='checked' name='multi-checkbox-value' type='checkbox' id='multi-checkbox-value-3' value='3'>
+      <Item name='3' id='radio-value-3' __label={'__text': ' Drei'} type='radio' name='radio-value' value='3' id='radio-value-3'>
 
 Finally, submit controls provide ISubmitControl, and image controls provide
 IImageSubmitControl, which extents ISubmitControl.  These both simply add a
@@ -1185,11 +1195,17 @@ the `forms.html` template, we have four forms all having a text control named
     >>> browser.getControl(name='text-value')
     Traceback (most recent call last):
     ...
-    AmbiguityError: name 'text-value'
+    AmbiguityError: name 'text-value' matches:
+      <TextControl(text-value=First Text)>
+      <TextControl(text-value=Second Text)>
+      <TextControl(text-value=Third Text)>
+      <TextControl(text-value=Fourth Text)>
     >>> browser.getControl('Text Control')
     Traceback (most recent call last):
     ...
-    AmbiguityError: label 'Text Control'
+    AmbiguityError: label 'Text Control' matches:
+      <TextControl(text-value=Third Text)>
+      <TextControl(text-value=Fourth Text)>
 
 I'll always get an ambiguous form field.  I can use the index argument, or
 with the `getForm` method I can disambiguate by searching only within a given
