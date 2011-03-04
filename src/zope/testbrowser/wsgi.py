@@ -154,6 +154,10 @@ class Layer(object):
     __bases__ = ()
     __name__ = 'Layer'
 
+    @property
+    def app(self):
+        return _APP_UNDER_TEST
+
     def make_wsgi_app(self):
         # Override this method in subclasses of this layer in order to set up
         # the WSGI application.
@@ -168,6 +172,8 @@ class Layer(object):
     def setUp(self):
         self.cooperative_super('setUp')
         global _APP_UNDER_TEST
+        if _APP_UNDER_TEST is not None:
+            raise AssertionError("Already Setup")
         _APP_UNDER_TEST = self.make_wsgi_app()
 
     def tearDown(self):

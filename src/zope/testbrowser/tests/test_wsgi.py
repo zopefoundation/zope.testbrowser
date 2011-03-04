@@ -41,3 +41,12 @@ class TestWSGILayer(unittest.TestCase):
         browser.open('http://localhost')
         self.assertTrue(browser.contents.startswith('Hello world!\n'))
         # XXX test for authorization header munging is missing
+
+    def test_app_property(self):
+        # The layer has a .app property where the application under test is available
+        self.assertTrue(SIMPLE_LAYER.app is demo_app)
+
+    def test_there_can_only_be_one(self):
+        another_layer = SimpleLayer()
+        # The layer has a .app property where the application under test is available
+        self.assertRaises(AssertionError, another_layer.setUp)
