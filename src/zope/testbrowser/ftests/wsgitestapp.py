@@ -39,6 +39,7 @@ class WSGITestApplication(object):
         handler = {'/set_status.html': set_status,
                    '/echo.html': echo,
                    '/echo_one.html': echo_one,
+                   '/set_header.html': set_header,
                    '/set_cookie.html': set_cookie,
                    '/get_cookie.html': get_cookie,
                    '/inner/set_cookie.html': set_cookie,
@@ -89,6 +90,15 @@ def set_cookie(req):
         cookie_parms['expires'] = datetime.strptime(cookie_parms.pop('expires'), '%a, %d %b %Y %H:%M:%S GMT')
     resp = Response()
     resp.set_cookie(name, value, **cookie_parms)
+    return resp
+
+def set_header(req):
+    resp = Response()
+    body = [u"Set Headers:"]
+    for k, v in sorted(req.params.items()):
+        body.extend([k, v]) 
+        resp.headers.add(k, v)
+    resp.unicode_body = u'\n'.join(body)
     return resp
 
 _interesting_environ = ('CONTENT_LENGTH',

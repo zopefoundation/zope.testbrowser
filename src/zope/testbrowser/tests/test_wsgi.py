@@ -16,6 +16,7 @@ import unittest
 from wsgiref.simple_server import demo_app
 
 import zope.testbrowser.wsgi
+from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
 
 
 class SimpleLayer(zope.testbrowser.wsgi.Layer):
@@ -50,3 +51,36 @@ class TestWSGILayer(unittest.TestCase):
         another_layer = SimpleLayer()
         # The layer has a .app property where the application under test is available
         self.assertRaises(AssertionError, another_layer.setUp)
+
+class TestAuthorizationMiddleware(unittest.TestCase):
+
+    def setUp(self):
+        app = WSGITestApplication()
+        self.unwrapped_browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+        app = zope.testbrowser.wsgi.AuthorizationMiddleware(app)
+        self.browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+
+    def test_unwanted_headers(self):
+        #x-powered-by and x-content-type-warning are filtered
+        url = 'http://localhost/set_header.html?x-other=another&x-powered-by=zope&x-content-type-warning=bar'
+        self.browser.open(url)
+        self.assertEquals(self.browser.headers['x-other'], 'another')
+        self.assertTrue('x-other' in self.browser.headers)
+        self.assertFalse('x-powered-by' in self.browser.headers)
+        self.assertFalse('x-content-type-warning' in self.browser.headers)
+        # make sure we are actually testing something
+        self.unwrapped_browser.open(url)
+        self.assertTrue('x-powered-by' in self.unwrapped_browser.headers)
+        self.assertTrue('x-content-type-warning' in self.unwrapped_browser.headers)
+    
+    def test_authorization(self):
+        # Basic authorization headers are encoded in base64
+        self.browser.addHeader('Authorization', 'Basic mgr:mgrpw')
+        self.browser.open('http://localhost/echo_one.html?var=HTTP_AUTHORIZATION')
+        self.assertEquals(self.browser.contents, repr('Basic bWdyOm1ncnB3'))
+
+    def test_authorization_other(self):
+        # Non-Basic authorization headers are unmolested
+        self.browser.addHeader('Authorization', 'Digest foobar')
+        self.browser.open('http://localhost/echo_one.html?var=HTTP_AUTHORIZATION')
+        self.assertEquals(self.browser.contents, repr('Digest foobar'))

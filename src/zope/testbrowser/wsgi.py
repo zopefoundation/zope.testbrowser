@@ -14,6 +14,8 @@
 """WSGI-specific testing code
 """
 
+import base64
+import re
 import sys
 
 from webtest import TestApp
@@ -103,6 +105,10 @@ class WSGIConnection(object):
         headers.sort()
         headers.insert(0, ('Status', response.status))
         headers = '\r\n'.join('%s: %s' % h for h in headers)
+        # Ugh! WebTest's headers can at times be unicode. That causes weird
+        # problems later when they are shoved into a StringIO. So just cast
+        # to a string for now using ascii.
+        headers = str(headers)
         content = response.body
         return zope.testbrowser.connection.Response(content, headers, status, reason)
 
@@ -144,6 +150,59 @@ class Browser(zope.testbrowser.browser.Browser):
         super(Browser, self).__init__(url=url, mech_browser=mech_browser)
 
 _APP_UNDER_TEST = None # setup and torn down by the Layer class
+
+# Compatibility helpers to behave like zope.app.testing
+
+basicre = re.compile('Basic (.+)?:(.+)?$')
+
+
+def auth_header(header):
+    """This function takes an authorization HTTP header and encode the
+    couple user, password into base 64 like the HTTP protocol wants
+    it.
+    """
+    match = basicre.match(header)
+    if match:
+        u, p = match.group(1, 2)
+        if u is None:
+            u = ''
+        if p is None:
+            p = ''
+        auth = base64.encodestring('%s:%s' % (u, p))
+        return 'Basic %s' % auth[:-1]
+    return header
+
+
+def is_wanted_header(header):
+    """Return True if the given HTTP header key is wanted.
+    """
+    key, value = header
+    return key.lower() not in ('x-content-type-warning', 'x-powered-by')
+
+
+class AuthorizationMiddleware(object):
+    """This middleware makes the WSGI application compatible with the
+    HTTPCaller behavior defined in zope.app.testing.functional:
+    - It modifies the HTTP Authorization header to encode user and
+      password into base64 if it is Basic authentication.
+    """
+
+    def __init__(self, wsgi_stack):
+        self.wsgi_stack = wsgi_stack
+
+    def __call__(self, environ, start_response):
+        # Handle authorization
+        auth_key = 'HTTP_AUTHORIZATION'
+        if auth_key in environ:
+            environ[auth_key] = auth_header(environ[auth_key])
+
+        # Remove unwanted headers
+        def application_start_response(status, headers, exc_info=None):
+            headers = filter(is_wanted_header, headers)
+            start_response(status, headers)
+
+        for entry in self.wsgi_stack(environ, application_start_response):
+            yield entry
 
 class Layer(object):
     """Test layer which sets up WSGI application for use with
