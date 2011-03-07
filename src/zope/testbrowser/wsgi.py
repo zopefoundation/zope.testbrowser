@@ -51,11 +51,6 @@ class WSGIConnection(object):
     def set_debuglevel(self, level):
         pass
 
-    def _quote(self, url):
-        # XXX: is this necessary with WebTest? Was cargeo-culted from the 
-        # Zope Publisher Connection
-        return url.replace(' ', '%20')
-
     def request(self, method, url, body=None, headers=None):
         """Send a request to the publisher.
 
@@ -66,8 +61,6 @@ class WSGIConnection(object):
 
         if url == '':
             url = '/'
-
-        url = self._quote(url)
 
         # Extract the handle_error option header
         if sys.version_info >= (2,5):
