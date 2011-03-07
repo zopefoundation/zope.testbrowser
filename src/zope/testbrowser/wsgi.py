@@ -34,6 +34,8 @@ _allowed.update(_allowed_2nd_level)
 class WSGIConnection(object):
     """A ``mechanize`` compatible connection object."""
 
+    _allowed = True
+
     def __init__(self, test_app, host, timeout=None):
         self._test_app = TestApp(test_app)
         self.host = host
@@ -46,7 +48,7 @@ class WSGIConnection(object):
         for dom in _allowed_2nd_level:
             if host.endswith('.%s' % dom):
                 return
-        raise HostNotAllowed(host)
+        self._allowed = False
 
     def set_debuglevel(self, level):
         pass
@@ -83,6 +85,9 @@ class WSGIConnection(object):
         extra_environ['wsgi.url_scheme'] = headers.get(scheme_key, 'http')
         if scheme_key in headers:
             del headers[scheme_key]
+
+        if not self._allowed:
+            raise HostNotAllowed('%s://%s%s' % (extra_environ['wsgi.url_scheme'], self.host, url))
 
         app = self._test_app
 
