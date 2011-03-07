@@ -161,13 +161,11 @@ class Browser(zope.testbrowser.browser.Browser):
 
     def __init__(self, url=None, wsgi_app=None):
         if wsgi_app is None:
-            wsgi_app = _APP_UNDER_TEST
+            wsgi_app = Layer.get_app()
         if wsgi_app is None:
             raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
         mech_browser = WSGIMechanizeBrowser(wsgi_app)
         super(Browser, self).__init__(url=url, mech_browser=mech_browser)
-
-_APP_UNDER_TEST = None # setup and torn down by the Layer class
 
 # Compatibility helpers to behave like zope.app.testing
 
@@ -222,6 +220,9 @@ class AuthorizationMiddleware(object):
         for entry in self.wsgi_stack(environ, application_start_response):
             yield entry
 
+
+_APP_UNDER_TEST = None # setup and torn down by the Layer class
+
 class Layer(object):
     """Test layer which sets up WSGI application for use with
     WebTest/testbrowser.
@@ -231,8 +232,8 @@ class Layer(object):
     __bases__ = ()
     __name__ = 'Layer'
 
-    @property
-    def app(self):
+    @classmethod
+    def get_app(cls):
         return _APP_UNDER_TEST
 
     def make_wsgi_app(self):

@@ -69,7 +69,7 @@ class TestWSGILayer(unittest.TestCase):
 
     def test_app_property(self):
         # The layer has a .app property where the application under test is available
-        self.assertTrue(SIMPLE_LAYER.app is demo_app)
+        self.assertTrue(SIMPLE_LAYER.get_app() is demo_app)
 
     def test_there_can_only_be_one(self):
         another_layer = SimpleLayer()
