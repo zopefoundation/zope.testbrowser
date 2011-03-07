@@ -61,7 +61,6 @@ class WSGITestApplication(object):
             if isinstance(exc, NotFound):
                 status = 404
             resp.status = status
-        resp.headers.add('X-Powered-By', 'Zope (www.zope.org), Python (www.python.org)')
         return resp(environ, start_response)
 
 def handle_notfound(req):

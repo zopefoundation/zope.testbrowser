@@ -183,7 +183,6 @@ The headers can be accessed as a string:
     Status: 200 OK
     Content-Length: 123
     Content-Type: text/html;charset=utf-8
-    X-Powered-By: Zope (www.zope.org), Python (www.python.org)
 
 Or as a mapping:
 
