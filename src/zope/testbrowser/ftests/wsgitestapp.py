@@ -57,7 +57,10 @@ class WSGITestApplication(object):
             if not environ.get('wsgi.handleErrors', True):
                 raise
             resp = Response()
-            resp.status = {NotFound: 404}.get(type(exc), 500)
+            status = 500
+            if isinstance(exc, NotFound):
+                status = 404
+            resp.status = status
         resp.headers.add('X-Powered-By', 'Zope (www.zope.org), Python (www.python.org)')
         return resp(environ, start_response)
 
