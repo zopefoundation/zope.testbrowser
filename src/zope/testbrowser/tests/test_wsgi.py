@@ -27,6 +27,30 @@ class SimpleLayer(zope.testbrowser.wsgi.Layer):
 SIMPLE_LAYER = SimpleLayer()
 
 
+class TestBrowser(unittest.TestCase):
+
+    def test_allowed_domains(self):
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=demo_app)
+        # external domains are not allowed
+        self.assertRaises(zope.testbrowser.wsgi.HostNotAllowed, browser.open, 'http://www.google.com')
+        self.assertRaises(zope.testbrowser.wsgi.HostNotAllowed, browser.open, 'https://www.google.com')
+        # internal ones are
+        browser.open('http://localhost')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        browser.open('http://127.0.0.1')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        # as are example ones
+        browser.open('http://example.com')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        browser.open('http://example.net')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        # and subdomains of example
+        browser.open('http://foo.example.com')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        browser.open('http://bar.example.net')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+
+
 class TestWSGILayer(unittest.TestCase):
 
     def setUp(self):

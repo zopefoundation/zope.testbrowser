@@ -23,12 +23,30 @@ from webtest import TestApp
 import zope.testbrowser.browser
 import zope.testbrowser.connection
 
+class HostNotAllowed(Exception):
+    pass
+
+_allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 2606
+
+_allowed = set(['localhost', '127.0.0.1'])
+_allowed.update(_allowed_2nd_level)
+
 class WSGIConnection(object):
     """A ``mechanize`` compatible connection object."""
 
     def __init__(self, test_app, host, timeout=None):
         self._test_app = TestApp(test_app)
         self.host = host
+        self.assert_allowed_host()
+
+    def assert_allowed_host(self):
+        host = self.host
+        if host in _allowed:
+            return
+        for dom in _allowed_2nd_level:
+            if host.endswith('.%s' % dom):
+                return
+        raise HostNotAllowed(host)
 
     def set_debuglevel(self, level):
         pass
