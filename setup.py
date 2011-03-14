@@ -25,9 +25,13 @@ long_description = (
     + open('CHANGES.txt').read()
     )
 
+tests_require = ['zope.testing',
+                 'zope.pagetemplate',
+                 'WebTest'],
+
 setup(
     name = 'zope.testbrowser',
-    version='3.11.2dev',
+    version='4.0.0dev',
     url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
     description = 'Programmable browser for functional black-box tests',
@@ -46,7 +50,8 @@ setup(
     packages = find_packages('src'),
     package_dir = {'': 'src'},
     namespace_packages = ['zope',],
-    tests_require = ['zope.testing'],
+    test_suite = 'zope.testbrowser.tests',
+    tests_require = tests_require,
     install_requires = [
         # mechanize 0.2.0 folds in ClientForm, makes incompatible API changes
         'mechanize>=0.2.0',
@@ -56,26 +61,15 @@ setup(
         'pytz',
         ],
     extras_require = {
-        'test': [
-            'zope.browserpage',
-            'zope.browserresource',
-            'zope.component',
-            'zope.container',
-            'zope.principalregistry',
-            'zope.ptresource',
-            'zope.publisher',
-            'zope.security',
-            'zope.site',
-            'zope.traversing',
-            'zope.app.appsetup',
-            'zope.app.publication',
-            'zope.app.testing >= 3.8.1',
+        'test': tests_require,
+        'test_bbb': [
+            'zope.testbrowser [test,zope-functional-testing]',
             ],
         'zope-functional-testing': [
-            'zope.app.testing',
+            'zope.app.testing >= 3.9.0dev',
             ],
         'wsgi': [
-            'wsgi_intercept',
+            'WebTest',
             ]
         },
     include_package_data = True,

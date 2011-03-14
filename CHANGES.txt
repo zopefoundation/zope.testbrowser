@@ -2,10 +2,21 @@
 CHANGES
 =======
 
-3.11.2 (unreleased)
--------------------
+4.0.0 (2011-03-14)
+------------------
 
 - LP #721252: AmbiguityError now shows all matching controls.
+
+- Integrate with WebTest. ``zope.testbrowser.wsgi.Browser`` is a
+  ``Browser`` implementation that uses ``webtest.TestApp`` to drive a WSGI
+  application. This this replaces the wsgi_intercept support added in 3.11.
+
+- Re-write the test application as a pure WSGI application using WebOb. Run the
+  existing tests using the WebTest based Browser
+
+- Move zope.app.testing based Browser into ``zope.app.testing`` (leaving
+  backwards compatibility imports in-place). Released in ``zope.app.testing``
+  3.9.0.
 
 
 3.11.1 (2011-01-24)

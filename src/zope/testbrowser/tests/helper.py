@@ -37,4 +37,7 @@ checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'Host: localhost'), 'Connection: close'),
     (re.compile(r'Content-Type: '), 'Content-type: '),
     (re.compile(r'Content-Disposition: '), 'Content-disposition: '),
+    (re.compile(r'; charset=UTF-8'), ';charset=utf-8'),
+    # webtest seems to expire cookies one second before the date set in set_cookie
+    (re.compile(r"'expires': datetime.datetime\(2029, 12, 31, 23, 59, 59, tzinfo=<UTC>\),"), "'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),"),
     ])

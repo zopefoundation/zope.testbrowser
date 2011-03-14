@@ -21,17 +21,23 @@ WSGI Test Browser
 ~~~~~~~~~~~~~~~~~
 
 There is also a special version of the ``Browser`` class which uses
-`wsgi_intercept`_ and can be used to do functional testing of WSGI
-applications, it can be imported from ``zope.testbrowser.wsgi``:
+`WebTest`_ and can be used to do functional testing of WSGI
+applications. It can be imported from ``zope.testbrowser.wsgi``:
 
     >>> from zope.testbrowser.wsgi import Browser
-    >>> browser = Browser()
+    >>> from wsgiref.simple_server import demo_app
+    >>> browser = Browser('http://localhost/', wsgi_app=demo_app)
+    >>> print browser.contents
+    Hello world!
+    ...
 
-.. _`wsgi_intercept`: http://pypi.python.org/pypi/wsgi_intercept
+.. _`WebTest`: http://pypi.python.org/pypi/WebTest
 
 To use this browser you have to:
 
   * use the `wsgi` extra of the ``zope.testbrowser`` egg,
+
+You can also use it with zope layers by:
 
   * write a subclass of ``zope.testbrowser.wsgi.Layer`` and override the
     ``make_wsgi_app`` method,
@@ -47,23 +53,17 @@ Example:
 
 Where ``simple_app`` is the callable of your WSGI application.
 
-Zope 3 Test Browser
-~~~~~~~~~~~~~~~~~~~
-
-There is also a special version of the ``Browser`` class used to do functional
-testing of Zope 3 applications, it can be imported from
-``zope.testbrowser.testing``:
-
-    >>> from zope.testbrowser.testing import Browser
-    >>> browser = Browser()
-
 Bowser Usage
 ------------
 
-All browsers are used the same way.  An initial page to load can be passed
-to the ``Browser`` constructor:
+We will test this browser against a WSGI test application:
 
-    >>> browser = Browser('http://localhost/@@/testbrowser/simple.html')
+    >>> from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
+    >>> wsgi_app = WSGITestApplication()
+
+An initial page to load can be passed to the ``Browser`` constructor:
+
+    >>> browser = Browser('http://localhost/@@/testbrowser/simple.html', wsgi_app=wsgi_app)
     >>> browser.url
     'http://localhost/@@/testbrowser/simple.html'
 
@@ -183,7 +183,6 @@ The headers can be accessed as a string:
     Status: 200 OK
     Content-Length: 123
     Content-Type: text/html;charset=utf-8
-    X-Powered-By: Zope (www.zope.org), Python (www.python.org)
 
 Or as a mapping:
 
@@ -1242,7 +1241,7 @@ If a form is requested that does not exists, an exception will be raised.
 If the HTML page contains only one form, no arguments to `getForm` are
 needed:
 
-    >>> oneform = Browser()
+    >>> oneform = Browser(wsgi_app=wsgi_app)
     >>> oneform.open('http://localhost/@@/testbrowser/oneform.html')
     >>> form = oneform.getForm()
 
@@ -1261,63 +1260,51 @@ In addition to the open method, zope.testbrowser.testing.Browser has a ``post``
 method that allows a request body to be supplied.  This method is particularly
 helpful when testing Ajax methods.
 
-Let's visit a page that echos it's request:
+Let's visit a page that echos some interesting values from it's request:
 
-    >>> browser.open('http://localhost/@@echo.html')
-    >>> print browser.contents,
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    REMOTE_ADDR: 127.0.0.1
+    >>> browser.open('http://localhost/echo.html')
+    >>> print browser.contents
     HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: GET
+    HTTP_CONNECTION: close
     HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
-    SERVER_PROTOCOL: HTTP/1.1
-    QUERY_STRING:
+    HTTP_USER_AGENT: Python-urllib/2.4
+    PATH_INFO: /echo.html
+    REQUEST_METHOD: GET
     Body: ''
 
 Now, we'll try a post.  The post method takes a URL, a data string,
 and an optional content type.  If we just pass a string, then
 a URL-encoded query string is assumed:
 
-    >>> browser.post('http://localhost/@@echo.html', 'x=1&y=2')
-    >>> print browser.contents,
+    >>> browser.post('http://localhost/echo.html', 'x=1&y=2')
+    >>> print browser.contents
     CONTENT_LENGTH: 7
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    REMOTE_ADDR: 127.0.0.1
-    HTTP_ACCEPT_LANGUAGE: en-US
-    y: 2
-    REQUEST_METHOD: POST
-    HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
     CONTENT_TYPE: application/x-www-form-urlencoded
-    SERVER_PROTOCOL: HTTP/1.1
-    QUERY_STRING:
+    HTTP_ACCEPT_LANGUAGE: en-US
+    HTTP_CONNECTION: close
+    HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
+    PATH_INFO: /echo.html
+    REQUEST_METHOD: POST
     x: 1
+    y: 2
     Body: ''
-
 
 The body is empty because it is consumed to get form data.
 
 We can pass a content-type explicitly:
 
-    >>> browser.post('http://localhost/@@echo.html',
+    >>> browser.post('http://localhost/echo.html',
     ...              '{"x":1,"y":2}', 'application/x-javascript')
-    >>> print browser.contents,
+    >>> print browser.contents
     CONTENT_LENGTH: 13
-    HTTP_USER_AGENT: Python-urllib/2.4
-    HTTP_CONNECTION: close
-    HTTP_COOKIE:
-    REMOTE_ADDR: 127.0.0.1
-    HTTP_ACCEPT_LANGUAGE: en-US
-    REQUEST_METHOD: POST
-    HTTP_HOST: localhost
-    PATH_INFO: /@@echo.html
     CONTENT_TYPE: application/x-javascript
-    SERVER_PROTOCOL: HTTP/1.1
+    HTTP_ACCEPT_LANGUAGE: en-US
+    HTTP_CONNECTION: close
+    HTTP_HOST: localhost
+    HTTP_USER_AGENT: Python-urllib/2.4
+    PATH_INFO: /echo.html
+    REQUEST_METHOD: POST
     Body: '{"x":1,"y":2}'
 
 Here, the body is left in place because it isn't form data.
@@ -1338,11 +1325,11 @@ pystones is usually a better choice.
     True
 
 
-Handling Errors when using Zope 3's Publisher
----------------------------------------------
+Handling Errors
+---------------
 
-A very useful feature of the publisher is the automatic graceful handling of
-application errors, such as invalid URLs:
+Often WSGI middleware or the application itself gracefully handle application
+errors, such as invalid URLs:
 
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
@@ -1350,7 +1337,7 @@ application errors, such as invalid URLs:
     HTTPError: HTTP Error 404: Not Found
 
 Note that the above error was thrown by ``mechanize`` and not by the
-publisher.  For debugging purposes, however, it can be very useful to see the
+application.  For debugging purposes, however, it can be very useful to see the
 original exception caused by the application.  In those cases you can set the
 ``handleErrors`` property of the browser to ``False``.  It is defaulted to
 ``True``:
@@ -1358,22 +1345,21 @@ original exception caused by the application.  In those cases you can set the
     >>> browser.handleErrors
     True
 
-So when we tell the publisher not to handle the errors,
+So when we tell the application not to handle the errors,
 
     >>> browser.handleErrors = False
 
-we get a different, Zope internal error:
+we get a different, internal error from the application:
 
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.site.folder.Folder object at ...>,
-              name: u'invalid'
+    NotFound: /invalid
 
-NB: Setting the handleErrors attribute to False will only change
-    anything if the http server you're testing is using Zope 3's
-    publisher or can otherwise respond appropriately to an
-    'X-zope-handle-errors' header in requests.
+NB: Setting the handleErrors attribute to False will only change anything if
+    the WSGI application obeys the wsgi.handleErrors or paste.throw_errors
+    WSGI environment variables. i.e. it does not catch and handle the original
+    exception when these are set appropriately.
 
 When the testbrowser is raising HttpErrors, the errors still hit the test.
 Sometimes we don't want that to happen, in situations where there are edge
@@ -1401,8 +1387,7 @@ this flag doesn't affect things.
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
-    NotFound: Object: <zope.site.folder.Folder object at ...>,
-        name: u'invalid'
+    NotFound: /invalid
 
     >>> browser.raiseHttpErrors = True
 
@@ -1432,3 +1417,20 @@ instance attributes accidentally.
     Traceback (most recent call last):
     ...
     AttributeError: 'Link' object has no attribute 'nonexistant'
+
+
+HTTPS support
+-------------
+
+Depending on the scheme of the request the variable wsgi.url_scheme will be set
+correctly on the request:
+
+    >>> browser.open('http://localhost/echo_one.html?var=wsgi.url_scheme')
+    >>> print browser.contents
+    'http'
+    
+    >>> browser.open('https://localhost/echo_one.html?var=wsgi.url_scheme')
+    >>> print browser.contents
+    'https'
+
+see http://www.python.org/dev/peps/pep-3333/ for details.

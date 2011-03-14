@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) Zope Corporation and Contributors.
+# Copyright (c) 2011 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -11,3 +11,14 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+import unittest
+
+class TestZopeAppTesting(unittest.TestCase):
+
+    def test_import(self):
+        try:
+            import zope.app.testing
+        except ImportError:
+            return
+        from zope.testbrowser.testing import Browser
+        browser = Browser()

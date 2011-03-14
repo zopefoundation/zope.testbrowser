@@ -14,28 +14,26 @@
 import doctest
 import pkg_resources
 import unittest
-import zope.app.testing.functional
 
-
-TestBrowserLayer = zope.app.testing.functional.ZCMLLayer(
-    pkg_resources.resource_filename(
-        'zope.testbrowser', 'ftests/ftesting.zcml'),
-    __name__, 'TestBrowserLayer', allow_teardown=True)
-
+import zope.testbrowser.ftests.wsgitestapp
+import zope.testbrowser.wsgi
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    suite = zope.app.testing.functional.FunctionalDocFileSuite(
+
+    suite = doctest.DocFileSuite(
         'README.txt',
         'cookies.txt',
         'fixed-bugs.txt',
         optionflags=flags,
         checker=zope.testbrowser.tests.helper.checker,
         package='zope.testbrowser')
-    suite.layer = TestBrowserLayer
 
     wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags,
                                 package='zope.testbrowser')
     wire.level = 2
 
     return unittest.TestSuite((suite, wire))
+
+# additional_tests is for setuptools "setup.py test" support
+additional_tests = test_suite
