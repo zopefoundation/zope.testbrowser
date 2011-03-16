@@ -38,6 +38,7 @@ class WSGITestApplication(object):
         req = Request(environ)
         handler = {'/set_status.html': set_status,
                    '/echo.html': echo,
+                   '/redirect.html': redirect,
                    '/echo_one.html': echo_one,
                    '/set_header.html': set_header,
                    '/set_cookie.html': set_cookie,
@@ -126,6 +127,13 @@ def echo(req):
         body = req.body
     items.append('Body: %r' % body)
     return Response('\n'.join(items))
+
+def redirect(req):
+    loc = req.params['to']
+    resp = Response("You are being redirected to %s" % loc)
+    resp.location = loc
+    resp.status = int(req.params.get('type', 302))
+    return resp
 
 def echo_one(req):
     resp = repr(req.environ.get(req.params['var']))

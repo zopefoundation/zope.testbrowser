@@ -13,6 +13,7 @@
 ##############################################################################
 
 import unittest
+from urllib import urlencode
 from wsgiref.simple_server import demo_app
 
 import zope.testbrowser.wsgi
@@ -28,6 +29,32 @@ SIMPLE_LAYER = SimpleLayer()
 
 
 class TestBrowser(unittest.TestCase):
+
+    def test_redirect(self):
+        app = WSGITestApplication()
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+        # redirecting locally works
+        browser.open('http://localhost/redirect.html?%s'
+                     % urlencode(dict(to='/set_status.html')))
+        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        browser.open('http://localhost/redirect.html?%s'
+                     % urlencode(dict(to='/set_status.html', type='301')))
+        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        browser.open('http://localhost/redirect.html?%s'
+                     % urlencode(dict(to='http://localhost/set_status.html')))
+        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        browser.open('http://localhost/redirect.html?%s'
+                     % urlencode(dict(to='http://localhost/set_status.html', type='301')))
+        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        # non-local redirects raise HostNotAllowed error
+        self.assertRaises(zope.testbrowser.wsgi.HostNotAllowed,
+                          browser.open,
+                          'http://localhost/redirect.html?%s'
+                          % urlencode(dict(to='http://www.google.com/')))
+        self.assertRaises(zope.testbrowser.wsgi.HostNotAllowed,
+                          browser.open,
+                          'http://localhost/redirect.html?%s'
+                          % urlencode(dict(to='http://www.google.com/', type='301')))
 
     def test_allowed_domains(self):
         browser = zope.testbrowser.wsgi.Browser(wsgi_app=demo_app)
