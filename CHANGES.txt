@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-4.0.1 (unreleased)
+4.0.1 (2011-05-04)
 ------------------
 
 - Added a hint in documentation how to use ``zope.testbrowser.wsgi.Browser``
