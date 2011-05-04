@@ -5,7 +5,8 @@ CHANGES
 4.0.1 (unreleased)
 ------------------
 
-- no changes yet.
+- Added a hint in documentation how to use ``zope.testbrowser.wsgi.Browser``
+  to test a Zope 2/Zope 3/Bluebream WSGI application.
 
 4.0.0 (2011-03-14)
 ------------------
