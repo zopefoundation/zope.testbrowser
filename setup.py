@@ -31,7 +31,7 @@ tests_require = ['zope.testing',
 
 setup(
     name = 'zope.testbrowser',
-    version='4.0.1',
+    version='4.0.2dev',
     url = 'http://pypi.python.org/pypi/zope.testbrowser',
     license = 'ZPL 2.1',
     description = 'Programmable browser for functional black-box tests',
