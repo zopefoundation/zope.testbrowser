@@ -20,6 +20,9 @@ you would do using a normal web browser.
 WSGI Test Browser
 ~~~~~~~~~~~~~~~~~
 
+General usage
++++++++++++++
+
 There is also a special version of the ``Browser`` class which uses
 `WebTest`_ and can be used to do functional testing of WSGI
 applications. It can be imported from ``zope.testbrowser.wsgi``:
@@ -52,6 +55,29 @@ Example:
     ...         return simple_app
 
 Where ``simple_app`` is the callable of your WSGI application.
+
+Testing a Zope 2/Zope 3/Bluebream WSGI application
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+When testing a Zope 2/Zope 3/Bluebream WSGI application you should wrap your
+WSGI application under test into
+``zope.testbrowser.wsgi.AuthorizationMiddleware`` as all these application
+servers expect basic authentication headers to be base64 encoded. This
+middleware handles this for you.
+
+Example when using the layer:
+
+    >>> import zope.testbrowser.wsgi
+    >>> class ZopeSimpleLayer(zope.testbrowser.wsgi.Layer):
+    ...     def make_wsgi_app(self):
+    ...         return zope.testbrowser.wsgi.AuthorizationMiddleware(simple_app)
+
+There is also a BrowserLayer in `zope.app.wsgi.testlayer`_ which does this
+for you and includes a ``TransactionMiddleware``, too, which could be handy
+when testing a ZODB based application.
+
+.. _`zope.app.wsgi.testlayer` : http://pypi.python.org/pypi/zope.app.wsgi
+
 
 Bowser Usage
 ------------
@@ -1428,7 +1454,7 @@ correctly on the request:
     >>> browser.open('http://localhost/echo_one.html?var=wsgi.url_scheme')
     >>> print browser.contents
     'http'
-    
+
     >>> browser.open('https://localhost/echo_one.html?var=wsgi.url_scheme')
     >>> print browser.contents
     'https'
