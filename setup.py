@@ -26,8 +26,7 @@ long_description = (
     )
 
 tests_require = ['zope.testing',
-                 'zope.pagetemplate',
-                 'WebTest'],
+                 'WebTest']
 
 setup(
     name = 'zope.testbrowser',

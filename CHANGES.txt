@@ -5,7 +5,7 @@ CHANGES
 4.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Remove test dependency on zope.pagetemplate.
 
 
 4.0.1 (2011-05-04)

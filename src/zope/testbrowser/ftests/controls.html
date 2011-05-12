@@ -7,32 +7,27 @@
 
       <div>
         <label for="text-value">Text Control</label>
-        <em tal:condition="request/params/text-value|nothing"
-            tal:content="request/params/text-value"></em>
-        <input type="text" name="text-value" id="text-value" 
-               value="Some Text" />
+        <em>%(text-value)s</em>
+        <input type="text" name="text-value" id="text-value" value="Some Text" />
       </div>
 
       <div>
         <label for="password-value">Password Control</label>
-        <em tal:condition="request/params/password-value|nothing"
-            tal:content="request/params/password-value"></em>
+        <em>%(password-value)s</em>
         <input type="password" name="password-value" id="password-value"
                value="Password" />
       </div>
 
       <div>
         <label for="hidden-value">Hidden Control</label> (label: hee hee)
-        <em tal:condition="request/params/hidden-value|nothing"
-            tal:content="request/params/hidden-value"></em>
+        <em>%(hidden-value)s</em>
         <input type="hidden" name="hidden-value" id="hidden-value"
                value="Hidden" />
       </div>
 
       <div>
         <label for="textarea-value">Text Area Control</label>
-        <em tal:condition="request/params/textarea-value|nothing"
-            tal:content="request/params/textarea-value"></em>
+        <em>%(textarea-value)s</em>
         <textarea name="textarea-value" id="textarea-value">
           Text inside
           area!
@@ -41,15 +36,13 @@
 
       <div>
         <label for="file-value">File Control</label>
-        <em tal:condition="request/params/file-value|nothing"
-            tal:content="request/params/file-value"></em>
+        <em>%(file-value)s</em>
         <input type="file" name="file-value" id="file-value" />
       </div>
 
       <div>
         <label for="single-select-value">Single Select Control</label>
-        <em tal:condition="request/params/single-select-value|nothing"
-            tal:content="request/params/single-select-value"></em>
+        <em>%(single-select-value)s</em>
         <select name="single-select-value" id="single-select-value">
           <option value="1">Uno</option>
           <option value="2">Dos</option>
@@ -59,8 +52,7 @@
 
       <div>
         <label for="multi-select-value">Multiple Select Control</label>
-        <em tal:condition="request/params/multi-select-value|nothing"
-            tal:content="request/params/multi-select-value"></em>
+        <em>%(multi-select-value)s</em>
         <select name="multi-select-value" id="multi-select-value"
                 multiple="multiple">
           <option value="1">Un</option>
@@ -70,17 +62,14 @@
       </div>
 
       <div>
-        <em tal:condition="request/params/single-unvalued-checkbox-value|nothing"
-            tal:content="request/params/single-unvalued-checkbox-value"></em>
+        <em>%(single-unvalued-checkbox-value)s</em>
         <input type="checkbox" name="single-unvalued-checkbox-value" 
                id="single-unvalued-checkbox" checked="checked" />
         <label for="single-unvalued-checkbox">Single Unvalued Checkbox</label>
       </div>
 
       <div>
-        <em tal:condition="
-            request/params/single-disabled-unvalued-checkbox-value|nothing"
-            tal:content="request/params/single-disabled-unvalued-checkbox-value"></em>
+        <em>%(single-disabled-unvalued-checkbox-value)s</em>
         <input type="checkbox" name="single-disabled-unvalued-checkbox-value" 
                id="single-disabled-unvalued-checkbox" checked="checked"
                disabled="disabled" />
@@ -90,8 +79,7 @@
       </div>
 
       <div>
-        <em tal:condition="request/params/single-valued-checkbox-value|nothing"
-            tal:content="request/params/single-valued-checkbox-value"></em>
+        <em>%(single-valued-checkbox-value)s</em>
         <label><input type="checkbox" name="single-valued-checkbox-value" 
                       value="1" checked="checked" />Single Valued Checkbox
         </label>
@@ -99,8 +87,7 @@
 
       <div>
         (Multi checkbox: options have the labels)
-        <em tal:condition="request/params/multi-checkbox-value|nothing"
-            tal:content="request/params/multi-checkbox-value"></em>
+        <em>%(multi-checkbox-value)s</em>
         <label><input type="checkbox" name="multi-checkbox-value" value="1" 
                       checked="checked" /> One</label>
         <input type="checkbox" name="multi-checkbox-value" value="2" 
@@ -114,8 +101,7 @@
 
       <div>
         (Radio: options have the labels)
-        <em tal:condition="request/params/radio-value|nothing"
-            tal:content="request/params/radio-value"></em>
+        <em>%(radio-value)s</em>
         <label><input type="radio" name="radio-value" value="1" />Ein</label>
         <input type="radio" name="radio-value" id="radio-value-2" value="2"
                checked="checked" />
@@ -127,20 +113,16 @@
 
       <div>
         <label for="image-value">Image Control</label>
-        <em tal:condition="request/params/image-value.x|nothing"
-            tal:content="request/params/image-value.x"></em>
-        <em tal:condition="request/params/image-value.y|nothing"
-            tal:content="request/params/image-value.y"></em>
+        <em>%(image-value.x)s</em>
+        <em>%(image-value.y)s</em>
         <input type="image" name="image-value" id="image-value"
                src="zope3logo.gif" />
       </div>
 
       <div>
         <label for="submit-value">Standard Submit Control</label>
-        <em tal:condition="request/params/submit-value|nothing"
-            tal:content="request/params/submit-value"></em>
-        <input type="submit" name="submit-value" id="submit-value"
-               value="Submit This" />
+	<em>%(submit-value)s</em>
+        <input type="submit" name="submit-value" id="submit-value" value="Submit This" />
       </div>
 
       <div>

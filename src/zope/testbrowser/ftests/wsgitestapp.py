@@ -14,23 +14,16 @@
 """A minimal WSGI application used as a test fixture."""
 
 import os
+import cgi
 import mimetypes
 from datetime import datetime
 
 from webob import Request, Response
-from zope.pagetemplate.pagetemplatefile import PageTemplateFile
 
 class NotFound(Exception):
     pass
 
 _HERE = os.path.dirname(__file__)
-
-class MyPageTemplateFile(PageTemplateFile):
-
-    def pt_getContext(self, args, *extra_args, **kw):
-        namespace = super(MyPageTemplateFile, self).pt_getContext(args, *extra_args, **kw)
-        namespace['request'] = args[0]
-        return namespace
 
 class WSGITestApplication(object):
 
@@ -39,6 +32,7 @@ class WSGITestApplication(object):
         handler = {'/set_status.html': set_status,
                    '/echo.html': echo,
                    '/redirect.html': redirect,
+                   '/@@/testbrowser/forms.html': forms,
                    '/echo_one.html': echo_one,
                    '/set_header.html': set_header,
                    '/set_cookie.html': set_cookie,
@@ -67,16 +61,34 @@ class WSGITestApplication(object):
 def handle_notfound(req):
     raise NotFound(req.path_info)
 
-def handle_resource(req):
+class ParamsWrapper(object):
+
+    def __init__(self, params):
+        self.params = params
+
+    def __getitem__(self, key):
+        if key in self.params:
+            return cgi.escape(self.params[key])
+        return ''
+
+def handle_resource(req, extra=None):
     filename = req.path_info.split('/')[-1]
     type, _ = mimetypes.guess_type(filename)
     path = os.path.join(_HERE, filename)
+    contents = open(path, 'r').read()
     if type == 'text/html':
-        pt = MyPageTemplateFile(path)
-        contents = pt(req)
-    else:
-        contents = open(path, 'r').read()
+        params = {}
+        params.update(req.params)
+        if extra is not None:
+            params.update(extra)
+        contents = contents % ParamsWrapper(params)
     return Response(contents, content_type=type)
+
+def forms(req):
+    extra = {}
+    if 'hidden-4' in req.params and 'submit-4' not in req.params:
+        extra['no-submit-button'] = 'Submitted without the submit button.'
+    return handle_resource(req, extra)
 
 def get_cookie(req):
     cookies = ['%s: %s' % i for i in sorted(req.cookies.items())]

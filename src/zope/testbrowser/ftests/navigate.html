@@ -3,9 +3,7 @@
 
     <h1>Navigation Tests</h1>
 
-    <p tal:condition="request/params/message|nothing">
-      Message: <em tal:content="request/params/message">Message</em>
-    </p>
+    <p>Message: <em>%(message)s</em></p>
 
     <a href="navigate.html?message=By+Link+Text">Link Text</a>
 
