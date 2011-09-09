@@ -77,6 +77,23 @@ class TestBrowser(unittest.TestCase):
         browser.open('http://bar.example.net')
         self.assertTrue(browser.contents.startswith('Hello world!\n'))
 
+    def test_handle_errors(self):
+        # http://wsgi.org/wsgi/Specifications/throw_errors
+        app = WSGITestApplication()
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+        browser.open('http://localhost/echo_one.html?var=x-wsgiorg.throw_errors')
+        self.assertEquals(browser.contents, 'None')
+        browser.open('http://localhost/echo_one.html?var=paste.throw_errors')
+        self.assertEquals(browser.contents, 'None')
+        browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
+        self.assertEquals(browser.contents, 'None')
+        browser.handleErrors = False
+        browser.open('http://localhost/echo_one.html?var=x-wsgiorg.throw_errors')
+        self.assertEquals(browser.contents, 'True')
+        browser.open('http://localhost/echo_one.html?var=paste.throw_errors')
+        self.assertEquals(browser.contents, 'True')
+        browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
+        self.assertEquals(browser.contents, 'False')
 
 class TestWSGILayer(unittest.TestCase):
 

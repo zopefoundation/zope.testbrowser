@@ -75,11 +75,16 @@ class WSGIConnection(object):
 
         # Translate string to boolean.
         handle_errors = {'False': False}.get(handle_errors_header, True)
-        extra_environ = {}
+
+        # WebTest always sets 'paste.throw_errors' to True. Setting it to None
+        # here overrides that, but is UGLY. sigh.
+        extra_environ = {'paste.throw_errors': None}
+
         if not handle_errors:
             # There doesn't seem to be a "Right Way" to do this
             extra_environ['wsgi.handleErrors'] = False # zope.app.wsgi does this
             extra_environ['paste.throw_errors'] = True # the paste way of doing this
+            extra_environ['x-wsgiorg.throw_errors'] = True # http://wsgi.org/wsgi/Specifications/throw_errors
 
         scheme_key = 'X-Zope-Scheme'
         extra_environ['wsgi.url_scheme'] = headers.get(scheme_key, 'http')

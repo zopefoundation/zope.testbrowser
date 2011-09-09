@@ -5,7 +5,12 @@ CHANGES
 4.0.3 (unreleased)
 ------------------
 
-- None yet.
+- When ``Browser.handleErrors`` is False, also add ``x-wsgiorg.throw_errors``
+  to the environment. http://wsgi.org/wsgi/Specifications/throw_errors 
+
+- Prevent WebTest from always sending ``paste.throw_errors=True`` in the
+  environment by setting it to ``None`` when ``Browser.handleErrors`` is
+  ``True``.  This makes it easier to test error pages.
 
 4.0.2 (2011-05-25)
 ------------------
