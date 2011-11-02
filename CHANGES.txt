@@ -12,9 +12,6 @@ CHANGES
   environment by setting it to ``None`` when ``Browser.handleErrors`` is
   ``True``.  This makes it easier to test error pages.
 
-- Add assertion helper that provides ``assertEllipsis`` and
-  ``assertNotEllipsis``.
-
 4.0.2 (2011-05-25)
 ------------------
 
