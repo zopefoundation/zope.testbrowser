@@ -47,8 +47,12 @@ def disambiguate(intermediate, msg, index, choice_repr=None):
         else:
             try:
                 return intermediate[index]
-            except KeyError:
-                msg = '%s index %d' % (msg, index)
+            except IndexError:
+                msg = '%s\nIndex %d out of range, available choices are 0...%d' % (
+                            msg, index, len(intermediate) - 1)
+                if choice_repr:
+                    msg += ''.join(['\n  %d: %s' % (n, choice_repr(choice))
+                                    for n, choice in enumerate(intermediate)])
     raise LookupError(msg)
 
 def control_form_tuple_repr((ctrl, form)):

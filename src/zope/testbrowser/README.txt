@@ -516,6 +516,13 @@ below.
     <ListControl name='ambiguous-subcontrol' type='select'>
     >>> browser.getControl('Sub-control Ambiguity', index=1).optionValue
     'ambiguous'
+    >>> browser.getControl('Sub-control Ambiguity', index=2)
+    Traceback (most recent call last):
+    ...
+    LookupError: label 'Sub-control Ambiguity'
+    Index 2 out of range, available choices are 0...1
+      0: <SelectControl(ambiguous-subcontrol=[*, ambiguous])>
+      1: <Item name='ambiguous' id=None contents='Sub-control Ambiguity Exemplified' value='ambiguous' label='Sub-control Ambiguity Exemplified'>
 
 Label searches are against stripped, whitespace-normalized, no-tag versions of
 the text. Text applied to searches is also stripped and whitespace normalized.
