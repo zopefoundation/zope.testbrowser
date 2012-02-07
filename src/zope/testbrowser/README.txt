@@ -481,6 +481,11 @@ If you request a control that doesn't exist, the code raises a LookupError:
     Traceback (most recent call last):
     ...
     LookupError: label 'Does Not Exist'
+    available items:
+      <TextControl(text-value=Some Text)>
+      <PasswordControl(password-value=Password)>
+      <HiddenControl(hidden-value=Hidden) (readonly)>
+      ...
 
 If you request a control with an ambiguous lookup, the code raises an
 AmbiguityError.
@@ -536,6 +541,7 @@ text in a label.  Thus, for instance, a search for 'Add' will match the label
     Traceback (most recent call last):
     ...
     LookupError: label 'label needs whitespace normalization'
+    ...
     >>> browser.getControl(' Label  Needs Whitespace    ')
     <Control name='label-needs-normalization' type='text'>
     >>> browser.getControl('Whitespace')
@@ -544,6 +550,7 @@ text in a label.  Thus, for instance, a search for 'Add' will match the label
     Traceback (most recent call last):
     ...
     LookupError: label 'hitespace'
+    ...
     >>> browser.getControl('[non word characters should not confuse]')
     <Control name='non-word-characters' type='text'>
 
@@ -579,6 +586,9 @@ Get also accepts one other search argument, 'name'.  Only one of 'label' and
     Traceback (most recent call last):
     ...
     LookupError: name 'does-not-exist'
+    available items:
+      <TextControl(text-value=Some Text)>
+      ...
     >>> browser.getControl(name='ambiguous-control-name', index=1).value
     'Second'
 
@@ -1160,6 +1170,19 @@ But when sending an image, you can also specify the coordinate you clicked:
            src="zope3logo.gif" />
     ...
     </html>
+
+
+Pages Without Controls
+~~~~~~~~~~~~~~~~~~~~~~
+
+What would happen if we tried to look up a control on a page that has none?
+
+    >>> browser.open('http://localhost/@@/testbrowser/simple.html')
+    >>> browser.getControl('anything')
+    Traceback (most recent call last):
+    ...
+    LookupError: label 'anything'
+    (there are no form items in the HTML)
 
 
 Forms

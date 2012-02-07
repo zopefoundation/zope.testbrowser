@@ -33,7 +33,7 @@ RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
 compressText = lambda text: _compress_re.sub(' ', text.strip())
 
-def disambiguate(intermediate, msg, index, choice_repr=None):
+def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
     if intermediate:
         if index is None:
             if len(intermediate) > 1:
@@ -53,6 +53,13 @@ def disambiguate(intermediate, msg, index, choice_repr=None):
                 if choice_repr:
                     msg += ''.join(['\n  %d: %s' % (n, choice_repr(choice))
                                     for n, choice in enumerate(intermediate)])
+    else:
+        if available:
+            msg += '\navailable items:' + ''.join([
+                '\n  %s' % choice_repr(choice)
+                for choice in available])
+        elif available is not None: # empty list
+            msg += '\n(there are no form items in the HTML)'
     raise LookupError(msg)
 
 def control_form_tuple_repr((ctrl, form)):
@@ -348,29 +355,27 @@ class Browser(SetattrErrorsMixin):
         """Select a link and follow it."""
         self.getLink(*args, **kw).click()
 
+    def _findAllControls(self, forms, include_subcontrols=False):
+        for f in forms:
+            for control in f.controls:
+                phantom = control.type in ('radio', 'checkbox')
+                if not phantom:
+                    yield (control, f)
+                if include_subcontrols and (
+                    phantom or control.type=='select'):
+                    for i in control.items:
+                        yield (i, f)
+
     def _findByLabel(self, label, forms, include_subcontrols=False):
         # forms are iterable of mech_forms
         matches = re.compile(r'(^|\b|\W)%s(\b|\W|$)'
                              % re.escape(compressText(label))).search
         found = []
-        for f in forms:
-            for control in f.controls:
-                phantom = control.type in ('radio', 'checkbox')
-                if not phantom:
-                    for l in control.get_labels():
-                        if matches(l.text):
-                            found.append((control, f))
-                            break
-                if include_subcontrols and (
-                    phantom or control.type=='select'):
-
-                    for i in control.items:
-                        for l in i.get_labels():
-                            if matches(l.text):
-                                found.append((i, f))
-                                found_one = True
-                                break
-
+        for control, form in self._findAllControls(forms, include_subcontrols):
+            for l in control.get_labels():
+                if matches(l.text):
+                    found.append((control, form))
+                    break
         return found
 
     def _findByName(self, name, forms):
@@ -383,22 +388,29 @@ class Browser(SetattrErrorsMixin):
 
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
-        intermediate, msg = self._get_all_controls(
+        intermediate, msg, available = self._get_all_controls(
             label, name, self.mech_browser.forms(), include_subcontrols=True)
         control, form = disambiguate(intermediate, msg, index,
-                                     control_form_tuple_repr)
+                                     control_form_tuple_repr,
+                                     available)
         return controlFactory(control, form, self)
 
     def _get_all_controls(self, label, name, forms, include_subcontrols=False):
         onlyOne([label, name], '"label" and "name"')
 
+        forms = list(forms) # might be an iterator, and we need to iterate twice
+
+        available = None
         if label is not None:
             res = self._findByLabel(label, forms, include_subcontrols)
             msg = 'label %r' % label
         elif name is not None:
+            include_subcontrols = False
             res = self._findByName(name, forms)
             msg = 'name %r' % name
-        return res, msg
+        if not res:
+            available = list(self._findAllControls(forms, include_subcontrols))
+        return res, msg, available
 
     def getForm(self, id=None, name=None, action=None, index=None):
         zeroOrOne([id, name, action], '"id", "name", and "action"')
@@ -767,13 +779,14 @@ class Form(SetattrErrorsMixin):
         form = self.mech_form
         try:
             if label is not None or name is not None:
-                intermediate, msg = self.browser._get_all_controls(
+                intermediate, msg, available = self.browser._get_all_controls(
                     label, name, (form,))
                 intermediate = [
                     (control, form) for (control, form) in intermediate if
                     control.type in ('submit', 'submitbutton', 'image')]
                 control, form = disambiguate(intermediate, msg, index,
-                                             control_form_tuple_repr)
+                                             control_form_tuple_repr,
+                                             available)
                 self.browser._clickSubmit(form, control, coord)
             else: # JavaScript sort of submit
                 if index is not None or coord != (1,1):
@@ -796,8 +809,9 @@ class Form(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         if self._browser_counter != self.browser._counter:
             raise zope.testbrowser.interfaces.ExpiredError
-        intermediate, msg = self.browser._get_all_controls(
+        intermediate, msg, available = self.browser._get_all_controls(
             label, name, (self.mech_form,), include_subcontrols=True)
         control, form = disambiguate(intermediate, msg, index,
-                                     control_form_tuple_repr)
+                                     control_form_tuple_repr,
+                                     available)
         return controlFactory(control, form, self.browser)

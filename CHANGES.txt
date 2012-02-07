@@ -12,8 +12,12 @@ CHANGES
   environment by setting it to ``None`` when ``Browser.handleErrors`` is
   ``True``.  This makes it easier to test error pages.
 
-- More friendly error message from getControl() et al when you specify
-  an index that is out of bounds.
+- More friendly error messages from getControl() et al:
+
+  - when you specify an index that is out of bounds, show the available
+    choices
+
+  - when you fail to find anything, show all the available items
 
 
 4.0.2 (2011-05-25)
