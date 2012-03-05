@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-3.6.0b1 (unreleased)
---------------------
+3.6.0 (2012-03-05)
+------------------
 
-- Fixed Python2.7 compatibility in Browser.handleErrors.
+- Fixed Python 2.7 compatibility in Browser.handleErrors.
 
 - Fixed LP #419119: return None when the browser has no contents instead of
   raising an exception.
