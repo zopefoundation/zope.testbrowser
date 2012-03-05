@@ -62,9 +62,11 @@ class PublisherConnection(object):
             handle_errors_key = 'X-Zope-Handle-Errors'
         else:
             handle_errors_key = 'X-zope-handle-errors'
-        handle_errors = headers.get(handle_errors_key, True)
+        handle_errors_header = headers.get(handle_errors_key, True)
         if handle_errors_key in headers:
             del headers[handle_errors_key]
+        # Translate string to boolean.
+        handle_errors = {'False': False}.get(handle_errors_header, True)
 
         # Construct the headers.
         header_chunks = []

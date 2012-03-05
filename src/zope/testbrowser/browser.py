@@ -216,16 +216,21 @@ class Browser(SetattrErrorsMixin):
 
         def get(self):
             headers = self.mech_browser.addheaders
-            return dict(headers).get(header_key, True)
+            value = dict(headers).get(header_key, True)
+            return {'False': False}.get(value, True)
 
         def set(self, value):
             headers = self.mech_browser.addheaders
             current_value = get(self)
             if current_value == value:
                 return
-            if header_key in dict(headers):
-                headers.remove((header_key, current_value))
-            headers.append((header_key, value))
+
+            # Remove the current header...
+            for key, header_value in headers[:]:
+                if key == header_key:
+                    headers.remove((key, header_value))
+            # ... Before adding the new one.
+            headers.append((header_key, {False: 'False'}.get(value, 'True')))
 
         return property(get, set)
 

@@ -5,6 +5,8 @@ CHANGES
 3.6.0b1 (unreleased)
 --------------------
 
+- Fixed Python2.7 compatibility in Browser.handleErrors.
+
 - Fix tests on Python 2.7
 
 3.6.0a2 (2009-01-31)
