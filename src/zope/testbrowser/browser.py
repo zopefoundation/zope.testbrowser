@@ -198,6 +198,8 @@ class Browser(SetattrErrorsMixin):
         if self._contents is not None:
             return self._contents
         response = self.mech_browser.response()
+        if response is None:
+            return None
         old_location = response.tell()
         response.seek(0)
         self._contents = response.read()
