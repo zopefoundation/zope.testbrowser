@@ -25,18 +25,23 @@ long_description = (
     + open('CHANGES.txt').read()
     )
 
+# pinning version, because of some incompatibility and test failures
+# see:
+# http://winbot.zope.org/builders/zope.testbrowser_py_265_32/builds/619/steps/test/logs/stdio
+WEBTEST = 'WebTest <= 1.3.4'
+
 tests_require = ['zope.testing',
-                 'WebTest']
+                 WEBTEST]
 
 setup(
-    name = 'zope.testbrowser',
+    name='zope.testbrowser',
     version='4.0.3dev',
-    url = 'http://pypi.python.org/pypi/zope.testbrowser',
-    license = 'ZPL 2.1',
-    description = 'Programmable browser for functional black-box tests',
-    author = 'Zope Corporation and Contributors',
-    author_email = 'zope-dev@zope.org',
-    long_description = long_description,
+    url='http://pypi.python.org/pypi/zope.testbrowser',
+    license='ZPL 2.1',
+    description='Programmable browser for functional black-box tests',
+    author='Zope Corporation and Contributors',
+    author_email='zope-dev@zope.org',
+    long_description=long_description,
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
@@ -48,12 +53,12 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         ],
 
-    packages = find_packages('src'),
-    package_dir = {'': 'src'},
-    namespace_packages = ['zope',],
-    test_suite = 'zope.testbrowser.tests',
-    tests_require = tests_require,
-    install_requires = [
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    namespace_packages=['zope',],
+    test_suite='zope.testbrowser.tests',
+    tests_require=tests_require,
+    install_requires=[
         # mechanize 0.2.0 folds in ClientForm, makes incompatible API changes
         'mechanize>=0.2.0',
         'setuptools',
@@ -61,7 +66,7 @@ setup(
         'zope.schema',
         'pytz',
         ],
-    extras_require = {
+    extras_require={
         'test': tests_require,
         'test_bbb': [
             'zope.testbrowser [test,zope-functional-testing]',
@@ -70,9 +75,9 @@ setup(
             'zope.app.testing >= 3.9.0dev',
             ],
         'wsgi': [
-            'WebTest',
+            WEBTEST,
             ]
         },
-    include_package_data = True,
-    zip_safe = False,
+    include_package_data=True,
+    zip_safe=False,
     )

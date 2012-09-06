@@ -5,6 +5,9 @@ CHANGES
 4.0.3 (unreleased)
 ------------------
 
+- pinning version 'WebTest <= 1.3.4', because of some incompatibility and
+  test failures
+
 - When ``Browser.handleErrors`` is False, also add ``x-wsgiorg.throw_errors``
   to the environment. http://wsgi.org/wsgi/Specifications/throw_errors
 
