@@ -133,42 +133,42 @@ class WSGIConnection(object):
         content = response.body
         return zope.testbrowser.connection.Response(content, headers, status, reason)
 
+if zope.testbrowser.browser.HAVE_MECHANIZE:
+    class WSGIHTTPHandler(zope.testbrowser.connection.HTTPHandler):
 
-class WSGIHTTPHandler(zope.testbrowser.connection.HTTPHandler):
+        def __init__(self, test_app, *args, **kw):
+            self._test_app = test_app
+            zope.testbrowser.connection.HTTPHandler.__init__(self, *args, **kw)
 
-    def __init__(self, test_app, *args, **kw):
-        self._test_app = test_app
-        zope.testbrowser.connection.HTTPHandler.__init__(self, *args, **kw)
+        def _connect(self, *args, **kw):
+            return WSGIConnection(self._test_app, *args, **kw)
 
-    def _connect(self, *args, **kw):
-        return WSGIConnection(self._test_app, *args, **kw)
-
-    def https_request(self, req):
-        req.add_unredirected_header('X-Zope-Scheme', 'https')
-        return self.http_request(req)
-
-
-class WSGIMechanizeBrowser(zope.testbrowser.connection.MechanizeBrowser):
-    """Special ``mechanize`` browser using the WSGI HTTP handler."""
-
-    def __init__(self, test_app, *args, **kw):
-        self._test_app = test_app
-        zope.testbrowser.connection.MechanizeBrowser.__init__(self, *args, **kw)
-
-    def _http_handler(self, *args, **kw):
-        return WSGIHTTPHandler(self._test_app, *args, **kw)
+        def https_request(self, req):
+            req.add_unredirected_header('X-Zope-Scheme', 'https')
+            return self.http_request(req)
 
 
-class Browser(zope.testbrowser.browser.Browser):
-    """A WSGI `testbrowser` Browser that uses a WebTest wrapped WSGI app."""
+    class WSGIMechanizeBrowser(zope.testbrowser.connection.MechanizeBrowser):
+        """Special ``mechanize`` browser using the WSGI HTTP handler."""
 
-    def __init__(self, url=None, wsgi_app=None):
-        if wsgi_app is None:
-            wsgi_app = Layer.get_app()
-        if wsgi_app is None:
-            raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
-        mech_browser = WSGIMechanizeBrowser(wsgi_app)
-        super(Browser, self).__init__(url=url, mech_browser=mech_browser)
+        def __init__(self, test_app, *args, **kw):
+            self._test_app = test_app
+            zope.testbrowser.connection.MechanizeBrowser.__init__(self, *args, **kw)
+
+        def _http_handler(self, *args, **kw):
+            return WSGIHTTPHandler(self._test_app, *args, **kw)
+
+
+    class Browser(zope.testbrowser.browser.Browser):
+        """A WSGI `testbrowser` Browser that uses a WebTest wrapped WSGI app."""
+
+        def __init__(self, url=None, wsgi_app=None):
+            if wsgi_app is None:
+                wsgi_app = Layer.get_app()
+            if wsgi_app is None:
+                raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
+            mech_browser = WSGIMechanizeBrowser(wsgi_app)
+            super(Browser, self).__init__(url=url, mech_browser=mech_browser)
 
 # Compatibility helpers to behave like zope.app.testing
 
@@ -187,8 +187,9 @@ def auth_header(header):
             u = ''
         if p is None:
             p = ''
-        auth = base64.encodestring('%s:%s' % (u, p))
-        return 'Basic %s' % auth[:-1]
+        plain = '%s:%s' % (u, p)
+        auth = base64.encodestring(plain.encode('utf-8'))
+        return 'Basic %s' % str(auth.rstrip().decode('latin1'))
     return header
 
 

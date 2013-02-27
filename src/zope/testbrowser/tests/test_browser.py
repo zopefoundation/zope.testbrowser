@@ -13,14 +13,14 @@
 ##############################################################################
 """Real test for file-upload and beginning of a better internal test framework
 """
-import cStringIO
+import io
 import doctest
-import httplib
 import mechanize
 import socket
 import sys
 import zope.testbrowser.browser
 import zope.testbrowser.tests.helper
+from zope.testbrowser._compat import httpclient
 
 
 def set_next_response(body, headers=None, status='200', reason='OK'):
@@ -76,7 +76,7 @@ class FauxConnection(object):
         request_string = (method + ' ' + url + ' HTTP/1.1\n'
                           + headers + '\n' + body)
 
-        print request_string.replace('\r', '')
+        print(request_string.replace('\r', ''))
 
     def getresponse(self):
         """Return a ``mechanize`` compatible response.
@@ -98,8 +98,8 @@ class FauxResponse(object):
         self.content = content
         self.status = status
         self.reason = reason
-        self.msg = httplib.HTTPMessage(cStringIO.StringIO(headers), 0)
-        self.content_as_file = cStringIO.StringIO(self.content)
+        self.msg = httpclient.HTTPMessage(io.BytesIO(headers), 0)
+        self.content_as_file = io.BytesIO(self.content)
 
     def read(self, amt=None):
         return self.content_as_file.read(amt)
@@ -245,7 +245,7 @@ def test_file_upload():
     Fill in the form value using add_file:
 
     >>> browser.getControl(name='foo').add_file(
-    ...     cStringIO.StringIO('sample_data'), 'text/foo', 'x.foo')
+    ...     io.BytesIO(b'sample_data'), 'text/foo', 'x.foo')
     >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
     ...
@@ -310,7 +310,7 @@ def test_new_instance_no_contents_should_not_fail(self):
     (Regression test for <http://bugs.launchpad.net/zope3/+bug/419119>)
 
     >>> browser = Browser()
-    >>> print browser.contents
+    >>> print(browser.contents)
     None
     """
 

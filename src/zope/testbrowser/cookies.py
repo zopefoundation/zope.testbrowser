@@ -12,14 +12,11 @@
 #
 ##############################################################################
 
-import Cookie
 import datetime
 import time
 import urllib
-import urlparse
-import UserDict
 
-import mechanize
+from zope.testbrowser._compat import mechanize, httpcookies, urlparse, MutableMapping
 import pytz
 import zope.interface
 from zope.testbrowser import interfaces
@@ -62,11 +59,10 @@ if getattr(property, 'setter', None) is None:
 # end Cookies class helpers
 
 
-class Cookies(object, UserDict.DictMixin):
+@zope.interface.implementer(interfaces.ICookies)
+class Cookies(MutableMapping):
     """Cookies for mechanize browser.
     """
-
-    zope.interface.implements(interfaces.ICookies)
 
     def __init__(self, mech_browser, url=None):
         self.mech_browser = mech_browser
@@ -308,7 +304,7 @@ class Cookies(object, UserDict.DictMixin):
             if request is None:
                 raise mechanize.BrowserStateError(
                     'cannot create cookie without request or domain')
-        c = Cookie.SimpleCookie()
+        c = httpcookies.SimpleCookie()
         name = str(name)
         c[name] = value.encode('utf8')
         if secure:

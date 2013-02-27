@@ -48,7 +48,7 @@ class WSGITestApplication(object):
             handler = handle_notfound
         try:
             resp = handler(req)
-        except Exception, exc:
+        except Exception as exc:
             if not environ.get('wsgi.handleErrors', True):
                 raise
             resp = Response()
