@@ -14,10 +14,11 @@
 
 import unittest
 from urllib import urlencode
-from wsgiref.simple_server import demo_app
 
 import zope.testbrowser.wsgi
 from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
+
+from zope.testbrowser.testing import demo_app
 
 
 class SimpleLayer(zope.testbrowser.wsgi.Layer):

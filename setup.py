@@ -25,13 +25,7 @@ long_description = (
     + open('CHANGES.txt').read()
     )
 
-# pinning version, because of some incompatibility and test failures
-# see:
-# http://winbot.zope.org/builders/zope.testbrowser_py_265_32/builds/619/steps/test/logs/stdio
-WEBTEST = 'WebTest <= 1.3.4'
-
-tests_require = ['zope.testing',
-                 WEBTEST]
+tests_require = ['zope.testing']
 
 setup(
     name='zope.testbrowser',
@@ -65,6 +59,7 @@ setup(
         'zope.interface',
         'zope.schema',
         'pytz',
+        'WebTest',
         ],
     extras_require={
         'test': tests_require,
@@ -75,7 +70,7 @@ setup(
             'zope.app.testing >= 3.9.0dev',
             ],
         'wsgi': [
-            WEBTEST,
+                 # BBB
             ]
         },
     include_package_data=True,
