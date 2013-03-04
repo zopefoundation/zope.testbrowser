@@ -11,3 +11,4 @@ build
 coverage
 develop-eggs
 parts
+dist
