@@ -13,150 +13,174 @@
 ##############################################################################
 """Real test for file-upload and beginning of a better internal test framework
 """
+from __future__ import print_function
 import io
 import doctest
 import mechanize
 import socket
 import sys
-import zope.testbrowser.browser
+from zope.testbrowser.browser2 import Browser
 import zope.testbrowser.tests.helper
 from zope.testbrowser._compat import httpclient
 
 
-def set_next_response(body, headers=None, status='200', reason='OK'):
-    global next_response_body
-    global next_response_headers
-    global next_response_status
-    global next_response_reason
-    if headers is None:
-        headers = (
-            'Content-Type: text/html\r\n'
-            'Content-Length: %s\r\n'
-            % len(body))
-    next_response_body = body
-    next_response_headers = headers
-    next_response_status = status
-    next_response_reason = reason
+## def set_next_response(body, headers=None, status='200', reason='OK'):
+##     global next_response_body
+##     global next_response_headers
+##     global next_response_status
+##     global next_response_reason
+##     if headers is None:
+##         headers = (
+##             'Content-Type: text/html\r\n'
+##             'Content-Length: %s\r\n'
+##             % len(body))
+##     next_response_body = body
+##     next_response_headers = headers
+##     next_response_status = status
+##     next_response_reason = reason
 
 
-class FauxConnection(object):
-    """A ``mechanize`` compatible connection object."""
+## class FauxConnection(object):
+##     """A ``mechanize`` compatible connection object."""
+## 
+##     def __init__(self, host, timeout=None):
+##         pass
+## 
+##     def set_debuglevel(self, level):
+##         pass
+## 
+##     def _quote(self, url):
+##         # the publisher expects to be able to split on whitespace, so we have
+##         # to make sure there is none in the URL
+##         return url.replace(' ', '%20')
+## 
+##     def request(self, method, url, body=None, headers=None):
+##         if body is None:
+##             body = ''
+## 
+##         if url == '':
+##             url = '/'
+## 
+##         url = self._quote(url)
+## 
+##         # Construct the headers.
+##         header_chunks = []
+##         if headers is not None:
+##             for header in headers.items():
+##                 header_chunks.append('%s: %s' % header)
+##             headers = '\n'.join(header_chunks) + '\n'
+##         else:
+##             headers = ''
+## 
+##         # Construct the full HTTP request string, since that is what the
+##         # ``HTTPCaller`` wants.
+##         request_string = (method + ' ' + url + ' HTTP/1.1\n'
+##                           + headers + '\n' + body)
+## 
+##         print(request_string.replace('\r', ''))
+## 
+##     def getresponse(self):
+##         """Return a ``mechanize`` compatible response.
+## 
+##         The goal of this method is to convert the Zope Publisher's response to
+##         a ``mechanize`` compatible response, which is also understood by
+##         mechanize.
+##         """
+##         return FauxResponse(next_response_body,
+##                             next_response_headers,
+##                             next_response_status,
+##                             next_response_reason,
+##                             )
+## 
+## 
+## class FauxResponse(object):
+## 
+##     def __init__(self, content, headers, status, reason):
+##         self.content = content
+##         self.status = status
+##         self.reason = reason
+##         self.msg = httpclient.HTTPMessage(io.BytesIO(headers), 0)
+##         self.content_as_file = io.BytesIO(self.content)
+## 
+##     def read(self, amt=None):
+##         return self.content_as_file.read(amt)
+## 
+##     def close(self):
+##         """To overcome changes in mechanize and socket in python2.5"""
+##         pass
+## 
+## 
+## class FauxHTTPHandler(mechanize.HTTPHandler):
+## 
+##     http_request = mechanize.HTTPHandler.do_request_
+## 
+##     def http_open(self, req):
+##         """Open an HTTP connection having a ``mechanize`` request."""
+##         # Here we connect to the publisher.
+## 
+##         if sys.version_info > (2, 6) and not hasattr(req, 'timeout'):
+##             # Workaround mechanize incompatibility with Python
+##             # 2.6. See: LP #280334
+##             req.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+##         return self.do_open(FauxConnection, req)
+## 
+## 
+## class FauxMechanizeBrowser(mechanize.Browser):
+## 
+##     handler_classes = {
+##         # scheme handlers
+##         "http": FauxHTTPHandler,
+## 
+##         "_http_error": mechanize.HTTPErrorProcessor,
+##         "_http_default_error": mechanize.HTTPDefaultErrorHandler,
+## 
+##         # feature handlers
+##         "_authen": mechanize.HTTPBasicAuthHandler,
+##         "_redirect": mechanize.HTTPRedirectHandler,
+##         "_cookies": mechanize.HTTPCookieProcessor,
+##         "_refresh": mechanize.HTTPRefreshProcessor,
+##         "_referer": mechanize.Browser.handler_classes['_referer'],
+##         "_equiv": mechanize.HTTPEquivProcessor,
+##         }
+## 
+##     default_schemes = ["http"]
+##     default_others = ["_http_error", "_http_default_error"]
+##     default_features = ["_authen", "_redirect", "_cookies"]
+## 
 
-    def __init__(self, host, timeout=None):
-        pass
+## class Browser(TestBrowser):
+## 
+##     def __init__(self, url=None):
+##         mech_browser = FauxMechanizeBrowser()
+##         super(Browser, self).__init__(url=url, mech_browser=mech_browser)
+## 
+##     def open(self, body, headers=None, status=200, reason='OK',
+##              url='http://localhost/'):
+##         set_next_response(body, headers, status, reason)
+##         TestBrowser.open(self, url)
 
-    def set_debuglevel(self, level):
-        pass
+class TestApp(object):
+    next_response_body = None
+    next_response_headers = None
+    next_response_status = '200'
+    next_response_reason = 'OK'
 
-    def _quote(self, url):
-        # the publisher expects to be able to split on whitespace, so we have
-        # to make sure there is none in the URL
-        return url.replace(' ', '%20')
+    def set_next_response(self, body, headers=None, status='200', reason='OK'):
+        if headers is None:
+            headers = [('Content-Type', 'text/html'),
+                       ('Content-Length', str(len(body)))]
+        self.next_response_body = body
+        self.next_response_headers = headers
+        self.next_response_status = status
+        self.next_response_reason = reason
 
-    def request(self, method, url, body=None, headers=None):
-        if body is None:
-            body = ''
-
-        if url == '':
-            url = '/'
-
-        url = self._quote(url)
-
-        # Construct the headers.
-        header_chunks = []
-        if headers is not None:
-            for header in headers.items():
-                header_chunks.append('%s: %s' % header)
-            headers = '\n'.join(header_chunks) + '\n'
-        else:
-            headers = ''
-
-        # Construct the full HTTP request string, since that is what the
-        # ``HTTPCaller`` wants.
-        request_string = (method + ' ' + url + ' HTTP/1.1\n'
-                          + headers + '\n' + body)
-
-        print(request_string.replace('\r', ''))
-
-    def getresponse(self):
-        """Return a ``mechanize`` compatible response.
-
-        The goal of this method is to convert the Zope Publisher's response to
-        a ``mechanize`` compatible response, which is also understood by
-        mechanize.
-        """
-        return FauxResponse(next_response_body,
-                            next_response_headers,
-                            next_response_status,
-                            next_response_reason,
-                            )
-
-
-class FauxResponse(object):
-
-    def __init__(self, content, headers, status, reason):
-        self.content = content
-        self.status = status
-        self.reason = reason
-        self.msg = httpclient.HTTPMessage(io.BytesIO(headers), 0)
-        self.content_as_file = io.BytesIO(self.content)
-
-    def read(self, amt=None):
-        return self.content_as_file.read(amt)
-
-    def close(self):
-        """To overcome changes in mechanize and socket in python2.5"""
-        pass
-
-
-class FauxHTTPHandler(mechanize.HTTPHandler):
-
-    http_request = mechanize.HTTPHandler.do_request_
-
-    def http_open(self, req):
-        """Open an HTTP connection having a ``mechanize`` request."""
-        # Here we connect to the publisher.
-
-        if sys.version_info > (2, 6) and not hasattr(req, 'timeout'):
-            # Workaround mechanize incompatibility with Python
-            # 2.6. See: LP #280334
-            req.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
-        return self.do_open(FauxConnection, req)
-
-
-class FauxMechanizeBrowser(mechanize.Browser):
-
-    handler_classes = {
-        # scheme handlers
-        "http": FauxHTTPHandler,
-
-        "_http_error": mechanize.HTTPErrorProcessor,
-        "_http_default_error": mechanize.HTTPDefaultErrorHandler,
-
-        # feature handlers
-        "_authen": mechanize.HTTPBasicAuthHandler,
-        "_redirect": mechanize.HTTPRedirectHandler,
-        "_cookies": mechanize.HTTPCookieProcessor,
-        "_refresh": mechanize.HTTPRefreshProcessor,
-        "_referer": mechanize.Browser.handler_classes['_referer'],
-        "_equiv": mechanize.HTTPEquivProcessor,
-        }
-
-    default_schemes = ["http"]
-    default_others = ["_http_error", "_http_default_error"]
-    default_features = ["_authen", "_redirect", "_cookies"]
-
-
-class Browser(zope.testbrowser.browser.Browser):
-
-    def __init__(self, url=None):
-        mech_browser = FauxMechanizeBrowser()
-        super(Browser, self).__init__(url=url, mech_browser=mech_browser)
-
-    def open(self, body, headers=None, status=200, reason='OK',
-             url='http://localhost/'):
-        set_next_response(body, headers, status, reason)
-        zope.testbrowser.browser.Browser.open(self, url)
+    def __call__(self, environ, start_response):
+        print("%s %s HTTP/1.1" % (environ['REQUEST_METHOD'],
+                                  environ['PATH_INFO']))
+        print(environ['wsgi.input'].input.getvalue())
+        status = '%s %s' % (self.next_response_status, self.next_response_reason)
+        start_response(status, self.next_response_headers)
+        return [self.next_response_body]
 
 
 def test_submit_duplicate_name():
@@ -164,20 +188,21 @@ def test_submit_duplicate_name():
     This test was inspired by bug #723 as testbrowser would pick up the wrong
     button when having the same name twice in a form.
 
-    >>> browser = Browser()
+    >>> app = TestApp()
+    >>> browser = Browser(application=app)
 
 
     When given a form with two submit buttons that have the same name:
 
-    >>> browser.open('''\
+    >>> app.set_next_response('''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <input type="submit" name="submit_me" value="GOOD" />
     ...      <input type="submit" name="submit_me" value="BAD" />
     ...   </form></body></html>
-    ... ''') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/') # doctest: +ELLIPSIS
     GET / HTTP/1.1
-    ...
 
 
     We can specify the second button through it's label/value:
@@ -189,7 +214,6 @@ def test_submit_duplicate_name():
     >>> browser.getControl('BAD').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
     ...
-    Content-type: multipart/form-data; ...
     Content-disposition: form-data; name="submit_me"
     <BLANKLINE>
     BAD
@@ -199,15 +223,16 @@ def test_submit_duplicate_name():
     This also works if the labels have whitespace around them (this tests a
     regression caused by the original fix for the above):
 
-    >>> browser.open('''\
+    >>> app.set_next_response('''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <input type="submit" name="submit_me" value=" GOOD " />
     ...      <input type="submit" name="submit_me" value=" BAD " />
     ...   </form></body></html>
-    ... ''') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/') # doctest: +ELLIPSIS 
     GET / HTTP/1.1
-    ...
+
     >>> browser.getControl('BAD')
     <SubmitControl name='submit_me' type='submit'>
     >>> browser.getControl('BAD').value
@@ -215,7 +240,6 @@ def test_submit_duplicate_name():
     >>> browser.getControl('BAD').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
     ...
-    Content-type: multipart/form-data; ...
     Content-disposition: form-data; name="submit_me"
     <BLANKLINE>
      BAD
