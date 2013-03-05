@@ -249,7 +249,6 @@ def test_submit_duplicate_name():
 
 def test_file_upload():
     """
-
     >>> app = TestApp()
     >>> browser = Browser(application=app)
 
@@ -405,14 +404,16 @@ def test_relative_link():
     RFC 1808 specifies how relative URLs should be resolved, let's see
     that we conform to it. Let's start with a simple example.
 
-    >>> browser = Browser()
-    >>> browser.open('''\
+    >>> app = TestApp()
+    >>> browser = Browser(application=app)
+
+    >>> app.set_next_response('''\
     ... <html><body>
     ...     <a href="foo">link</a>
     ... </body></html>
-    ... ''', url='http://localhost/bar') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/bar') # doctest: +ELLIPSIS
     GET /bar HTTP/1.1
-    ...
 
     >>> link = browser.getLink('link')
     >>> link.url
@@ -422,13 +423,13 @@ def test_relative_link():
     It's possible to have a relative URL consisting of only a query part. In
     that case it should simply be appended to the base URL.
 
-    >>> browser.open('''\
+    >>> app.set_next_response('''\
     ... <html><body>
     ...     <a href="?key=value">link</a>
     ... </body></html>
-    ... ''', url='http://localhost/bar') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/bar') # doctest: +ELLIPSIS
     GET /bar HTTP/1.1
-    ...
 
     >>> link = browser.getLink('link')
     >>> link.url
@@ -438,13 +439,13 @@ def test_relative_link():
     In the example above, the base URL was the page URL, but we can also
     specify a base URL using a <base> tag.
 
-    >>> browser.open('''\
+    >>> app.set_next_response('''\
     ... <html><head><base href="http://localhost/base" /></head><body>
     ...     <a href="?key=value">link</a>
     ... </body></html>
-    ... ''', url='http://localhost/base/bar') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/base/bar') # doctest: +ELLIPSIS
     GET /base/bar HTTP/1.1
-    ...
 
     >>> link = browser.getLink('link')
     >>> link.url

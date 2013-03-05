@@ -18,6 +18,7 @@ __docformat__ = "reStructuredText"
 import sys
 import re
 import time
+import urlparse
 import io
 
 from zope.interface import implementer
@@ -49,9 +50,67 @@ class Browser(object):
             self.open(url)
 
     @property
+    def url(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        # TODO
+        return self.mech_browser.geturl()
+
+    @property
+    def isHtml(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        # TODO
+        return self.mech_browser.viewing_html()
+
+    @property
+    def title(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        # TODO
+        return self.mech_browser.title()
+
+    @property
+    def contents(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        return self._contents
+        ## # TODO
+        ## if self._contents is not None:
+        ##     return self._contents
+        ## response = self.mech_browser.response()
+        ## if response is None:
+        ##     return None
+        ## old_location = response.tell()
+        ## response.seek(0)
+        ## self._contents = response.read()
+        ## response.seek(old_location)
+        ## return self._contents
+
+    @property
     def headers(self):
         """See zope.testbrowser.interfaces.IBrowser"""
         return self._response.headers
+
+    HEADER_KEY = 'X-zope-handle-errors'
+
+    @property
+    def handleErrors(self):
+        # TODO
+        headers = self.mech_browser.addheaders
+        value = dict(headers).get(self.HEADER_KEY, True)
+        return {'False': False}.get(value, True)
+
+    @handleErrors.setter
+    def handleErrors(self, value):
+        # TODO
+        headers = self.mech_browser.addheaders
+        current_value = self.handleErrors
+        if current_value == value:
+            return
+
+        # Remove the current header...
+        for key, header_value in headers[:]:
+            if key == self.HEADER_KEY:
+                headers.remove((key, header_value))
+        # ... Before adding the new one.
+        headers.append((self.HEADER_KEY, {False: 'False'}.get(value, 'True')))
 
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -74,6 +133,46 @@ class Browser(object):
             if self.raiseHttpErrors and code >= 400:
                 raise httpclient.HTTPException(url, code, msg, self.headers)
 
+    def getLink(self, text=None, url=None, id=None, index=0):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        ## pq = 'a'
+        ## if id is not None:
+        ##     pq = "a.%s" % id
+        ## else:
+        ##     if not isinstance(url, RegexType) and url is not None:
+        ##         pq = "a[href=%s]" % url
+
+        ## links = self._response.pyquery(pq)
+        ## matching = []
+        ## for elem in links:
+        ##     matches = (isMatching(elem.text, text) and
+        ##                isMatching(elem.get('href'), url))
+
+        ##     if matches:
+        ##         matching.append(elem)
+
+        found = self._response._find_element(tag='a',
+                                             href_attr='href',
+                                             href_extract=None,
+                                             content=text,
+                                             id=id,
+                                             href_pattern=url,
+                                             index=index,
+                                             verbose=False)
+        html, desc, elem = found
+        baseurl = self._getBaseUrl()
+
+        return Link(elem, self, baseurl)
+
+    def _getBaseUrl(self):
+        # Look for <base href> tag and use it as base, if it exists
+        bases = self._response.html.find_all('base')
+        if bases:
+            return bases[0]['href']
+
+        # If no base tags found, use last request url as a base
+        return self._response.request.url
+
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
         intermediate, msg, available = self._getAllControls(
@@ -83,6 +182,7 @@ class Browser(object):
                                      controlFormTupleRepr,
                                      available)
         return controlFactory(control, form, self)
+
 
     def _getAllControls(self, label, name, forms, include_subcontrols=False):
         onlyOne([label, name], '"label" and "name"')
@@ -152,6 +252,51 @@ class Browser(object):
             except Exception as e:
                 fix_exception_name(e)
                 raise
+
+@implementer(interfaces.ILink)
+class Link(object):
+
+    def __init__(self, link, browser, baseurl=""):
+        self._link = link
+        self.browser = browser
+        self._baseurl = baseurl
+        self._browser_counter = self.browser._counter
+
+    def click(self):
+        #TODO
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self.browser._start_timer()
+        try:
+            try:
+                self.browser.mech_browser.follow_link(self.mech_link)
+            except Exception as e:
+                fix_exception_name(e)
+                raise
+        finally:
+            self.browser._stop_timer()
+            self.browser._changed()
+
+    @property
+    def url(self):
+        relurl = self._link['uri']
+        return urlparse.urljoin(self._baseurl, relurl)
+
+    @property
+    def text(self):
+        return self._link.text
+
+    @property
+    def tag(self):
+        return self._link.name
+
+    @property
+    def attrs(self):
+        return self._link.attrs
+
+    def __repr__(self):
+        return "<%s text=%r url=%r>" % (
+            self.__class__.__name__, self.text, self.url)
 
 def controlFactory(control, form, browser):
     listfields = (webtest.forms.Select,
@@ -247,7 +392,8 @@ class Control(object):
 
         # XXX: webtest relies on mimetypes.guess_type to get mime type of
         # upload file and doesn't let to set it explicitly, so we are ignoring
-        # content_type parameter here. If it is still unacceptable, consider using mock.object to force mimetypes to return "right" type.
+        # content_type parameter here. If it is still unacceptable, consider
+        # using mock.object to force mimetypes to return "right" type.
         self._form[self.name] = webtest.forms.Upload(filename, contents)
 
     def clear(self):
@@ -458,6 +604,25 @@ def onlyOne(items, description):
     if total == 0 or total > 1:
         raise ValueError(
             "Supply one and only one of %s as arguments" % description)
+
+## def isMatching(string, expr):
+##     """Determine whether ``expr`` matches to ``string``
+## 
+##     ``expr`` can be None, plain text or regular expression.
+## 
+##       * If ``expr`` is ``None``, ``string`` is considered matching
+##       * If ``expr`` is plain text, its equality to ``string`` will be checked
+##       * If ``expr`` is regexp, regexp matching agains ``string`` will
+##         be performed
+##     """
+##     if expr is None:
+##         return True
+## 
+##     if isinstance(expr, RegexType):
+##         return expr.match(string)
+##     else:
+##         return expr == string
+
 
 class PystoneTimer(object):
     start_time = 0
