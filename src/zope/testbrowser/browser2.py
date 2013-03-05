@@ -173,6 +173,28 @@ class Browser(object):
         # If no base tags found, use last request url as a base
         return self._response.request.url
 
+    def getForm(self, id=None, name=None, action=None, index=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        zeroOrOne([id, name, action], '"id", "name", and "action"')
+        matching_forms = []
+        allforms = set(self._response.forms.values())
+        for form in allforms:
+            if ((id is not None and form.id == id)
+            or (name is not None and form.html.body.form.get('name') == name)
+            or (action is not None and re.search(action, form.action))
+            or id == name == action == None):
+                matching_forms.append(form)
+
+        if index is None and not any([id, name, action]):
+            if len(matching_forms) == 1:
+                index = 0
+            else:
+                raise ValueError(
+                    'if no other arguments are given, index is required.')
+
+        form = disambiguate(matching_forms, '', index)
+        return Form(self, form)
+
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
         intermediate, msg, available = self._getAllControls(
@@ -241,11 +263,16 @@ class Browser(object):
         self._contents = None
 
     def _clickSubmit(self, form, control, coord):
+        # TODO: handle coord
         # find index of given control in the form
-        index = form.fields[control.name].index(control)
+        kwargs = {'headers': {'Referer': self._getBaseUrl()}}
         with self.timer:
             try:
-                self._response = form.submit(control.name, index)
+                if control:
+                    index = form.fields[control.name].index(control)
+                    self._response = form.submit(control.name, index, **kwargs)
+                else:
+                    self._response = form.submit(**kwargs)
                 #self.mech_browser.form = form
                 #self.mech_browser.submit(id=control.id, name=control.name,
                 #                         label=label, coord=coord)
@@ -362,7 +389,15 @@ class Control(object):
 
             return self.mech_control.items[0].selected  # TODO
 
-        return self._control.value_if_submitted()
+        if isinstance(self._control, webtest.forms.Submit):
+            return self._control.value_if_submitted()
+
+        # Remove first newline character
+        val = self._control.value
+        if val.startswith('\n'):
+            val = val[1:]
+
+        return str(val)
 
     @value.setter
     def value(self, value):
@@ -568,6 +603,88 @@ class ItemControl(object):
             self.mech_item._control.type, self.optionValue, self.mech_item.selected)
 
 
+@implementer(interfaces.IForm)
+class Form(object):
+    """HTML Form"""
+
+    def __init__(self, browser, form):
+        """Initialize the Form
+
+        browser - a Browser instance
+        form - a mechanize.HTMLForm instance
+        """
+        self.browser = browser
+        self._form = form
+        self._browser_counter = self.browser._counter
+
+    @property
+    def action(self):
+        return self._form.action
+
+    @property
+    def method(self):
+        return self._form.method
+
+    @property
+    def enctype(self):
+        return self._form.enctype
+
+    @property
+    def name(self):
+        return self._form.html.body.form.get('name')
+
+    @property
+    def id(self):
+        """See zope.testbrowser.interfaces.IForm"""
+        return self._form.id
+
+    def submit(self, label=None, name=None, index=None, coord=(1,1)):
+        """See zope.testbrowser.interfaces.IForm"""
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+
+        form = self._form
+        try:
+            if label is not None or name is not None:
+                controls, msg, available = self.browser._getAllControls(
+                    label, name, [form])
+                controls = [(control, form) for (control, form) in controls
+                            if isinstance(control, webtest.forms.Submit)]
+                control, form = disambiguate(controls, msg, index,
+                                             controlFormTupleRepr,
+                                             available)
+                self.browser._clickSubmit(form, control, coord)
+
+            else: # JavaScript sort of submit
+                if index is not None or coord != (1,1):
+                    raise ValueError(
+                        'May not use index or coord without a control')
+                self.browser._clickSubmit(form)
+                ## # TODO
+                ## request = self.mech_form._switch_click("request", mechanize.Request)
+                ## self.browser._start_timer()
+                ## with self.browser.timer:
+                ##     try:
+                ##         form.submit()
+                ##         self.browser.mech_browser.open(request)
+                ##     except Exception as e:
+                ##         fix_exception_name(e)
+                ##         raise
+
+        finally:
+            self.browser._changed()
+
+    def getControl(self, label=None, name=None, index=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        # TODO
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        intermediate, msg, available = self.browser._get_all_controls(
+            label, name, (self.mech_form,), include_subcontrols=True)
+        control, form = disambiguate(intermediate, msg, index,
+                                     controlFormTupleRepr,
+                                     available)
+        return controlFactory(control, form, self.browser)
 
 def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
     if intermediate:
@@ -604,6 +721,12 @@ def onlyOne(items, description):
     if total == 0 or total > 1:
         raise ValueError(
             "Supply one and only one of %s as arguments" % description)
+
+def zeroOrOne(items, description):
+    if sum([bool(i) for i in items]) > 1:
+        raise ValueError(
+            "Supply no more than one of %s as arguments" % description)
+
 
 ## def isMatching(string, expr):
 ##     """Determine whether ``expr`` matches to ``string``

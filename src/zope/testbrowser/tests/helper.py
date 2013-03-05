@@ -32,7 +32,7 @@ checker = zope.testing.renormalizing.RENormalizing([
     (win32CRLFtransformer(), None),
     (re.compile(r'User-Agent: Python-urllib/2.[567]'),
      'User-agent: Python-urllib/2.4'),
-    (re.compile(r'Host: localhost'), 'Connection: close'),
+    #(re.compile(r'Host: localhost(:80)?'), 'Connection: close'),
     (re.compile(r'Content-Type: '), 'Content-type: '),
     (re.compile(r'Content-Disposition: '), 'Content-disposition: '),
     (re.compile(r'; charset=UTF-8'), ';charset=utf-8'),

@@ -177,6 +177,11 @@ class TestApp(object):
     def __call__(self, environ, start_response):
         print("%s %s HTTP/1.1" % (environ['REQUEST_METHOD'],
                                   environ['PATH_INFO']))
+        # print all the headers
+        for ek, ev in environ.items():
+            if ek.startswith('HTTP_'):
+                print("%s: %s" % (ek[5:].title(), ev))
+        print()
         print(environ['wsgi.input'].input.getvalue())
         status = '%s %s' % (self.next_response_status, self.next_response_reason)
         start_response(status, self.next_response_headers)
@@ -203,7 +208,7 @@ def test_submit_duplicate_name():
     ... ''')
     >>> browser.open('http://localhost/') # doctest: +ELLIPSIS
     GET / HTTP/1.1
-
+    ...
 
     We can specify the second button through it's label/value:
 
@@ -232,6 +237,7 @@ def test_submit_duplicate_name():
     ... ''')
     >>> browser.open('http://localhost/') # doctest: +ELLIPSIS 
     GET / HTTP/1.1
+    ...
 
     >>> browser.getControl('BAD')
     <SubmitControl name='submit_me' type='submit'>
@@ -263,7 +269,7 @@ def test_file_upload():
     ... ''') # doctest: +ELLIPSIS
     >>> browser.open('http://localhost/')
     GET / HTTP/1.1
-
+    ...
 
     Fill in the form value using add_file:
 
@@ -297,28 +303,27 @@ def test_submit_gets_referrer():
     """
     Test for bug #98437: No HTTP_REFERER was sent when submitting a form.
 
-    >>> browser = Browser()
-
+    >>> app = TestApp()
+    >>> browser = Browser(application=app)
 
     A simple form for testing, like abobe.
 
-    >>> browser.open('''\
+    >>> app.set_next_response('''\
     ... <html><body>
     ...   <form id="form" action="." method="post"
     ...                   enctype="multipart/form-data">
     ...      <input type="submit" name="submit_me" value="GOOD" />
     ...   </form></body></html>
     ... ''') # doctest: +ELLIPSIS
+    >>> browser.open('http://localhost/')
     GET / HTTP/1.1
     ...
-
 
     Now submit the form, and see that we get an referrer along:
 
     >>> form = browser.getForm(id='form')
     >>> form.submit(name='submit_me') # doctest: +ELLIPSIS
     POST / HTTP/1.1
-    ...
     Referer: http://localhost/
     ...
 """
@@ -337,24 +342,25 @@ def test_new_instance_no_contents_should_not_fail(self):
 
 def test_strip_linebreaks_from_textarea(self):
     """
-    >>> browser = Browser()
+    >>> app = TestApp()
+    >>> browser = Browser(application=app)
 
     According to http://www.w3.org/TR/html4/appendix/notes.html#h-B.3.1 line
     break immediately after start tags or immediately before end tags must be
     ignored, but real browsers only ignore a line break after a start tag.
     So if we give the following form:
 
-    >>> browser.open('''
+    >>> app.set_next_response('''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <textarea name="textarea">
     ... Foo
     ... </textarea>
     ...   </form></body></html>
-    ... ''') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/')
     GET / HTTP/1.1
     ...
-
 
     The value of the textarea won't contain the first line break:
 
@@ -366,7 +372,7 @@ def test_strip_linebreaks_from_textarea(self):
     after the start tag, the textarea value will start and end with a line
     break.
 
-    >>> browser.open('''
+    >>> app.set_next_response('''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <textarea name="textarea">
@@ -374,7 +380,8 @@ def test_strip_linebreaks_from_textarea(self):
     ... Foo
     ... </textarea>
     ...   </form></body></html>
-    ... ''') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/')
     GET / HTTP/1.1
     ...
 
@@ -385,12 +392,13 @@ def test_strip_linebreaks_from_textarea(self):
     Also, if there is some other whitespace after the start tag, it will be
     preserved.
 
-    >>> browser.open('''
+    >>> app.set_next_response('''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <textarea name="textarea">  Foo  </textarea>
     ...   </form></body></html>
-    ... ''') # doctest: +ELLIPSIS
+    ... ''')
+    >>> browser.open('http://localhost/')
     GET / HTTP/1.1
     ...
 
@@ -414,6 +422,7 @@ def test_relative_link():
     ... ''')
     >>> browser.open('http://localhost/bar') # doctest: +ELLIPSIS
     GET /bar HTTP/1.1
+    ...
 
     >>> link = browser.getLink('link')
     >>> link.url
@@ -430,6 +439,7 @@ def test_relative_link():
     ... ''')
     >>> browser.open('http://localhost/bar') # doctest: +ELLIPSIS
     GET /bar HTTP/1.1
+    ...
 
     >>> link = browser.getLink('link')
     >>> link.url
@@ -446,6 +456,7 @@ def test_relative_link():
     ... ''')
     >>> browser.open('http://localhost/base/bar') # doctest: +ELLIPSIS
     GET /base/bar HTTP/1.1
+    ...
 
     >>> link = browser.getLink('link')
     >>> link.url
