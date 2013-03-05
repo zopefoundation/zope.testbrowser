@@ -250,47 +250,44 @@ def test_submit_duplicate_name():
 def test_file_upload():
     """
 
-    >>> browser = Browser()
-
+    >>> app = TestApp()
+    >>> browser = Browser(application=app)
 
     When given a form with a file-upload
 
-    >>> browser.open('''\
+    >>> app.set_next_response('''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <input name="foo" type="file" />
     ...      <input type="submit" value="OK" />
     ...   </form></body></html>
     ... ''') # doctest: +ELLIPSIS
+    >>> browser.open('http://localhost/')
     GET / HTTP/1.1
-    ...
 
 
     Fill in the form value using add_file:
 
     >>> browser.getControl(name='foo').add_file(
-    ...     io.BytesIO(b'sample_data'), 'text/foo', 'x.foo')
+    ...     io.BytesIO(b'sample_data'), 'text/foo', 'x.txt')
     >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
     ...
-    Content-type: multipart/form-data; ...
-    Content-disposition: form-data; name="foo"; filename="x.foo"
-    Content-type: text/foo
+    Content-Disposition: form-data; name="foo"; filename="x.txt"
+    Content-Type: text/plain
     <BLANKLINE>
     sample_data
     ...
 
-
     You can pass a string to add_file:
 
     >>> browser.getControl(name='foo').add_file(
-    ...     'blah blah blah', 'text/blah', 'x.blah')
+    ...     'blah blah blah', 'text/csv', 'x.csv')
     >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
     ...
-    Content-type: multipart/form-data; ...
-    Content-disposition: form-data; name="foo"; filename="x.blah"
-    Content-type: text/blah
+    Content-disposition: form-data; name="foo"; filename="x.csv"
+    Content-type: text/csv
     <BLANKLINE>
     blah blah blah
     ...

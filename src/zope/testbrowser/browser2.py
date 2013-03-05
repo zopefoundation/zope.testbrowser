@@ -18,6 +18,7 @@ __docformat__ = "reStructuredText"
 import sys
 import re
 import time
+import io
 
 from zope.interface import implementer
 
@@ -112,6 +113,14 @@ class Browser(object):
                     found.append((control, form))
                     break
         return found
+
+    def _findByName(self, name, forms):
+        found = []
+        for f in forms:
+            if name in f.fields:
+                found.extend([(c, f) for c in f.fields[name]])
+        return found
+
 
     def _findAllControls(self, forms, include_subcontrols=False):
         for f in forms:
@@ -227,14 +236,19 @@ class Control(object):
             self._control.value = value
 
     def add_file(self, file, content_type, filename):
-        # TODO
-        if not self.mech_control.type == 'file':
+        if self.type != 'file':
             raise TypeError("Can't call add_file on %s controls"
                             % self.mech_control.type)
-        if isinstance(file, str):
-            import cStringIO
-            file = cStringIO.StringIO(file)
-        self.mech_control.add_file(file, content_type, filename)
+
+        if isinstance(file, io.IOBase):
+            contents = file.read()
+        else:
+            contents = file
+
+        # XXX: webtest relies on mimetypes.guess_type to get mime type of
+        # upload file and doesn't let to set it explicitly, so we are ignoring
+        # content_type parameter here. If it is still unacceptable, consider using mock.object to force mimetypes to return "right" type.
+        self._form[self.name] = webtest.forms.Upload(filename, contents)
 
     def clear(self):
         # TODO
