@@ -75,7 +75,10 @@ class Browser(object):
     @property
     def contents(self):
         """See zope.testbrowser.interfaces.IBrowser"""
-        return self._response.body
+        if self._response is not None:
+            return self._response.body
+        else:
+            return None
         ## # TODO
         ## if self._contents is not None:
         ##     return self._contents
@@ -141,12 +144,33 @@ class Browser(object):
             else:
                 self._response = self.testapp.get(url, **reqargs)
 
+            if self._response.charset is None:
+                self._response.charset = 'latin1'
+
         # if the headers don't have a status, I suppose there can't be an error
         if 'Status' in self.headers:
             code, msg = self.headers['Status'].split(' ', 1)
             code = int(code)
             if self.raiseHttpErrors and code >= 400:
                 raise httpclient.HTTPException(url, code, msg, self.headers)
+
+    def _clickSubmit(self, form, control, coord):
+        # TODO: handle coord
+        # find index of given control in the form
+        with self._preparedRequest() as reqargs:
+            try:
+                if control:
+                    index = form.fields[control.name].index(control)
+                    self._response = form.submit(control.name, index, **reqargs)
+                else:
+                    self._response = form.submit(**reqargs)
+
+                if self._response.charset is None:
+                    self._response.charset = 'latin1'
+
+            except Exception as e:
+                fix_exception_name(e)
+                raise
 
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -278,23 +302,6 @@ class Browser(object):
         self._contents = None
         self._req_headers = {}
 
-    def _clickSubmit(self, form, control, coord):
-        # TODO: handle coord
-        # find index of given control in the form
-        with self._preparedRequest() as reqargs:
-            try:
-                if control:
-                    index = form.fields[control.name].index(control)
-                    self._response = form.submit(control.name, index, **reqargs)
-                else:
-                    self._response = form.submit(**reqargs)
-                #self.mech_browser.form = form
-                #self.mech_browser.submit(id=control.id, name=control.name,
-                #                         label=label, coord=coord)
-            except Exception as e:
-                fix_exception_name(e)
-                raise
-
     @contextmanager
     def _preparedRequest(self):
         self.timer.start()
@@ -334,7 +341,7 @@ class Link(object):
     @property
     def url(self):
         relurl = self._link['uri']
-        return urlparse.urljoin(self._baseurl, relurl)
+        return str(urlparse.urljoin(self._baseurl, relurl))
 
     @property
     def text(self):
@@ -417,7 +424,7 @@ class Control(object):
             return self.mech_control.items[0].selected  # TODO
 
         if isinstance(self._control, webtest.forms.Submit):
-            return self._control.value_if_submitted()
+            return str(self._control.value_if_submitted())
 
         # Remove first newline character
         val = self._control.value
@@ -465,7 +472,7 @@ class Control(object):
         self.mech_control.clear()
 
     def __repr__(self):
-        return "<%s name=%r type=%r>" % (
+        return "<%s name='%s' type='%s'>" % (
             self.__class__.__name__, self.name, self.type)
 
 @implementer(interfaces.ISubmitControl)
