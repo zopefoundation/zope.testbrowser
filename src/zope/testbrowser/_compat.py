@@ -30,11 +30,13 @@ if PYTHON2:
     import Cookie as httpcookies
     import urlparse
     import httplib as httpclient
+    import urllib2 as urllib_request
     from UserDict import DictMixin
     class MutableMapping(object, DictMixin):
         pass
 else:
     import http.cookies as httpcookies
     import urllib.parse as urlparse
+    import urllib.request as urllib_request
     import http.client as httpclient
     from collections import MutableMapping

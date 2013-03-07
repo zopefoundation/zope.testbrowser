@@ -20,11 +20,13 @@ import re
 import time
 import urlparse
 import io
+from contextlib import contextmanager
 
 from zope.interface import implementer
 
 from zope.testbrowser import interfaces
 from zope.testbrowser._compat import httpclient
+import zope.testbrowser.cookies
 
 import webtest
 
@@ -40,11 +42,13 @@ class Browser(object):
     _contents = None
     _counter = 0
     _response = None
+    _req_headers = None
 
-    def __init__(self, url=None, application=None):
+    def __init__(self, url=None, wsgi_app=None):
         self.timer = PystoneTimer()
         self.raiseHttpErrors = True
-        self.testapp = webtest.TestApp(application)
+        self.testapp = webtest.TestApp(wsgi_app)
+        self._req_headers = {}
 
         if url is not None:
             self.open(url)
@@ -52,8 +56,9 @@ class Browser(object):
     @property
     def url(self):
         """See zope.testbrowser.interfaces.IBrowser"""
-        # TODO
-        return self.mech_browser.geturl()
+        if self._response is None:
+            return None
+        return self._response.request.url
 
     @property
     def isHtml(self):
@@ -70,7 +75,7 @@ class Browser(object):
     @property
     def contents(self):
         """See zope.testbrowser.interfaces.IBrowser"""
-        return self._contents
+        return self._response.body
         ## # TODO
         ## if self._contents is not None:
         ##     return self._contents
@@ -87,6 +92,13 @@ class Browser(object):
     def headers(self):
         """See zope.testbrowser.interfaces.IBrowser"""
         return self._response.headers
+
+    @property
+    def cookies(self):
+        if self.url is None:
+            raise RuntimeError("no request found")
+        return zope.testbrowser.cookies.Cookies(self.testapp, self.url,
+                                                self._req_headers)
 
     HEADER_KEY = 'X-zope-handle-errors'
 
@@ -112,19 +124,22 @@ class Browser(object):
         # ... Before adding the new one.
         headers.append((self.HEADER_KEY, {False: 'False'}.get(value, 'True')))
 
+    def addHeader(self, key, value):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        if (key.lower() in ('cookie', 'cookie2') and
+            self.cookies.header):
+            raise ValueError('cookies are already set in `cookies` attribute')
+        self._req_headers[key] = value
+
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
 
         url = str(url)
-        with self.timer:
-            try:
-                if data is not None:
-                    self._response = self.testapp.post(url, data)
-                else:
-                    self._response = self.testapp.get(url)
-                pass
-            finally:
-                self._changed()
+        with self._preparedRequest() as reqargs:
+            if data is not None:
+                self._response = self.testapp.post(url, data, **reqargs)
+            else:
+                self._response = self.testapp.get(url, **reqargs)
 
         # if the headers don't have a status, I suppose there can't be an error
         if 'Status' in self.headers:
@@ -261,24 +276,36 @@ class Browser(object):
     def _changed(self):
         self._counter += 1
         self._contents = None
+        self._req_headers = {}
 
     def _clickSubmit(self, form, control, coord):
         # TODO: handle coord
         # find index of given control in the form
-        kwargs = {'headers': {'Referer': self._getBaseUrl()}}
-        with self.timer:
+        with self._preparedRequest() as reqargs:
             try:
                 if control:
                     index = form.fields[control.name].index(control)
-                    self._response = form.submit(control.name, index, **kwargs)
+                    self._response = form.submit(control.name, index, **reqargs)
                 else:
-                    self._response = form.submit(**kwargs)
+                    self._response = form.submit(**reqargs)
                 #self.mech_browser.form = form
                 #self.mech_browser.submit(id=control.id, name=control.name,
                 #                         label=label, coord=coord)
             except Exception as e:
                 fix_exception_name(e)
                 raise
+
+    @contextmanager
+    def _preparedRequest(self):
+        self.timer.start()
+        if self.url:
+            self._req_headers['Referer'] = self.url
+        kwargs = {'headers': sorted(self._req_headers.items())}
+
+        yield kwargs
+
+        self._changed()
+        self.timer.stop()
 
 @implementer(interfaces.ILink)
 class Link(object):
@@ -447,10 +474,7 @@ class SubmitControl(Control):
     def click(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        try:
-            self.browser._clickSubmit(self._form, self._control, (1,1))
-        finally:
-            self.browser._changed()
+        self.browser._clickSubmit(self._form, self._control, (1,1))
 
 @implementer(interfaces.IListControl)
 class ListControl(Control):
@@ -542,10 +566,7 @@ class ImageControl(Control):
     def click(self, coord=(1,1)):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        try:
-            self.browser._clickSubmit(self._form, self._control, coord)
-        finally:
-            self.browser._changed()
+        self.browser._clickSubmit(self._form, self._control, coord)
 
 @implementer(interfaces.IItemControl)
 class ItemControl(object):
@@ -644,35 +665,32 @@ class Form(object):
             raise interfaces.ExpiredError
 
         form = self._form
-        try:
-            if label is not None or name is not None:
-                controls, msg, available = self.browser._getAllControls(
-                    label, name, [form])
-                controls = [(control, form) for (control, form) in controls
-                            if isinstance(control, webtest.forms.Submit)]
-                control, form = disambiguate(controls, msg, index,
-                                             controlFormTupleRepr,
-                                             available)
-                self.browser._clickSubmit(form, control, coord)
+        if label is not None or name is not None:
+            controls, msg, available = self.browser._getAllControls(
+                label, name, [form])
+            controls = [(control, form) for (control, form) in controls
+                        if isinstance(control, webtest.forms.Submit)]
+            control, form = disambiguate(controls, msg, index,
+                                         controlFormTupleRepr,
+                                         available)
+            self.browser._clickSubmit(form, control, coord)
 
-            else: # JavaScript sort of submit
-                if index is not None or coord != (1,1):
-                    raise ValueError(
-                        'May not use index or coord without a control')
-                self.browser._clickSubmit(form)
-                ## # TODO
-                ## request = self.mech_form._switch_click("request", mechanize.Request)
-                ## self.browser._start_timer()
-                ## with self.browser.timer:
-                ##     try:
-                ##         form.submit()
-                ##         self.browser.mech_browser.open(request)
-                ##     except Exception as e:
-                ##         fix_exception_name(e)
-                ##         raise
+        else: # JavaScript sort of submit
+            if index is not None or coord != (1,1):
+                raise ValueError(
+                    'May not use index or coord without a control')
+            self.browser._clickSubmit(form)
+            ## # TODO
+            ## request = self.mech_form._switch_click("request", mechanize.Request)
+            ## self.browser._start_timer()
+            ## with self.browser.timer:
+            ##     try:
+            ##         form.submit()
+            ##         self.browser.mech_browser.open(request)
+            ##     except Exception as e:
+            ##         fix_exception_name(e)
+            ##         raise
 
-        finally:
-            self.browser._changed()
 
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""

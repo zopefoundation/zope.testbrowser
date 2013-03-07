@@ -21,6 +21,7 @@ import sys
 from webtest import TestApp
 
 import zope.testbrowser.browser
+import zope.testbrowser.browser2
 import zope.testbrowser.connection
 
 class HostNotAllowed(Exception):
@@ -159,18 +160,23 @@ if zope.testbrowser.browser.HAVE_MECHANIZE:
             return WSGIHTTPHandler(self._test_app, *args, **kw)
 
 
-    class Browser(zope.testbrowser.browser.Browser):
-        """A WSGI `testbrowser` Browser that uses a WebTest wrapped WSGI app."""
+    ## # TODO: remove 
+    ## class Browser_mech(zope.testbrowser.browser.Browser):
+    ##     """A WSGI `testbrowser` Browser that uses a WebTest wrapped WSGI app."""
 
-        def __init__(self, url=None, wsgi_app=None):
-            if wsgi_app is None:
-                wsgi_app = Layer.get_app()
-            if wsgi_app is None:
-                raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
-            mech_browser = WSGIMechanizeBrowser(wsgi_app)
-            super(Browser, self).__init__(url=url, mech_browser=mech_browser)
+    ##     def __init__(self, url=None, wsgi_app=None):
+    ##         if wsgi_app is None:
+    ##             wsgi_app = Layer.get_app()
+    ##         if wsgi_app is None:
+    ##             raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
+    ##         mech_browser = WSGIMechanizeBrowser(wsgi_app)
+    ##         super(Browser_mech, self).__init__(url=url, mech_browser=mech_browser)
 
 # Compatibility helpers to behave like zope.app.testing
+
+class Browser(zope.testbrowser.browser2.Browser):
+    # BBB
+    pass
 
 basicre = re.compile('Basic (.+)?:(.+)?$')
 

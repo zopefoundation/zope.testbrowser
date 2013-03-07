@@ -12,11 +12,11 @@
 #
 ##############################################################################
 import doctest
-import pkg_resources
+#import pkg_resources
 import unittest
 
 import zope.testbrowser.ftests.wsgitestapp
-import zope.testbrowser.wsgi
+#import zope.testbrowser.wsgi
 import zope.testbrowser.tests.helper
 
 def test_suite():

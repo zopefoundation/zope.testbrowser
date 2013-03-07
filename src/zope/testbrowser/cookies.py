@@ -16,7 +16,8 @@ import datetime
 import time
 import urllib
 
-from zope.testbrowser._compat import mechanize, httpcookies, urlparse, MutableMapping
+from zope.testbrowser._compat import (mechanize, httpcookies, urlparse,
+                                      MutableMapping, urllib_request)
 import pytz
 import zope.interface
 from zope.testbrowser import interfaces
@@ -64,19 +65,15 @@ class Cookies(MutableMapping):
     """Cookies for mechanize browser.
     """
 
-    def __init__(self, mech_browser, url=None):
-        self.mech_browser = mech_browser
+    def __init__(self, testapp, url=None, req_headers=None):
+        self.testapp = testapp
         self._url = url
-        for handler in self.mech_browser.handlers:
-            if getattr(handler, 'cookiejar', None) is not None:
-                self._jar = handler.cookiejar
-                break
-        else:
-            raise RuntimeError('no cookiejar found')
+        self._jar = testapp.cookiejar
+        self._req_headers = req_headers if req_headers is not None else {}
 
     @property
     def strict_domain_policy(self):
-        policy = self._jar.get_policy()
+        policy = self._jar._policy
         flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
                  policy.DomainStrictNonDomain)
         return policy.strict_ns_domain & flags == flags
@@ -84,7 +81,7 @@ class Cookies(MutableMapping):
     @strict_domain_policy.setter
     def strict_domain_policy(self, value):
         jar = self._jar
-        policy = jar.get_policy()
+        policy = jar._policy
         flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
                  policy.DomainStrictNonDomain)
         policy.strict_ns_domain |= flags
@@ -92,29 +89,24 @@ class Cookies(MutableMapping):
             policy.strict_ns_domain  ^= flags
 
     def forURL(self, url):
-        return self.__class__(self.mech_browser, url)
+        return self.__class__(self.testapp, url)
 
     @property
     def url(self):
-        if self._url is not None:
-            return self._url
-        else:
-            return self.mech_browser.geturl()
+        return self._url
 
     @property
     def _request(self):
-        if self._url is not None:
-            return self.mech_browser.request_class(self._url)
-        else:
-            request = self.mech_browser.request
-            if request is None:
-                raise RuntimeError('no request found')
-            return request
+        return urllib_request.Request(self._url)
 
     @property
     def header(self):
-        request = self.mech_browser.request_class(self.url)
+        request = self._request
         self._jar.add_cookie_header(request)
+
+        if not request.has_header('Cookie'):
+            return ''
+
         return request.get_header('Cookie')
 
     def __str__(self):
@@ -127,7 +119,17 @@ class Cookies(MutableMapping):
             id(self), self.url, self.header)
 
     def _raw_cookies(self):
-        return self._jar.cookies_for_request(self._request)
+        # We are using protected cookielib _cookies_for_request() here to avoid
+        # code duplication.
+
+        # Comply with cookielib internal protocol
+        self._jar._policy._now = self._jar._now = int(time.time())
+        cookies = self._jar._cookies_for_request(self._request)
+
+        # Sort cookies so that the longer paths would come first. This allows
+        # masking parent cookies.
+        cookies.sort(key=lambda c: len(c.path), reverse=True)
+        return cookies
 
     def _get_cookies(self, key=None):
         if key is None:
@@ -284,9 +286,10 @@ class Cookies(MutableMapping):
 
     def _setCookie(self, name, value, domain, expires, path, secure, comment,
                    commenturl, port, version=None, ck=None, now=None):
-        for nm, val in self.mech_browser.addheaders:
+        for nm, val in self._req_headers.items():
             if nm.lower() in ('cookie', 'cookie2'):
                 raise ValueError('cookies are already set in `Cookie` header')
+
         if domain and not domain.startswith('.'):
             # we do a dance here so that we keep names that have been passed
             # in consistent (i.e., if we get an explicit 'example.com' it stays
@@ -298,10 +301,11 @@ class Cookies(MutableMapping):
             else:
                 protocol = 'http'
             url = '%s://%s%s' % (protocol, tmp_domain, path or '/')
-            request = self.mech_browser.request_class(url)
+            request = urllib_request.Request(url)
         else:
             request = self._request
             if request is None:
+                # TODO: fix exception
                 raise mechanize.BrowserStateError(
                     'cannot create cookie without request or domain')
         c = httpcookies.SimpleCookie()
