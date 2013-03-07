@@ -828,3 +828,6 @@ class PystoneTimer(object):
 
 class AmbiguityError(ValueError):
     pass
+
+def fix_exception_name(e):
+    pass

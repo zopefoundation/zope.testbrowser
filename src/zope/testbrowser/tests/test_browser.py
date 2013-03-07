@@ -194,7 +194,7 @@ def test_submit_duplicate_name():
     button when having the same name twice in a form.
 
     >>> app = TestApp()
-    >>> browser = Browser(application=app)
+    >>> browser = Browser(wsgi_app=app)
 
 
     When given a form with two submit buttons that have the same name:
@@ -256,7 +256,7 @@ def test_submit_duplicate_name():
 def test_file_upload():
     """
     >>> app = TestApp()
-    >>> browser = Browser(application=app)
+    >>> browser = Browser(wsgi_app=app)
 
     When given a form with a file-upload
 
@@ -304,7 +304,7 @@ def test_submit_gets_referrer():
     Test for bug #98437: No HTTP_REFERER was sent when submitting a form.
 
     >>> app = TestApp()
-    >>> browser = Browser(application=app)
+    >>> browser = Browser(wsgi_app=app)
 
     A simple form for testing, like abobe.
 
@@ -343,7 +343,7 @@ def test_new_instance_no_contents_should_not_fail(self):
 def test_strip_linebreaks_from_textarea(self):
     """
     >>> app = TestApp()
-    >>> browser = Browser(application=app)
+    >>> browser = Browser(wsgi_app=app)
 
     According to http://www.w3.org/TR/html4/appendix/notes.html#h-B.3.1 line
     break immediately after start tags or immediately before end tags must be
@@ -413,7 +413,7 @@ def test_relative_link():
     that we conform to it. Let's start with a simple example.
 
     >>> app = TestApp()
-    >>> browser = Browser(application=app)
+    >>> browser = Browser(wsgi_app=app)
 
     >>> app.set_next_response('''\
     ... <html><body>
