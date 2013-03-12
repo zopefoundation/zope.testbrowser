@@ -21,6 +21,7 @@ import time
 import urlparse
 import io
 from contextlib import contextmanager
+from collections import OrderedDict
 
 from zope.interface import implementer
 
@@ -313,44 +314,27 @@ class Browser(object):
         return found
 
     def _indexControls(self, form):
+        # Unfortunately, webtest will remove all 'name' attributes from
+        # form.html after parsing. But we need them (at least to locate labels
+        # for radio buttons). So we are forced to reparse part of html, to
+        # extract elements.
+        from bs4 import BeautifulSoup
+        html = BeautifulSoup(form.text)
         tags = ('input', 'select', 'textarea', 'button')
-        return form.html.find_all(tags)
+        return html.find_all(tags)
 
     def _findByName(self, name, forms):
-        found = []
-        for f in forms:
-            allelems = self._indexControls(f)
-            if name in f.fields:
-                found.extend([controlFactory(c, f, allelems[c.pos], self)
-                              for c in f.fields[name]])
-        return found
+        return [c for c in self._findAllControls(forms) if c.name == name]
 
 
     def _findAllControls(self, forms, include_subcontrols=False):
         for f in forms:
             allelems = self._indexControls(f)
 
-            for controls in f.fields.values():
-                for c in controls:
-                    elem = allelems[c.pos]
-                    #wtcontrol = WebtestControl(c, f, elem)
-                    control = controlFactory(c, f, elem, self)
-                    yield control
-
-                    if include_subcontrols:
-                        for subcontrol in control.subcontrols:
-                            yield subcontrol
-                        #for option in elem.select('option'):
-                        #    yield WebtestSubcontrol(wtcontrol, option)
-                    #if include_subcontrols and tp == 'select':
-                    #    mmmm
-                    #phantom = tp in ('radio', 'checkbox')
-                    #if not phantom:
-                    #    yield (c, f)
-                    #if include_subcontrols and (
-                    #    phantom or control.type=='select'):
-                    #    for i in control.items:
-                    #        yield (i, f)
+            for cname, wtcontrols in f.fields.items():
+                for c in controlFactory(cname, wtcontrols, allelems, self,
+                                        include_subcontrols):
+                    yield c
 
 
     def _changed(self):
@@ -369,6 +353,50 @@ class Browser(object):
 
         self._changed()
         self.timer.stop()
+
+def controlFactory(name, wtcontrols, elemindex, browser, include_subcontrols=False):
+    assert len(wtcontrols) > 0
+
+    first_wtc = wtcontrols[0]
+    checkbox = isinstance(first_wtc, webtest.forms.Checkbox)
+
+    # Create control list
+    if checkbox:
+        ctrlelems = [(wtc, elemindex[wtc.pos]) for wtc in wtcontrols]
+        controls = [CheckboxListControl(name, ctrlelems, browser)]
+
+    else:
+        controls = []
+        for wtc in wtcontrols:
+            controls.append(simpleControlFactory(wtc, wtc.form, elemindex, browser))
+
+    # Yield all created controls
+    for control in controls:
+        yield control
+
+        if include_subcontrols:
+            for subcontrol in control.controls:
+                yield subcontrol
+
+
+def simpleControlFactory(wtcontrol, form, elemindex, browser):
+    if isinstance(wtcontrol, webtest.forms.Radio):
+        elems = [e for e in elemindex
+                 if e.attrs.get('name') == wtcontrol.name]
+        return RadioListControl(wtcontrol, form, elems, browser)
+
+    elem = elemindex[wtcontrol.pos]
+    if isinstance(wtcontrol, (webtest.forms.Select,
+                              webtest.forms.MultipleSelect)):
+        return ListControl(wtcontrol, form, elem, browser)
+
+    elif isinstance(wtcontrol, webtest.forms.Submit):
+        if wtcontrol.attrs.get('type', 'submit') == 'image':
+            return ImageControl(wtcontrol, form, elem, browser)
+        else:
+            return SubmitControl(wtcontrol, form, elem, browser)
+    else:
+        return Control(wtcontrol, form, elem, browser)
 
 @implementer(interfaces.ILink)
 class Link(object):
@@ -409,21 +437,6 @@ class Link(object):
         return "<%s text='%s' url='%s'>" % (
             self.__class__.__name__, normalizeWhitespace(self.text), self.url)
 
-def controlFactory(wtcontrol, form, elem, browser):
-    listfields = (webtest.forms.Select,
-                  webtest.forms.MultipleSelect,
-                  webtest.forms.Radio,
-                  webtest.forms.Checkbox)
-    if isinstance(wtcontrol, listfields):
-        return ListControl(wtcontrol, form, elem, browser)
-    elif isinstance(wtcontrol, webtest.forms.Submit):
-        if wtcontrol.attrs.get('type', 'submit') == 'image':
-            return ImageControl(wtcontrol, form, elem, browser)
-        else:
-            return SubmitControl(wtcontrol, form, elem, browser)
-    else:
-        return Control(wtcontrol, form, elem, browser)
-
 def controlFormTupleRepr(wtcontrol):
     return wtcontrol.mechRepr()
 
@@ -439,21 +452,20 @@ class Control(object):
 
     @property
     def disabled(self):
-        # TODO
-        return bool(getattr(self.mech_control, 'disabled', False))
+        return 'disabled' in self._control.attrs
 
     @property
     def type(self):
-        return self._control.attrs.get('type', None)
+        return to_str(self._control.attrs.get('type', None),
+                      self.browser._response)
 
     @property
     def name(self):
-        return self._control.name
+        return to_str(self._control.name, self.browser._response)
 
     @property
     def multiple(self):
-        # TODO
-        return bool(getattr(self.mech_control, 'multiple', False))
+        return 'multiple' in self._control.attrs
 
     @property
     def value(self):
@@ -466,8 +478,10 @@ class Control(object):
         if isinstance(self._control, webtest.forms.Submit):
             return str(self._control.value_if_submitted())
 
-        # Remove first newline character
         val = self._control.value
+        if val is None:
+            return None
+        # Remove first newline character
         if val.startswith('\n'):
             val = val[1:]
 
@@ -475,14 +489,11 @@ class Control(object):
 
     @value.setter
     def value(self, value):
-        # TODO
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
         if self.type == 'file':
-            # TODO
-            self.mech_control.add_file(value,
-                                       content_type=self.content_type,
-                                       filename=self.filename)
+            self.add_file(value, content_type=self.content_type,
+                          filename=self.filename)
         elif self.type == 'checkbox' and len(self.mech_control.items) == 1:
             # TODO
             self.mech_control.items[0].selected = bool(value)
@@ -516,23 +527,10 @@ class Control(object):
             self.__class__.__name__, self.name, self.type)
 
     def getLabels(self):
-        labels = []
-
-        control = self._control
-
-        # find all labels, connected by 'for' attribute
-        if control.id:
-            forlbls = self._form.html.select('label[for=%s]' % control.id)
-            labels.extend([normalizeWhitespace(l.text) for l in forlbls])
-
-        celem = self._elem
-        if celem.parent.name == 'label':
-            labels.extend([normalizeWhitespace(celem.parent.text)])
-
-        return [l for l in labels if l is not None]
+        return getControlLabels(self._elem, self._form.html)
 
     @property
-    def subcontrols(self):
+    def controls(self):
         return []
 
     def mechRepr(self):
@@ -583,95 +581,150 @@ class ListControl(Control):
         return 'select'
 
     @property
+    def value(self):
+        val = self._control.value
+        if val is None:
+            return []
+
+        r = self.browser._response
+        return [to_str(v, r) for v in val]
+
+    @value.setter
+    def value(self, value):
+        self._control.value = value
+
+    @property
     def displayValue(self):
         """See zope.testbrowser.interfaces.IListControl"""
         # not implemented for anything other than select;
         # would be nice if mechanize implemented for checkbox and radio.
         # attribute error for all others.
 
-        # TODO
-        return self.mech_control.get_value_by_label()
+        if self._control.value is None:
+            return []
 
+        titles = []
+        for key, title, elem in self._getOptions():
+            if key in self._control.value:
+                titles.append(title)
+        r = self.browser._response
+        return [to_str(t, r) for t in titles]
 
     @displayValue.setter
     def displayValue(self, value):
-        if self.browser_counter != self.browser._counter:
+        if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self._control.set_value_by_label(value)  # TODO
 
+        values = []
+        for key, title, elem in self._getOptions():
+            if title in value:
+                values.append(key)
+        self._control.value = values
 
     @property
     def displayOptions(self):
         """See zope.testbrowser.interfaces.IListControl"""
-        # TODO
-        res = []
-        for item in self.mech_control.items:
-            if not item.disabled:
-                for label in item.get_labels():
-                    if label.text:
-                        res.append(label.text)
-                        break
-                else:
-                    res.append(None)
-        return res
+        return [to_str(title, self.browser._response)
+                for key, title, elem in self._getOptions()]
 
     @property
     def options(self):
         """See zope.testbrowser.interfaces.IListControl"""
-        # TODO
-        if (self.type == 'checkbox' and len(self.mech_control.items) == 1 and
-            self.mech_control.items[0].name == 'on'):
-            return [True]
-        return [i.name for i in self.mech_control.items if not i.disabled]
-
-    @property
-    def disabled(self):
-        # TODO
-        if self.type == 'checkbox' and len(self.mech_control.items) == 1:
-            return bool(getattr(self.mech_control.items[0], 'disabled', False))
-        return bool(getattr(self.mech_control, 'disabled', False))
-
-    @property
-    def controls(self):
-        # TODO
-        if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
-        res = [controlFactory(i, self.mech_form, self.browser) for i in
-                self.mech_control.items]
-        for s in res:
-            s.__dict__['control'] = self
-        return res
+        return [key for key, title, elem in self._getOptions()]
 
     def getControl(self, label=None, value=None, index=None):
-        # TODO
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
 
         onlyOne([label, value], '"label" and "value"')
 
         if label is not None:
-            options = self.mech_control.get_items(label=label)
+            options = [c for c in self.controls
+                       if label in c.getLabels()]
             msg = 'label %r' % label
         elif value is not None:
-            options = self.mech_control.get_items(name=value)
+            options = [c for c in self.controls
+                       if isMatching(c.value, value)]
             msg = 'value %r' % value
-        res = controlFactory(
-            disambiguate(options, msg, index, controlFormTupleRepr),
-            self.mech_form, self.browser)
-        res.__dict__['control'] = self
+
+        res = disambiguate(options, msg, index, controlFormTupleRepr)
         return res
 
     @property
-    def subcontrols(self):
-        #if self.name == 'radio-value':
-        #    import pdb; pdb.set_trace();
-        for opt in self._elem.select('option'):
-            yield ItemControl(self, opt, self._form, self.browser)
+    def controls(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        ctrls = []
+        for key, value, elem in self._getOptions():
+            ctrls.append(ItemControl(self, elem, self._form, self.browser))
+
+        return ctrls
+
+    def _getOptions(self):
+        return [(e.attrs.get('value'), e.attrs.get('label', e.text), e)
+                for e in self._elem.select('option')]
 
     def mechRepr(self):
         return "<SelectControl(%s=[*, ambiguous])>" % self.name
 
+@implementer(interfaces.IListControl)
+class RadioListControl(ListControl):
+    def __init__(self, control, form, elems, browser):
+        super(RadioListControl, self).__init__(control, form, elems[0], browser)
+        self._elems = elems
 
+    def __repr__(self):
+        # Return backwards compatible representation
+        return "<ListControl name='%s' type='radio'>" % self.name
+
+    @property
+    def controls(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        for opt in self._elems:
+            yield RadioItemControl(self, opt, self._form, self.browser)
+
+
+@implementer(interfaces.IListControl)
+class CheckboxListControl(object):
+    def __init__(self, name, ctrlelems, browser):
+        self.name = name
+        self.browser = browser
+        self._ctrlelems = ctrlelems
+
+    @property
+    def options(self):
+        # TODO
+        pass
+
+    @property
+    def displayOptions(self):
+        # TODO
+        pass
+
+    @property
+    def displayValue(self):
+        # TODO
+        pass
+
+    def getControl(label=None, value=None, index=None):
+        #TODO
+        pass
+
+    @property
+    def controls(self):
+        return [CheckboxItemControl(self, c, e, c.form, self.browser)
+                for c, e in self._ctrlelems]
+
+    def mechRepr(self):
+        return "<SelectControl(%s=[*, ambiguous])>" % self.name
+
+    def getLabels(self):
+        return []
+
+    def __repr__(self):
+        # Return backwards compatible representation
+        return "<ListControl name='%s' type='checkbox'>" % self.name
 
 @implementer(interfaces.IImageSubmitControl)
 class ImageControl(Control):
@@ -683,6 +736,7 @@ class ImageControl(Control):
 
     def mechRepr(self):
         return "ImageControl???"
+
 
 @implementer(interfaces.IItemControl)
 class ItemControl(object):
@@ -713,15 +767,13 @@ class ItemControl(object):
     @property
     def selected(self):
         """See zope.testbrowser.interfaces.IControl"""
-        # TODO
-        return self.mech_item.selected
+        return self._elem.attrs.get('value') in self._parent.value
 
     @selected.setter
     def selected(self, value):
-        # TODO
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self.mech_item.selected = value
+        self._parent.value = self._elem.attrs.get('value')
 
     @property
     def optionValue(self):
@@ -734,14 +786,13 @@ class ItemControl(object):
         self.mech_item.selected = not self.mech_item.selected
 
     def __repr__(self):
-        # TODO
-        return "<%s name=%r type=%r optionValue=%r selected=%r>" % (
-            self.__class__.__name__, self.mech_item._control.name,
-            self.mech_item._control.type, self.optionValue, self.mech_item.selected)
+        return "<ItemControl name='%s' type='select' optionValue=%r selected=%r>" % \
+                (self._parent.name, self.optionValue, self.selected)
 
     def getLabels(self):
-        labels = [normalizeWhitespace(self._elem.text)]
-        return labels
+        lbl = self._elem.attrs.get('label', self._elem.text)
+        labels = [self._elem.attrs.get('label'), self._elem.text]
+        return [normalizeWhitespace(lbl) for lbl in labels if lbl]
 
     def mechRepr(self):
         contents = normalizeWhitespace(self._elem.text)
@@ -752,6 +803,95 @@ class ItemControl(object):
         return "<Item name='%s' id=%s contents='%s' value='%s' label='%s'>" % \
                 (name, id, contents, value, label)
 
+class RadioItemControl(ItemControl):
+    @property
+    def selected(self):
+        """See zope.testbrowser.interfaces.IControl"""
+        return self._elem.attrs.get('value') in self._parent.value
+
+    @selected.setter
+    def selected(self, value):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self._parent.value = self._elem.attrs.get('value')
+
+    @property
+    def optionValue(self):
+        return to_str(self._elem.attrs.get('value'), self.browser._response)
+
+    def getLabels(self):
+        return getControlLabels(self._elem, self._form.html)
+
+    def __repr__(self):
+        return "<ItemControl name='%s' type='radio' optionValue=%r selected=%r>" % (
+            self._parent.name, self.optionValue, self.selected)
+
+    def mechRepr(self):
+        id = self._elem.attrs.get('id')
+        value = self._elem.attrs.get('value')
+        name = self._elem.attrs.get('name')
+
+        r = self.browser._response
+        props = []
+        if self._elem.parent.name == 'label':
+            props.append(('__label', {'__text': to_str(self._elem.parent.text, r)}))
+        if self.selected:
+            props.append(('checked', 'checked'))
+        props.append(('type', 'radio'))
+        props.append(('name', name))
+        props.append(('value', value))
+        props.append(('id', id))
+
+        propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
+        return "<Item name='%s' id='%s' %s>" % \
+                (value, id, propstr)
+
+class CheckboxItemControl(ItemControl):
+    def __init__(self, parent, wtcontrol, elem, form, browser):
+        super(CheckboxItemControl, self).__init__(parent, elem, form, browser)
+        self._control = wtcontrol
+
+    @property
+    def selected(self):
+        """See zope.testbrowser.interfaces.IControl"""
+        return self._control.value == self._elem.attrs.get('value')
+
+    @selected.setter
+    def selected(self, value):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self._control.value = self._elem.attrs.get('value')
+
+    @property
+    def optionValue(self):
+        return to_str(self._control.value, self.browser._response)
+
+    def getLabels(self):
+        return getControlLabels(self._elem, self._form.html)
+
+    def __repr__(self):
+        return "<ItemControl name='%s' type='checkbox' optionValue=%r selected=%r>" % (
+            self._control.name, self.optionValue, self.selected)
+
+    def mechRepr(self):
+        id = self._elem.attrs.get('id')
+        value = self._elem.attrs.get('value')
+        name = self._elem.attrs.get('name')
+
+        r = self.browser._response
+        props = []
+        if self._elem.parent.name == 'label':
+            props.append(('__label', {'__text': to_str(self._elem.parent.text, r)}))
+        if self.selected:
+            props.append(('checked', 'checked'))
+        props.append(('name', name))
+        props.append(('type', 'checkbox'))
+        props.append(('id', id))
+        props.append(('value', value))
+
+        propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
+        return "<Item name='%s' id='%s' %s>" % \
+                (value, id, propstr)
 
 @implementer(interfaces.IForm)
 class Form(object):
@@ -874,6 +1014,19 @@ def zeroOrOne(items, description):
         raise ValueError(
             "Supply no more than one of %s as arguments" % description)
 
+def getControlLabels(celem, html):
+        labels = []
+
+        # find all labels, connected by 'for' attribute
+        controlid = celem.attrs.get('id')
+        if controlid:
+            forlbls = html.select('label[for=%s]' % controlid)
+            labels.extend([normalizeWhitespace(l.text) for l in forlbls])
+
+        if celem.parent.name == 'label':
+            labels.extend([normalizeWhitespace(celem.parent.text)])
+
+        return [l for l in labels if l is not None]
 
 def normalizeWhitespace(string):
     return ' '.join(string.split())
@@ -999,39 +1152,3 @@ class BrowserStateError(Exception):
 
 class LinkNotFoundError(IndexError):
     pass
-
-class WebtestControl(object):
-    def __init__(self, control, form, elem):
-        self.control = control
-        self.form = form
-        self.elem = elem
-
-    def getLabels(self):
-        labels = []
-
-        # use control value
-        if isinstance(self.control, webtest.forms.Submit):
-            labels.append(self.control.value_if_submitted())
-
-        control = self.control
-
-        # find all labels, connected by 'for' attribute
-        if control.id:
-            forlbls = self.form.html.select('label[for=%s]' % control.id)
-            labels.extend([normalizeWhitespace(l.text) for l in forlbls])
-
-        celem = self.elem
-        if celem.parent.name == 'label':
-            labels.extend(normalizeWhitespace(celem.parent.text))
-
-        return [l for l in labels if l is not None]
-
-class WebtestSubcontrol(WebtestControl):
-    def __init__(self, parent, elem):
-        self.parent = parent
-        self.elem = elem
-
-    def getLabels(self):
-        labels = [self.elem.attrs.get('name'),
-                  normalizeWhitespace(self.elem.text)]
-        return [l for l in labels if l is not None]
