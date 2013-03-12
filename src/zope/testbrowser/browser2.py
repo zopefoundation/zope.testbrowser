@@ -574,6 +574,17 @@ class SubmitControl(Control):
 @implementer(interfaces.IListControl)
 class ListControl(Control):
 
+    def __init__(self, control, form, elem, browser):
+        super(ListControl, self).__init__(control, form, elem, browser)
+        # HACK: set default value of a list control and then forget about
+        # initial default values. Otherwise webtest will not allow to set None
+        # as a value of select and radio controls.
+        v = control.value
+        if v:
+            control.value = v
+            # Uncheck all the options
+            control.options = [(o, False) for o, checked in control.options]
+
     @property
     def type(self):
         if isinstance(self._control, webtest.forms.Radio):
@@ -591,7 +602,13 @@ class ListControl(Control):
 
     @value.setter
     def value(self, value):
-        self._control.value = value
+        if not value:
+            # HACK: Force unsetting selected value, by avoiding validity check.
+            # Note, that force_value will not work for webtest.forms.Radio
+            # controls.
+            self._control.selectedIndex = None
+        else:
+            self._control.value = value
 
     @property
     def displayValue(self):
@@ -665,6 +682,7 @@ class ListControl(Control):
                 for e in self._elem.select('option')]
 
     def mechRepr(self):
+        # TODO: figure out what is replacement for "[*, ambiguous])"
         return "<SelectControl(%s=[*, ambiguous])>" % self.name
 
 @implementer(interfaces.IListControl)
@@ -683,6 +701,10 @@ class RadioListControl(ListControl):
             raise interfaces.ExpiredError
         for opt in self._elems:
             yield RadioItemControl(self, opt, self._form, self.browser)
+
+    def getLabels(self):
+        # Parent radio button control has no labels. Children are labeled.
+        return []
 
 
 @implementer(interfaces.IListControl)
@@ -751,18 +773,13 @@ class ItemControl(object):
 
     @property
     def control(self):
-        # TODO
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        res = controlFactory(
-            self._item._control, self.mech_form, self.browser)
-        self.__dict__['control'] = res
-        return res
+        return self._parent
 
     @property
     def disabled(self):
-        # TODO
-        return self.mech_item.disabled
+        return 'disabled' in self._elem.attrs
 
     @property
     def selected(self):
@@ -773,7 +790,10 @@ class ItemControl(object):
     def selected(self, value):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self._parent.value = self._elem.attrs.get('value')
+        if value:
+            self._parent.value = self._elem.attrs.get('value')
+        else:
+            self._parent.value = None
 
     @property
     def optionValue(self):
@@ -804,17 +824,6 @@ class ItemControl(object):
                 (name, id, contents, value, label)
 
 class RadioItemControl(ItemControl):
-    @property
-    def selected(self):
-        """See zope.testbrowser.interfaces.IControl"""
-        return self._elem.attrs.get('value') in self._parent.value
-
-    @selected.setter
-    def selected(self, value):
-        if self._browser_counter != self.browser._counter:
-            raise interfaces.ExpiredError
-        self._parent.value = self._elem.attrs.get('value')
-
     @property
     def optionValue(self):
         return to_str(self._elem.attrs.get('value'), self.browser._response)
