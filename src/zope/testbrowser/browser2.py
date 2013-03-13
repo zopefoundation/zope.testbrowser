@@ -190,7 +190,7 @@ class Browser(object):
             if self.raiseHttpErrors and code >= 400:
                 raise httpclient.HTTPException(url, code, msg, self.headers)
 
-    def _clickSubmit(self, form, control, coord):
+    def _clickSubmit(self, form, control=None, coord=None):
         # TODO: handle coord
         # find index of given control in the form
         with self._preparedRequest() as reqargs:
@@ -198,15 +198,30 @@ class Browser(object):
             try:
                 if control:
                     index = form.fields[control.name].index(control)
-                    resp = form.submit(control.name, index, **reqargs)
+                    resp = self._submit(form, control.name, index, coord=coord,
+                                        **reqargs)
                 else:
-                    resp = form.submit(**reqargs)
+                    resp = self._submit(form, coord=coord, **reqargs)
 
                 self._setResponse(resp)
 
             except Exception as e:
                 fix_exception_name(e)
                 raise
+
+    def _submit(self, form, name=None, index=None, coord=None, **args):
+        # A reimplementation of webtest.forms.Form.submit() to allow to insert
+        # coords into the request
+        fields = form.submit_fields(name, index=index)
+        if coord is not None:
+            fields.extend([('%s.x' % name, coord[0]),
+                           ('%s.y' % name, coord[1])])
+
+        if form.method.upper() != "GET":
+            args.setdefault("content_type",  form.enctype)
+        return form.response.goto(form.action, method=form.method,
+                                  params=fields, **args)
+
 
     def _setResponse(self, response):
         self._response = response
@@ -254,10 +269,10 @@ class Browser(object):
         """See zope.testbrowser.interfaces.IBrowser"""
         zeroOrOne([id, name, action], '"id", "name", and "action"')
         matching_forms = []
-        allforms = set(self._response.forms.values())
+        allforms = self._getAllResponseForms()
         for form in allforms:
             if ((id is not None and form.id == id)
-            or (name is not None and form.html.body.form.get('name') == name)
+            or (name is not None and form.html.form.get('name') == name)
             or (action is not None and re.search(action, form.action))
             or id == name == action == None):
                 matching_forms.append(form)
@@ -275,13 +290,24 @@ class Browser(object):
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
         intermediate, msg, available = self._getAllControls(
-            label, name, self._response.forms.values(),
+            label, name, self._getAllResponseForms(),
             include_subcontrols=True)
         control = disambiguate(intermediate, msg, index,
                                controlFormTupleRepr,
                                available)
         return control
 
+    def _getAllResponseForms(self):
+        """ Return set of response forms in the order they appear in
+        ``self._response.form``."""
+        forms = []
+        seen = set()
+        for f in self._response.forms.values():
+            if f in seen:
+                continue
+            seen.add(f)
+            forms.append(f)
+        return forms
 
     def _getAllControls(self, label, name, forms, include_subcontrols=False):
         onlyOne([label, name], '"label" and "name"')
@@ -354,6 +380,9 @@ class Browser(object):
         self._changed()
         self.timer.stop()
 
+    def _absoluteUrl(self, url):
+        return str(urlparse.urljoin(self._getBaseUrl(), url))
+
 def controlFactory(name, wtcontrols, elemindex, browser, include_subcontrols=False):
     assert len(wtcontrols) > 0
 
@@ -415,8 +444,7 @@ class Link(object):
     @property
     def url(self):
         relurl = self._link['href']
-        absurl = urlparse.urljoin(self._baseurl, relurl)
-        return str(absurl)
+        return self.browser._absoluteUrl(relurl)
 
     @property
     def text(self):
@@ -478,6 +506,10 @@ class Control(object):
         if self.type == 'file':
             if not self._control.value:
                 return None
+
+        if self.type == 'image':
+            if not self._control.value:
+                return ''
 
         if isinstance(self._control, webtest.forms.Submit):
             return str(self._control.value_if_submitted())
@@ -563,7 +595,7 @@ class SubmitControl(Control):
     def click(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self.browser._clickSubmit(self._form, self._control, (1,1))
+        self.browser._clickSubmit(self._form, self._control)
 
     def getLabels(self):
         labels = super(SubmitControl, self).getLabels()
@@ -571,7 +603,7 @@ class SubmitControl(Control):
         return labels
 
     def mechRepr(self):
-        return "ImageControl???"
+        return "SubmitControl???"
 
 @implementer(interfaces.IListControl)
 class ListControl(Control):
@@ -965,26 +997,26 @@ class Form(object):
 
     @property
     def action(self):
-        return self._form.action
+        return self.browser._absoluteUrl(self._form.action)
 
     @property
     def method(self):
-        return self._form.method
+        return str(self._form.method)
 
     @property
     def enctype(self):
-        return self._form.enctype
+        return str(self._form.enctype)
 
     @property
     def name(self):
-        return self._form.html.body.form.get('name')
+        return str(self._form.html.form.get('name'))
 
     @property
     def id(self):
         """See zope.testbrowser.interfaces.IForm"""
-        return self._form.id
+        return str(self._form.id)
 
-    def submit(self, label=None, name=None, index=None, coord=(1,1)):
+    def submit(self, label=None, name=None, index=None, coord=None):
         """See zope.testbrowser.interfaces.IForm"""
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
@@ -993,15 +1025,14 @@ class Form(object):
         if label is not None or name is not None:
             controls, msg, available = self.browser._getAllControls(
                 label, name, [form])
-            controls = [(control, form) for (control, form) in controls
-                        if isinstance(control, webtest.forms.Submit)]
-            control, form = disambiguate(controls, msg, index,
-                                         controlFormTupleRepr,
-                                         available)
-            self.browser._clickSubmit(form, control, coord)
-
+            controls = [c for c in controls
+                        if isinstance(c, (ImageControl, SubmitControl))]
+            control= disambiguate(controls, msg, index,
+                                  controlFormTupleRepr,
+                                  available)
+            self.browser._clickSubmit(form, control._control, coord)
         else: # JavaScript sort of submit
-            if index is not None or coord != (1,1):
+            if index is not None or coord is not None:
                 raise ValueError(
                     'May not use index or coord without a control')
             self.browser._clickSubmit(form)
@@ -1019,15 +1050,12 @@ class Form(object):
 
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
-        # TODO
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        intermediate, msg, available = self.browser._get_all_controls(
-            label, name, (self.mech_form,), include_subcontrols=True)
-        control, form = disambiguate(intermediate, msg, index,
-                                     controlFormTupleRepr,
-                                     available)
-        return controlFactory(control, form, self.browser)
+        intermediate, msg, available = self.browser._getAllControls(
+                        label, name, [self._form], include_subcontrols=True)
+        return disambiguate(intermediate, msg, index,
+                            controlFormTupleRepr, available)
 
 def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
     if intermediate:
