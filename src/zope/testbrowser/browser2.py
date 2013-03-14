@@ -23,10 +23,11 @@ import io
 from contextlib import contextmanager
 from collections import OrderedDict
 
+import six
 from zope.interface import implementer
 
 from zope.testbrowser import interfaces
-from zope.testbrowser._compat import httpclient, PYTHON2
+from zope.testbrowser._compat import httpclient, PYTHON2, urllib_request
 import zope.testbrowser.cookies
 
 import webtest
@@ -36,8 +37,19 @@ _compress_re = re.compile(r"\s+")
 compressText = lambda text: _compress_re.sub(' ', text.strip())
 
 
+class SetattrErrorsMixin(object):
+    _enable_setattr_errors = False
+
+    def __setattr__(self, name, value):
+        if self._enable_setattr_errors:
+            # cause an attribute error if the attribute doesn't already exist
+            getattr(self, name)
+
+        # set the value
+        object.__setattr__(self, name, value)
+
 @implementer(interfaces.IBrowser)
-class Browser(object):
+class Browser(SetattrErrorsMixin):
     """A web user agent."""
 
     _contents = None
@@ -52,6 +64,7 @@ class Browser(object):
         self.testapp = webtest.TestApp(wsgi_app)
         self._req_headers = {}
         self._history = History()
+        self._enable_setattr_errors = True
 
         if url is not None:
             self.open(url)
@@ -95,7 +108,7 @@ class Browser(object):
             raise BrowserStateError("no URL has yet been .open()ed")
 
         req = self._response.request
-        with self._preparedRequest():
+        with self._preparedRequest(self.url):
             resp = self.testapp.request(req)
             self._setResponse(resp)
 
@@ -156,12 +169,7 @@ class Browser(object):
         if current_value == value:
             return
 
-        # Remove the current header...
-        for key, header_value in headers[:]:
-            if key == self.HEADER_KEY:
-                headers.remove((key, header_value))
-        # ... Before adding the new one.
-        headers.append((self.HEADER_KEY, {False: 'False'}.get(value, 'True')))
+        headers[self.HEADER_KEY] = {False: 'False'}.get(value, 'True')
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -174,12 +182,15 @@ class Browser(object):
         """See zope.testbrowser.interfaces.IBrowser"""
 
         url = str(url)
-        with self._preparedRequest() as reqargs:
+        with self._preparedRequest(url) as reqargs:
             self._history.add(self._response)
-            if data is not None:
-                resp = self.testapp.post(url, data, **reqargs)
-            else:
-                resp = self.testapp.get(url, **reqargs)
+            try:
+                if data is not None:
+                    resp = self.testapp.post(url, data, **reqargs)
+                else:
+                    resp = self.testapp.get(url, **reqargs)
+            except webtest.app.AppError:
+                six.reraise(*translateAppError(*sys.exc_info()))
 
             self._setResponse(resp)
 
@@ -190,10 +201,16 @@ class Browser(object):
             if self.raiseHttpErrors and code >= 400:
                 raise httpclient.HTTPException(url, code, msg, self.headers)
 
+    def post(self, url, data, content_type=None):
+        if content_type is not None:
+            self.addHeader('Content-Type', content_type)
+        return self.open(url, data)
+
     def _clickSubmit(self, form, control=None, coord=None):
         # TODO: handle coord
         # find index of given control in the form
-        with self._preparedRequest() as reqargs:
+        url = self._absoluteUrl(form.action)
+        with self._preparedRequest(url) as reqargs:
             self._history.add(self._response)
             try:
                 if control:
@@ -205,9 +222,8 @@ class Browser(object):
 
                 self._setResponse(resp)
 
-            except Exception as e:
-                fix_exception_name(e)
-                raise
+            except webtest.app.AppError as e:
+                six.reraise(*translateAppError(*sys.exc_info()))
 
     def _submit(self, form, name=None, index=None, coord=None, **args):
         # A reimplementation of webtest.forms.Form.submit() to allow to insert
@@ -369,11 +385,20 @@ class Browser(object):
         self._req_headers = {}
 
     @contextmanager
-    def _preparedRequest(self):
+    def _preparedRequest(self, url):
         self.timer.start()
         if self.url:
             self._req_headers['Referer'] = self.url
-        kwargs = {'headers': sorted(self._req_headers.items())}
+
+        self._req_headers['Accept-Language'] = 'en-US'
+        self._req_headers['Connection'] = 'close'
+        self._req_headers['Host'] = urlparse.urlparse(url).netloc
+        self._req_headers['User-Agent'] = 'Python-urllib/2.4'
+        extra_environ = {'wsgi.handleErrors': self.handleErrors}
+
+        kwargs = {'headers': sorted(self._req_headers.items()),
+                  'extra_environ': extra_environ,
+                  'expect_errors': not self.raiseHttpErrors}
 
         yield kwargs
 
@@ -428,13 +453,14 @@ def simpleControlFactory(wtcontrol, form, elemindex, browser):
         return Control(wtcontrol, form, elem, browser)
 
 @implementer(interfaces.ILink)
-class Link(object):
+class Link(SetattrErrorsMixin):
 
     def __init__(self, link, browser, baseurl=""):
         self._link = link
         self.browser = browser
         self._baseurl = baseurl
         self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
 
     def click(self):
         if self._browser_counter != self.browser._counter:
@@ -470,13 +496,19 @@ def controlFormTupleRepr(wtcontrol):
 
 
 @implementer(interfaces.IControl)
-class Control(object):
+class Control(SetattrErrorsMixin):
+
+    _enable_setattr_errors = False
+
     def __init__(self, control, form, elem, browser):
         self._control = control
         self._form = form
         self._elem = elem
         self.browser = browser
         self._browser_counter = self.browser._counter
+
+        # disable addition of further attributes
+        self._enable_setattr_errors = True
 
     @property
     def disabled(self):
@@ -603,7 +635,7 @@ class SubmitControl(Control):
         return labels
 
     def mechRepr(self):
-        return "SubmitControl???"
+        return "SubmitControl???"  # TODO
 
 @implementer(interfaces.IListControl)
 class ListControl(Control):
@@ -718,6 +750,9 @@ class ListControl(Control):
 
 @implementer(interfaces.IListControl)
 class RadioListControl(ListControl):
+
+    _elems = None
+
     def __init__(self, control, form, elems, browser):
         super(RadioListControl, self).__init__(control, form, elems[0], browser)
         self._elems = elems
@@ -743,11 +778,12 @@ class RadioListControl(ListControl):
 
 
 @implementer(interfaces.IListControl)
-class CheckboxListControl(object):
+class CheckboxListControl(SetattrErrorsMixin):
     def __init__(self, name, ctrlelems, browser):
         self.name = name
         self.browser = browser
         self._ctrlelems = ctrlelems
+        self._enable_setattr_errors = True
 
     @property
     def options(self):
@@ -833,11 +869,11 @@ class ImageControl(Control):
         self.browser._clickSubmit(self._form, self._control, coord)
 
     def mechRepr(self):
-        return "ImageControl???"
+        return "ImageControl???"  # TODO
 
 
 @implementer(interfaces.IItemControl)
-class ItemControl(object):
+class ItemControl(SetattrErrorsMixin):
 
     def __init__(self, parent, elem, form, browser):
         self._parent = parent
@@ -934,6 +970,8 @@ class RadioItemControl(ItemControl):
                 (value, id, propstr)
 
 class CheckboxItemControl(ItemControl):
+    _control = None
+
     def __init__(self, parent, wtcontrol, elem, form, browser):
         super(CheckboxItemControl, self).__init__(parent, elem, form, browser)
         self._control = wtcontrol
@@ -982,7 +1020,7 @@ class CheckboxItemControl(ItemControl):
                 (value, id, propstr)
 
 @implementer(interfaces.IForm)
-class Form(object):
+class Form(SetattrErrorsMixin):
     """HTML Form"""
 
     def __init__(self, browser, form):
@@ -994,6 +1032,7 @@ class Form(object):
         self.browser = browser
         self._form = form
         self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
 
     @property
     def action(self):
@@ -1224,8 +1263,18 @@ class History:
 class AmbiguityError(ValueError):
     pass
 
-def fix_exception_name(e):
-    pass
+
+APPERROR_STATUS_RE = re.compile(r'Bad response: (\d{3}) (.*) \(not .* for (.*)\)')
+
+def translateAppError(exc_type, exc_value, exc_traceback=None):
+    msg = exc_value.message
+    matches = APPERROR_STATUS_RE.match(msg)
+    if matches:
+        code, status, url = matches.groups()
+        exc_value = urllib_request.HTTPError(url, code, status, [], None)
+        exc_type = urllib_request.HTTPError
+
+    return exc_type, exc_value, exc_traceback
 
 def to_str(s, response):
     if PYTHON2 and not isinstance(s, bytes):
