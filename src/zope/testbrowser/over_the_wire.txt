@@ -5,7 +5,7 @@ Using testbrowser On the Internet
 The ``zope.testbrowser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
 
-    >>> from zope.testbrowser.browser import Browser
+    >>> from zope.testbrowser.browser2 import Browser
     >>> browser = Browser()
 
 It can send arbitrary headers; this is helpful for setting the language value,

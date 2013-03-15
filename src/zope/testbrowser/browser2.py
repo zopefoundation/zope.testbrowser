@@ -20,11 +20,12 @@ import re
 import time
 import urlparse
 import io
+import robotparser
 from contextlib import contextmanager
-from collections import OrderedDict
 
 import six
 from zope.interface import implementer
+from wsgiproxy.proxies import TransparentProxy
 
 from zope.testbrowser import interfaces
 from zope.testbrowser._compat import httpclient, PYTHON2, urllib_request
@@ -39,6 +40,10 @@ compressText = lambda text: _compress_re.sub(' ', text.strip())
 class HostNotAllowed(Exception):
     pass
 
+class RobotExclusionError(urllib_request.HTTPError):
+    def __init__(self, *args):
+        super(RobotExclusionError, self).__init__(*args)
+
 _allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 2606
 
 _allowed = set(['localhost', '127.0.0.1'])
@@ -46,24 +51,34 @@ _allowed.update(_allowed_2nd_level)
 
 class TestbrowserApp(webtest.TestApp):
     _last_fragment = ""
-    _restricted = False
+    restricted = False
 
-    def assertAllowedHost(self, url):
-        if not self.restricted:
-            return
-
+    def _assertAllowed(self, url):
         parsed = urlparse.urlparse(url)
-        host = parsed.netloc
-        if host in _allowed:
-            return
-        for dom in _allowed_2nd_level:
-            if host.endswith('.%s' % dom):
+        if self.restricted:
+            # We are in restricted mode, check host part only
+            host = parsed.netloc
+            if host in _allowed:
                 return
+            for dom in _allowed_2nd_level:
+                if host.endswith('.%s' % dom):
+                    return
 
-        raise HostNotAllowed(url)
+            raise HostNotAllowed(url)
+        else:
+            # Unrestricted mode: retrieve robots.txt and check against it
+            robotsurl = urlparse.urlunsplit((parsed.scheme, parsed.netloc,
+                                             '/robots.txt', '', ''))
+            rp = robotparser.RobotFileParser()
+            rp.set_url(robotsurl)
+            rp.read()
+            if not rp.can_fetch("*", url):
+                msg = "request disallowed by robots.txt"
+                raise RobotExclusionError(url, 403, msg, [], None)
 
     def do_request(self, req, status, expect_errors):
-        self.assertAllowedHost(req.url)
+        self._assertAllowed(req.url)
+
         response = super(TestbrowserApp, self).do_request(req, status,
                                                              expect_errors)
         # Store _last_fragment in response to preserve fragment for history
@@ -112,11 +127,13 @@ class Browser(SetattrErrorsMixin):
         self.timer = PystoneTimer()
         self.raiseHttpErrors = True
         self.handleErrors = True
-        if wsgi_app is not None:
+
+        if wsgi_app is None:
+            self.testapp = TestbrowserApp(TransparentProxy())
+        else:
             self.testapp = TestbrowserApp(wsgi_app)
             self.testapp.restricted = True
-        else:
-            self.testapp = TestbrowserApp(url)
+
         self._req_headers = {}
         self._history = History()
         self._enable_setattr_errors = True
@@ -560,7 +577,8 @@ class Control(SetattrErrorsMixin):
             if self._control.tag == 'textarea':
                 return 'textarea'
             else:
-                raise ValueError("Unknown type of %s" % self._control)
+                # By default, inputs are of 'text' type
+                return 'text'
         return to_str(typeattr, self.browser._response)
 
     @property
