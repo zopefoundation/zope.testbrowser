@@ -741,8 +741,6 @@ class ListControl(Control):
     def displayValue(self):
         """See zope.testbrowser.interfaces.IListControl"""
         # not implemented for anything other than select;
-        # would be nice if mechanize implemented for checkbox and radio.
-        # attribute error for all others.
 
         if self._control.value is None:
             return []
@@ -1088,7 +1086,7 @@ class Form(SetattrErrorsMixin):
         """Initialize the Form
 
         browser - a Browser instance
-        form - a mechanize.HTMLForm instance
+        form - a webtest.Form instance
         """
         self.browser = browser
         self._form = form

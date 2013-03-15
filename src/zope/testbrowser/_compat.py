@@ -19,12 +19,7 @@ import sys
 PYTHON3 = sys.version_info[0] == 3
 PYTHON2 = sys.version_info[0] == 2
 
-try:
-    import mechanize
-    HAVE_MECHANIZE = True
-except ImportError:
-    mechanize = None
-    HAVE_MECHANIZE = False
+HAVE_MECHANIZE = False
 
 if PYTHON2:
     import Cookie as httpcookies

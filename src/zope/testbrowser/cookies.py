@@ -16,14 +16,15 @@ import datetime
 import time
 import urllib
 
-from zope.testbrowser._compat import (mechanize, httpcookies, urlparse,
+from zope.testbrowser._compat import (httpcookies, urlparse,
                                       MutableMapping, urllib_request)
 import pytz
 import zope.interface
-from zope.testbrowser import interfaces
+from zope.testbrowser import interfaces, utils
 
 # Cookies class helpers
 
+class BrowserStateError(Exception): pass
 
 class _StubHTTPMessage(object):
     def __init__(self, cookies):
@@ -62,7 +63,7 @@ if getattr(property, 'setter', None) is None:
 
 @zope.interface.implementer(interfaces.ICookies)
 class Cookies(MutableMapping):
-    """Cookies for mechanize browser.
+    """Cookies for testbrowser.
     """
 
     def __init__(self, testapp, url=None, req_headers=None):
@@ -265,7 +266,7 @@ class Cookies(MutableMapping):
         tmp_domain = domain
         if domain is not None and domain.startswith('.'):
             tmp_domain = domain[1:]
-        self_host = mechanize.effective_request_host(self._request)
+        self_host = utils.effective_request_host(self._request)
         if (self_host != tmp_domain and
             not self_host.endswith('.' + tmp_domain)):
             raise ValueError('current url must match given domain')
@@ -306,7 +307,7 @@ class Cookies(MutableMapping):
             request = self._request
             if request is None:
                 # TODO: fix exception
-                raise mechanize.BrowserStateError(
+                raise BrowserStateError(
                     'cannot create cookie without request or domain')
         c = httpcookies.SimpleCookie()
         name = str(name)
@@ -337,7 +338,7 @@ class Cookies(MutableMapping):
         policy = self._jar._policy
         if now is None:
             now = int(time.time())
-        policy._now = self._jar._now = now # TODO get mechanize to expose this
+        policy._now = self._jar._now = now
         if not policy.set_ok(cookies[0], request):
             raise ValueError('policy does not allow this cookie')
         if ck is not None:
@@ -361,7 +362,7 @@ class Cookies(MutableMapping):
                 return True
         elif isinstance(value, basestring):
             if datetime.datetime.fromtimestamp(
-                mechanize.str2time(value),
+                utils.http2time(value),
                 pytz.UTC) <= dnow:
                 return True
         return False
