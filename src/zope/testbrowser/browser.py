@@ -1009,11 +1009,11 @@ class RadioItemControl(ItemControl):
             self._parent.name, self.optionValue, self.selected)
 
     def mechRepr(self):
-        id = self._elem.attrs.get('id')
-        value = self._elem.attrs.get('value')
-        name = self._elem.attrs.get('name')
-
         r = self.browser._response
+        id = to_str(self._elem.attrs.get('id'), r)
+        value = to_str(self._elem.attrs.get('value'), r)
+        name = to_str(self._elem.attrs.get('name'), r)
+
         props = []
         if self._elem.parent.name == 'label':
             props.append(('__label', {'__text': to_str(self._elem.parent.text, r)}))
@@ -1059,11 +1059,11 @@ class CheckboxItemControl(ItemControl):
             self._control.name, self.optionValue, self.selected)
 
     def mechRepr(self):
-        id = self._elem.attrs.get('id')
-        value = self._elem.attrs.get('value')
-        name = self._elem.attrs.get('name')
-
         r = self.browser._response
+        id = to_str(self._elem.attrs.get('id'), r)
+        value = to_str(self._elem.attrs.get('value'), r)
+        name = to_str(self._elem.attrs.get('name'), r)
+
         props = []
         if self._elem.parent.name == 'label':
             props.append(('__label', {'__text': to_str(self._elem.parent.text, r)}))
@@ -1325,6 +1325,8 @@ def translateAppError(exc_type, exc_value, exc_traceback=None):
     return exc_type, exc_value, exc_traceback
 
 def to_str(s, response):
+    if s is None:
+        return None
     if PYTHON2 and not isinstance(s, bytes):
         return s.encode(response.charset)
     return s
