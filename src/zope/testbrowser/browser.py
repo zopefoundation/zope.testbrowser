@@ -970,10 +970,9 @@ class ItemControl(SetattrErrorsMixin):
         return self.browser.toStr(self._elem.attrs.get('value'))
 
     def click(self):
-        # TODO
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self.mech_item.selected = not self.mech_item.selected
+        self.selected = not self.selected
 
     def __repr__(self):
         return "<ItemControl name='%s' type='select' optionValue=%r selected=%r>" % \
