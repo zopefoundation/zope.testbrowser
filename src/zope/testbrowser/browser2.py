@@ -44,9 +44,14 @@ _allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 26
 _allowed = set(['localhost', '127.0.0.1'])
 _allowed.update(_allowed_2nd_level)
 
-class RestrictedTestApp(webtest.TestApp):
+class TestbrowserApp(webtest.TestApp):
+    _last_fragment = ""
+    _restricted = False
 
     def assertAllowedHost(self, url):
+        if not self.restricted:
+            return
+
         parsed = urlparse.urlparse(url)
         host = parsed.netloc
         if host in _allowed:
@@ -59,7 +64,28 @@ class RestrictedTestApp(webtest.TestApp):
 
     def do_request(self, req, status, expect_errors):
         self.assertAllowedHost(req.url)
-        return super(RestrictedTestApp, self).do_request(req, status, expect_errors)
+        response = super(TestbrowserApp, self).do_request(req, status,
+                                                             expect_errors)
+        # Store _last_fragment in response to preserve fragment for history
+        # (goBack() will not lose fragment).
+        response._last_fragment = self._last_fragment
+        return response
+
+    def _remove_fragment(self, url):
+        # HACK: we need to preserve fragment part of url, but webtest strips it
+        # from url on every request. So we override this protected method,
+        # assuming it is called on every request and therefore _last_fragment
+        # will not get outdated. ``getRequestUrlWithFragment()`` will
+        # reconstruct url with fragment for the last request.
+        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
+        self._last_fragment = fragment
+        return super(TestbrowserApp, self)._remove_fragment(url)
+
+    def getRequestUrlWithFragment(self, response):
+        url = response.request.url
+        if not self._last_fragment:
+            return url
+        return "%s#%s" % (url, response._last_fragment)
 
 class SetattrErrorsMixin(object):
     _enable_setattr_errors = False
@@ -87,9 +113,10 @@ class Browser(SetattrErrorsMixin):
         self.raiseHttpErrors = True
         self.handleErrors = True
         if wsgi_app is not None:
-            self.testapp = RestrictedTestApp(wsgi_app)
+            self.testapp = TestbrowserApp(wsgi_app)
+            self.testapp.restricted = True
         else:
-            self.testapp = webtest.TestApp(url)
+            self.testapp = TestbrowserApp(url)
         self._req_headers = {}
         self._history = History()
         self._enable_setattr_errors = True
@@ -102,7 +129,7 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         if self._response is None:
             return None
-        return self._response.request.url
+        return self.testapp.getRequestUrlWithFragment(self._response)
 
     @property
     def isHtml(self):
@@ -173,7 +200,8 @@ class Browser(SetattrErrorsMixin):
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
-        if (key.lower() in ('cookie', 'cookie2') and
+        if (self.url and
+            key.lower() in ('cookie', 'cookie2') and
             self.cookies.header):
             raise ValueError('cookies are already set in `cookies` attribute')
         self._req_headers[key] = value
@@ -537,6 +565,8 @@ class Control(SetattrErrorsMixin):
 
     @property
     def name(self):
+        if self._control.name is None:
+            return None
         return to_str(self._control.name, self.browser._response)
 
     @property
