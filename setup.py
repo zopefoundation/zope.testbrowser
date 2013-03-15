@@ -53,8 +53,6 @@ setup(
     test_suite='zope.testbrowser.tests',
     tests_require=tests_require,
     install_requires=[
-        # mechanize 0.2.0 folds in ClientForm, makes incompatible API changes
-        'mechanize>=0.2.0',
         'setuptools',
         'zope.interface',
         'zope.schema',
