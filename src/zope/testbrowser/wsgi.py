@@ -17,11 +17,11 @@
 import base64
 import re
 
-import zope.testbrowser.browser2
+import zope.testbrowser.browser
 
-from zope.testbrowser.browser2 import HostNotAllowed # BBB
+from zope.testbrowser.browser import HostNotAllowed # BBB
 
-class Browser(zope.testbrowser.browser2.Browser):
+class Browser(zope.testbrowser.browser.Browser):
     def __init__(self, url=None, wsgi_app=None):
          if wsgi_app is None:
              wsgi_app = Layer.get_app()

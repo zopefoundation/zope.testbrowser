@@ -11,7 +11,7 @@ HTTP Browser
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
 
-    >>> from zope.testbrowser.browser2 import Browser
+    >>> from zope.testbrowser.browser import Browser
     >>> browser = Browser()
 
 This version of the browser object can be used to access any web site just as

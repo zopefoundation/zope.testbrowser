@@ -19,7 +19,7 @@ import doctest
 import mechanize
 import socket
 import sys
-from zope.testbrowser.browser2 import Browser
+from zope.testbrowser.browser import Browser
 import zope.testbrowser.tests.helper
 from zope.testbrowser._compat import httpclient
 
