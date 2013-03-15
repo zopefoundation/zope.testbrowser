@@ -14,7 +14,6 @@
 """BBB for Zope 3-specific testing code
 """
 
-from zope.testbrowser.connection import Response as PublisherResponse
 from wsgiref.simple_server import demo_app as wsgiref_demo_app
 
 try:

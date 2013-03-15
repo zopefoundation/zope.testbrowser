@@ -18,7 +18,6 @@ import base64
 import re
 
 import zope.testbrowser.browser2
-import zope.testbrowser.connection
 
 from zope.testbrowser.browser2 import HostNotAllowed # BBB
 
