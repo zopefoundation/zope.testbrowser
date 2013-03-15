@@ -26,6 +26,7 @@ from contextlib import contextmanager
 import six
 from zope.interface import implementer
 from wsgiproxy.proxies import TransparentProxy
+from bs4 import BeautifulSoup
 
 from zope.testbrowser import interfaces
 from zope.testbrowser._compat import httpclient, PYTHON2, urllib_request
@@ -239,13 +240,7 @@ class Browser(SetattrErrorsMixin):
                 six.reraise(*translateAppError(*sys.exc_info()))
 
             self._setResponse(resp)
-
-        # if the headers don't have a status, I suppose there can't be an error
-        if 'Status' in self.headers:
-            code, msg = self.headers['Status'].split(' ', 1)
-            code = int(code)
-            if self.raiseHttpErrors and code >= 400:
-                raise httpclient.HTTPException(url, code, msg, self.headers)
+            self._checkStatus()
 
     def post(self, url, data, content_type=None):
         if content_type is not None:
@@ -268,9 +263,18 @@ class Browser(SetattrErrorsMixin):
                 resp = resp.maybe_follow()
 
                 self._setResponse(resp)
+                self._checkStatus()
 
             except webtest.app.AppError:
                 six.reraise(*translateAppError(*sys.exc_info()))
+
+    def _checkStatus(self):
+        # if the headers don't have a status, I suppose there can't be an error
+        if 'Status' in self.headers:
+            code, msg = self.headers['Status'].split(' ', 1)
+            code = int(code)
+            if self.raiseHttpErrors and code >= 400:
+                raise urllib_request.HTTPError(self.url, code, msg, [], None)
 
     def _submit(self, form, name=None, index=None, coord=None, **args):
         # A reimplementation of webtest.forms.Form.submit() to allow to insert
@@ -407,7 +411,6 @@ class Browser(SetattrErrorsMixin):
         # form.html after parsing. But we need them (at least to locate labels
         # for radio buttons). So we are forced to reparse part of html, to
         # extract elements.
-        from bs4 import BeautifulSoup
         html = BeautifulSoup(form.text)
         tags = ('input', 'select', 'textarea', 'button')
         return html.find_all(tags)
@@ -453,7 +456,7 @@ class Browser(SetattrErrorsMixin):
 
         kwargs = {'headers': sorted(self._req_headers.items()),
                   'extra_environ': extra_environ,
-                  'expect_errors': not self.raiseHttpErrors}
+                  'expect_errors': True}
 
         yield kwargs
 
