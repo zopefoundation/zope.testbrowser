@@ -24,6 +24,8 @@ import zope.testbrowser.browser
 import zope.testbrowser.browser2
 import zope.testbrowser.connection
 
+from zope.testbrowser._compat import urlparse
+
 class HostNotAllowed(Exception):
     pass
 
@@ -32,151 +34,31 @@ _allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 26
 _allowed = set(['localhost', '127.0.0.1'])
 _allowed.update(_allowed_2nd_level)
 
-class WSGIConnection(object):
-    """A ``mechanize`` compatible connection object."""
+class RestrictedTestApp(TestApp):
 
-    _allowed = True
-
-    def __init__(self, test_app, host, timeout=None):
-        self._test_app = TestApp(test_app)
-        self.host = host
-        self.assert_allowed_host()
-
-    def assert_allowed_host(self):
-        host = self.host
+    def assertAllowedHost(self, url):
+        parsed = urlparse.urlparse(url)
+        host = parsed.netloc
         if host in _allowed:
             return
         for dom in _allowed_2nd_level:
             if host.endswith('.%s' % dom):
                 return
-        self._allowed = False
 
-    def set_debuglevel(self, level):
-        pass
+        raise HostNotAllowed(url)
 
-    def request(self, method, url, body=None, headers=None):
-        """Send a request to the publisher.
-
-        The response will be stored in ``self.response``.
-        """
-        if body is None:
-            body = ''
-
-        if url == '':
-            url = '/'
-
-        # Extract the handle_error option header
-        if sys.version_info >= (2,5):
-            handle_errors_key = 'X-Zope-Handle-Errors'
-        else:
-            handle_errors_key = 'X-zope-handle-errors'
-        handle_errors_header = headers.get(handle_errors_key, True)
-        if handle_errors_key in headers:
-            del headers[handle_errors_key]
-
-        # Translate string to boolean.
-        handle_errors = {'False': False}.get(handle_errors_header, True)
-
-        # WebTest always sets 'paste.throw_errors' to True. Setting it to None
-        # here overrides that, but is UGLY. sigh.
-        extra_environ = {'paste.throw_errors': None}
-
-        if not handle_errors:
-            # There doesn't seem to be a "Right Way" to do this
-            extra_environ['wsgi.handleErrors'] = False # zope.app.wsgi does this
-            extra_environ['paste.throw_errors'] = True # the paste way of doing this
-            extra_environ['x-wsgiorg.throw_errors'] = True # http://wsgi.org/wsgi/Specifications/throw_errors
-
-        scheme_key = 'X-Zope-Scheme'
-        extra_environ['wsgi.url_scheme'] = headers.get(scheme_key, 'http')
-        if scheme_key in headers:
-            del headers[scheme_key]
-
-        if not self._allowed:
-            raise HostNotAllowed('%s://%s%s' % (extra_environ['wsgi.url_scheme'], self.host, url))
-
-        app = self._test_app
-
-        # clear our app cookies so that our testbrowser cookie headers don't
-        # get stomped
-        app.cookies.clear()
-
-        # pass the request to webtest
-        if method == 'GET':
-            assert not body, body
-            response = app.get(url, headers=headers, expect_errors=True, extra_environ=extra_environ)
-        elif method == 'POST':
-            response = app.post(url, body, headers=headers, expect_errors=True, extra_environ=extra_environ)
-        else:
-            raise Exception('Couldnt handle method %s' % method)
-
-        self.response = response
-
-    def getresponse(self):
-        """Return a ``mechanize`` compatible response.
-
-        The goal of ths method is to convert the WebTest's reseponse to
-        a ``mechanize`` compatible response, which is also understood by
-        mechanize.
-        """
-        response = self.response
-        status = int(response.status[:3])
-        reason = response.status[4:]
-
-        headers = response.headers.items()
-        headers.sort()
-        headers.insert(0, ('Status', response.status))
-        headers = '\r\n'.join('%s: %s' % h for h in headers)
-        # Ugh! WebTest's headers can at times be unicode. That causes weird
-        # problems later when they are shoved into a StringIO. So just cast
-        # to a string for now using ascii.
-        headers = str(headers)
-        content = response.body
-        return zope.testbrowser.connection.Response(content, headers, status, reason)
-
-if zope.testbrowser.browser.HAVE_MECHANIZE:
-    class WSGIHTTPHandler(zope.testbrowser.connection.HTTPHandler):
-
-        def __init__(self, test_app, *args, **kw):
-            self._test_app = test_app
-            zope.testbrowser.connection.HTTPHandler.__init__(self, *args, **kw)
-
-        def _connect(self, *args, **kw):
-            return WSGIConnection(self._test_app, *args, **kw)
-
-        def https_request(self, req):
-            req.add_unredirected_header('X-Zope-Scheme', 'https')
-            return self.http_request(req)
-
-
-    class WSGIMechanizeBrowser(zope.testbrowser.connection.MechanizeBrowser):
-        """Special ``mechanize`` browser using the WSGI HTTP handler."""
-
-        def __init__(self, test_app, *args, **kw):
-            self._test_app = test_app
-            zope.testbrowser.connection.MechanizeBrowser.__init__(self, *args, **kw)
-
-        def _http_handler(self, *args, **kw):
-            return WSGIHTTPHandler(self._test_app, *args, **kw)
-
-
-    ## # TODO: remove 
-    ## class Browser_mech(zope.testbrowser.browser.Browser):
-    ##     """A WSGI `testbrowser` Browser that uses a WebTest wrapped WSGI app."""
-
-    ##     def __init__(self, url=None, wsgi_app=None):
-    ##         if wsgi_app is None:
-    ##             wsgi_app = Layer.get_app()
-    ##         if wsgi_app is None:
-    ##             raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
-    ##         mech_browser = WSGIMechanizeBrowser(wsgi_app)
-    ##         super(Browser_mech, self).__init__(url=url, mech_browser=mech_browser)
-
-# Compatibility helpers to behave like zope.app.testing
+    def do_request(self, req, status, expect_errors):
+        self.assertAllowedHost(req.url)
+        return super(RestrictedTestApp, self).do_request(req, status, expect_errors)
 
 class Browser(zope.testbrowser.browser2.Browser):
-    # BBB
-    pass
+    def __init__(self, url=None, wsgi_app=None):
+         if wsgi_app is None:
+             wsgi_app = Layer.get_app()
+         if wsgi_app is None:
+             raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
+         super(Browser, self).__init__(url, wsgi_app)
+         self.testapp = RestrictedTestApp(wsgi_app)
 
 basicre = re.compile('Basic (.+)?:(.+)?$')
 

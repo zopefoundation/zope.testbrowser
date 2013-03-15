@@ -61,6 +61,7 @@ class Browser(SetattrErrorsMixin):
     def __init__(self, url=None, wsgi_app=None):
         self.timer = PystoneTimer()
         self.raiseHttpErrors = True
+        self.handleErrors = True
         self.testapp = webtest.TestApp(wsgi_app)
         self._req_headers = {}
         self._history = History()
@@ -124,17 +125,6 @@ class Browser(SetattrErrorsMixin):
             return self._response.body
         else:
             return None
-        ## # TODO
-        ## if self._contents is not None:
-        ##     return self._contents
-        ## response = self.mech_browser.response()
-        ## if response is None:
-        ##     return None
-        ## old_location = response.tell()
-        ## response.seek(0)
-        ## self._contents = response.read()
-        ## response.seek(old_location)
-        ## return self._contents
 
     @property
     def headers(self):
@@ -142,7 +132,7 @@ class Browser(SetattrErrorsMixin):
         resptxt = []
         resptxt.append(b'Status: '+self._response.status)
         for h, v in sorted(self._response.headers.items()):
-            resptxt.append("%s: %s" % (h, v))
+            resptxt.append(str("%s: %s" % (h, v)))
 
         stream = io.BytesIO(b'\n'.join(resptxt))
         return httpclient.HTTPMessage(stream)
@@ -153,23 +143,6 @@ class Browser(SetattrErrorsMixin):
             raise RuntimeError("no request found")
         return zope.testbrowser.cookies.Cookies(self.testapp, self.url,
                                                 self._req_headers)
-
-    HEADER_KEY = 'X-zope-handle-errors'
-
-    @property
-    def handleErrors(self):
-        headers = self._req_headers
-        value = dict(headers).get(self.HEADER_KEY, True)
-        return {'False': False}.get(value, True)
-
-    @handleErrors.setter
-    def handleErrors(self, value):
-        headers = self._req_headers
-        current_value = self.handleErrors
-        if current_value == value:
-            return
-
-        headers[self.HEADER_KEY] = {False: 'False'}.get(value, 'True')
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -189,6 +162,7 @@ class Browser(SetattrErrorsMixin):
                     resp = self.testapp.post(url, data, **reqargs)
                 else:
                     resp = self.testapp.get(url, **reqargs)
+                resp = resp.maybe_follow()
             except webtest.app.AppError:
                 six.reraise(*translateAppError(*sys.exc_info()))
 
@@ -207,7 +181,6 @@ class Browser(SetattrErrorsMixin):
         return self.open(url, data)
 
     def _clickSubmit(self, form, control=None, coord=None):
-        # TODO: handle coord
         # find index of given control in the form
         url = self._absoluteUrl(form.action)
         with self._preparedRequest(url) as reqargs:
@@ -220,9 +193,11 @@ class Browser(SetattrErrorsMixin):
                 else:
                     resp = self._submit(form, coord=coord, **reqargs)
 
+                resp = resp.maybe_follow()
+
                 self._setResponse(resp)
 
-            except webtest.app.AppError as e:
+            except webtest.app.AppError:
                 six.reraise(*translateAppError(*sys.exc_info()))
 
     def _submit(self, form, name=None, index=None, coord=None, **args):
@@ -394,7 +369,15 @@ class Browser(SetattrErrorsMixin):
         self._req_headers['Connection'] = 'close'
         self._req_headers['Host'] = urlparse.urlparse(url).netloc
         self._req_headers['User-Agent'] = 'Python-urllib/2.4'
-        extra_environ = {'wsgi.handleErrors': self.handleErrors}
+
+        extra_environ = {}
+        if self.handleErrors:
+            extra_environ['paste.throw_errors'] = None
+            self._req_headers['X-zope-handle-errors'] = 'True'
+        else:
+            extra_environ['wsgi.handleErrors'] = False
+            extra_environ['paste.throw_errors'] = True
+            extra_environ['x-wsgiorg.throw_errors'] = True
 
         kwargs = {'headers': sorted(self._req_headers.items()),
                   'extra_environ': extra_environ,
@@ -1075,17 +1058,6 @@ class Form(SetattrErrorsMixin):
                 raise ValueError(
                     'May not use index or coord without a control')
             self.browser._clickSubmit(form)
-            ## # TODO
-            ## request = self.mech_form._switch_click("request", mechanize.Request)
-            ## self.browser._start_timer()
-            ## with self.browser.timer:
-            ##     try:
-            ##         form.submit()
-            ##         self.browser.mech_browser.open(request)
-            ##     except Exception as e:
-            ##         fix_exception_name(e)
-            ##         raise
-
 
     def getControl(self, label=None, name=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
