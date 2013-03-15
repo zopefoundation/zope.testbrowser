@@ -173,7 +173,7 @@ class Browser(SetattrErrorsMixin):
         titles = self._response.html.find_all('title')
         if not titles:
             return None
-        return to_str(titles[0].text, self._response)
+        return self.toStr(titles[0].text)
 
     def reload(self):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -226,21 +226,13 @@ class Browser(SetattrErrorsMixin):
 
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
-
         url = str(url)
-        with self._preparedRequest(url) as reqargs:
-            self._history.add(self._response)
-            try:
-                if data is not None:
-                    resp = self.testapp.post(url, data, **reqargs)
-                else:
-                    resp = self.testapp.get(url, **reqargs)
-                resp = resp.maybe_follow()
-            except webtest.app.AppError:
-                six.reraise(*translateAppError(*sys.exc_info()))
+        if data is not None:
+            make_request = lambda args:  self.testapp.post(url, data, **args)
+        else:
+            make_request = lambda args: self.testapp.get(url, **args)
 
-            self._setResponse(resp)
-            self._checkStatus()
+        self._processRequest(url, make_request)
 
     def post(self, url, data, content_type=None):
         if content_type is not None:
@@ -250,23 +242,22 @@ class Browser(SetattrErrorsMixin):
     def _clickSubmit(self, form, control=None, coord=None):
         # find index of given control in the form
         url = self._absoluteUrl(form.action)
+        if control:
+            index = form.fields[control.name].index(control)
+            make_request = lambda args: self._submit(form, control.name,
+                                                     index, coord=coord, **args)
+        else:
+            make_request = lambda args: self._submit(form, coord=coord, **args)
+
+        self._processRequest(url, make_request)
+
+    def _processRequest(self, url, make_request):
         with self._preparedRequest(url) as reqargs:
             self._history.add(self._response)
-            try:
-                if control:
-                    index = form.fields[control.name].index(control)
-                    resp = self._submit(form, control.name, index, coord=coord,
-                                        **reqargs)
-                else:
-                    resp = self._submit(form, coord=coord, **reqargs)
-
-                resp = resp.maybe_follow()
-
-                self._setResponse(resp)
-                self._checkStatus()
-
-            except webtest.app.AppError:
-                six.reraise(*translateAppError(*sys.exc_info()))
+            resp = make_request(reqargs)
+            resp = resp.maybe_follow()
+            self._setResponse(resp)
+            self._checkStatus()
 
     def _checkStatus(self):
         # if the headers don't have a status, I suppose there can't be an error
@@ -466,6 +457,15 @@ class Browser(SetattrErrorsMixin):
     def _absoluteUrl(self, url):
         return str(urlparse.urljoin(self._getBaseUrl(), url))
 
+    def toStr(self, s):
+        """Convert possibly unicode object to native string using response
+        charset"""
+        if s is None:
+            return None
+        if PYTHON2 and not isinstance(s, bytes):
+            return s.encode(self._response.charset)
+        return s
+
 def controlFactory(name, wtcontrols, elemindex, browser, include_subcontrols=False):
     assert len(wtcontrols) > 0
 
@@ -533,7 +533,7 @@ class Link(SetattrErrorsMixin):
     @property
     def text(self):
         txt = normalizeWhitespace(self._link.text)
-        return to_str(txt, self.browser._response)
+        return self.browser.toStr(txt)
 
     @property
     def tag(self):
@@ -541,8 +541,8 @@ class Link(SetattrErrorsMixin):
 
     @property
     def attrs(self):
-        r = self.browser._response
-        return {to_str(k, r): to_str(v, r)
+        toStr = self.browser.toStr
+        return {toStr(k): toStr(v)
                 for k, v in self._link.attrs.items()}
 
     def __repr__(self):
@@ -582,13 +582,13 @@ class Control(SetattrErrorsMixin):
             else:
                 # By default, inputs are of 'text' type
                 return 'text'
-        return to_str(typeattr, self.browser._response)
+        return self.browser.toStr(typeattr)
 
     @property
     def name(self):
         if self._control.name is None:
             return None
-        return to_str(self._control.name, self.browser._response)
+        return self.browser.toStr(self._control.name)
 
     @property
     def multiple(self):
@@ -653,7 +653,7 @@ class Control(SetattrErrorsMixin):
             self.__class__.__name__, self.name, self.type)
 
     def getLabels(self):
-        return [to_str(l, self.browser._response)
+        return [self.browser.toStr(l)
                 for l in getControlLabels(self._elem, self._form.html)]
 
     @property
@@ -722,8 +722,7 @@ class ListControl(Control):
         if val is None:
             return []
 
-        r = self.browser._response
-        return [to_str(v, r) for v in val]
+        return [self.browser.toStr(v) for v in val]
 
     @value.setter
     def value(self, value):
@@ -968,7 +967,7 @@ class ItemControl(SetattrErrorsMixin):
 
     @property
     def optionValue(self):
-        return to_str(self._elem.attrs.get('value'), self.browser._response)
+        return self.browser.toStr(self._elem.attrs.get('value'))
 
     def click(self):
         # TODO
@@ -983,7 +982,7 @@ class ItemControl(SetattrErrorsMixin):
     def getLabels(self):
         lbl = self._elem.attrs.get('label', self._elem.text)
         labels = [self._elem.attrs.get('label'), self._elem.text]
-        return [to_str(normalizeWhitespace(lbl), self.browser._response)
+        return [self.browser.toStr(normalizeWhitespace(lbl))
                 for lbl in labels if lbl]
 
     def mechRepr(self):
@@ -998,10 +997,10 @@ class ItemControl(SetattrErrorsMixin):
 class RadioItemControl(ItemControl):
     @property
     def optionValue(self):
-        return to_str(self._elem.attrs.get('value'), self.browser._response)
+        return self.browser.toStr(self._elem.attrs.get('value'))
 
     def getLabels(self):
-        return [to_str(l, self.browser._response)
+        return [self.browser.toStr(l)
                 for l in getControlLabels(self._elem, self._form.html)]
 
     def __repr__(self):
@@ -1009,14 +1008,14 @@ class RadioItemControl(ItemControl):
             self._parent.name, self.optionValue, self.selected)
 
     def mechRepr(self):
-        r = self.browser._response
-        id = to_str(self._elem.attrs.get('id'), r)
-        value = to_str(self._elem.attrs.get('value'), r)
-        name = to_str(self._elem.attrs.get('name'), r)
+        toStr = self.browser.toStr
+        id = toStr(self._elem.attrs.get('id'))
+        value = toStr(self._elem.attrs.get('value'))
+        name = toStr(self._elem.attrs.get('name'))
 
         props = []
         if self._elem.parent.name == 'label':
-            props.append(('__label', {'__text': to_str(self._elem.parent.text, r)}))
+            props.append(('__label', {'__text': toStr(self._elem.parent.text)}))
         if self.selected:
             props.append(('checked', 'checked'))
         props.append(('type', 'radio'))
@@ -1048,10 +1047,10 @@ class CheckboxItemControl(ItemControl):
 
     @property
     def optionValue(self):
-        return to_str(self._control._value or 'on', self.browser._response)
+        return self.browser.toStr(self._control._value or 'on')
 
     def getLabels(self):
-        return [to_str(l, self.browser._response)
+        return [self.browser.toStr(l)
                 for l in getControlLabels(self._elem, self._form.html)]
 
     def __repr__(self):
@@ -1059,14 +1058,13 @@ class CheckboxItemControl(ItemControl):
             self._control.name, self.optionValue, self.selected)
 
     def mechRepr(self):
-        r = self.browser._response
-        id = to_str(self._elem.attrs.get('id'), r)
-        value = to_str(self._elem.attrs.get('value'), r)
-        name = to_str(self._elem.attrs.get('name'), r)
+        id = self.browser.toStr(self._elem.attrs.get('id'))
+        value = self.browser.toStr(self._elem.attrs.get('value'))
+        name = self.browser.toStr(self._elem.attrs.get('name'))
 
         props = []
         if self._elem.parent.name == 'label':
-            props.append(('__label', {'__text': to_str(self._elem.parent.text, r)}))
+            props.append(('__label', {'__text': self.browser.toStr(self._elem.parent.text)}))
         if self.selected:
             props.append(('checked', 'checked'))
         props.append(('name', name))
@@ -1310,26 +1308,6 @@ class History:
 
 class AmbiguityError(ValueError):
     pass
-
-
-APPERROR_STATUS_RE = re.compile(r'Bad response: (\d{3}) (.*) \(not .* for (.*)\)')
-
-def translateAppError(exc_type, exc_value, exc_traceback=None):
-    msg = exc_value.message
-    matches = APPERROR_STATUS_RE.match(msg)
-    if matches:
-        code, status, url = matches.groups()
-        exc_value = urllib_request.HTTPError(url, code, status, [], None)
-        exc_type = urllib_request.HTTPError
-
-    return exc_type, exc_value, exc_traceback
-
-def to_str(s, response):
-    if s is None:
-        return None
-    if PYTHON2 and not isinstance(s, bytes):
-        return s.encode(response.charset)
-    return s
 
 class BrowserStateError(Exception):
     pass
