@@ -60,6 +60,7 @@ setup(
         'zope.schema',
         'pytz',
         'WebTest',
+        'WSGIProxy2',
         ],
     extras_require={
         'test': tests_require,

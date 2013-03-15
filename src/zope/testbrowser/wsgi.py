@@ -16,40 +16,11 @@
 
 import base64
 import re
-import sys
 
-from webtest import TestApp
-
-import zope.testbrowser.browser
 import zope.testbrowser.browser2
 import zope.testbrowser.connection
 
-from zope.testbrowser._compat import urlparse
-
-class HostNotAllowed(Exception):
-    pass
-
-_allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 2606
-
-_allowed = set(['localhost', '127.0.0.1'])
-_allowed.update(_allowed_2nd_level)
-
-class RestrictedTestApp(TestApp):
-
-    def assertAllowedHost(self, url):
-        parsed = urlparse.urlparse(url)
-        host = parsed.netloc
-        if host in _allowed:
-            return
-        for dom in _allowed_2nd_level:
-            if host.endswith('.%s' % dom):
-                return
-
-        raise HostNotAllowed(url)
-
-    def do_request(self, req, status, expect_errors):
-        self.assertAllowedHost(req.url)
-        return super(RestrictedTestApp, self).do_request(req, status, expect_errors)
+from zope.testbrowser.browser2 import HostNotAllowed # BBB
 
 class Browser(zope.testbrowser.browser2.Browser):
     def __init__(self, url=None, wsgi_app=None):
@@ -58,7 +29,6 @@ class Browser(zope.testbrowser.browser2.Browser):
          if wsgi_app is None:
              raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
          super(Browser, self).__init__(url, wsgi_app)
-         self.testapp = RestrictedTestApp(wsgi_app)
 
 basicre = re.compile('Basic (.+)?:(.+)?$')
 

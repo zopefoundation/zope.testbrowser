@@ -36,6 +36,30 @@ RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
 compressText = lambda text: _compress_re.sub(' ', text.strip())
 
+class HostNotAllowed(Exception):
+    pass
+
+_allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 2606
+
+_allowed = set(['localhost', '127.0.0.1'])
+_allowed.update(_allowed_2nd_level)
+
+class RestrictedTestApp(webtest.TestApp):
+
+    def assertAllowedHost(self, url):
+        parsed = urlparse.urlparse(url)
+        host = parsed.netloc
+        if host in _allowed:
+            return
+        for dom in _allowed_2nd_level:
+            if host.endswith('.%s' % dom):
+                return
+
+        raise HostNotAllowed(url)
+
+    def do_request(self, req, status, expect_errors):
+        self.assertAllowedHost(req.url)
+        return super(RestrictedTestApp, self).do_request(req, status, expect_errors)
 
 class SetattrErrorsMixin(object):
     _enable_setattr_errors = False
@@ -62,7 +86,10 @@ class Browser(SetattrErrorsMixin):
         self.timer = PystoneTimer()
         self.raiseHttpErrors = True
         self.handleErrors = True
-        self.testapp = webtest.TestApp(wsgi_app)
+        if wsgi_app is not None:
+            self.testapp = RestrictedTestApp(wsgi_app)
+        else:
+            self.testapp = webtest.TestApp(url)
         self._req_headers = {}
         self._history = History()
         self._enable_setattr_errors = True
