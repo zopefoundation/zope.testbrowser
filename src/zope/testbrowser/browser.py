@@ -542,8 +542,7 @@ class Link(SetattrErrorsMixin):
     @property
     def attrs(self):
         toStr = self.browser.toStr
-        return {toStr(k): toStr(v)
-                for k, v in self._link.attrs.items()}
+        return dict((toStr(k), toStr(v)) for k, v in self._link.attrs.items())
 
     def __repr__(self):
         return "<%s text='%s' url='%s'>" % (
