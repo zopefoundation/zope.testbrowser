@@ -642,10 +642,9 @@ class Control(SetattrErrorsMixin):
         self._form[self.name] = webtest.forms.Upload(filename, contents)
 
     def clear(self):
-        # TODO
         if self._browser_counter != self.browser._counter:
             raise zope.testbrowser.interfaces.ExpiredError
-        self.mech_control.clear()
+        self.value = None
 
     def __repr__(self):
         return "<%s name='%s' type='%s'>" % (
@@ -774,19 +773,7 @@ class ListControl(Control):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
 
-        onlyOne([label, value], '"label" and "value"')
-
-        if label is not None:
-            options = [c for c in self.controls
-                       if label in c.getLabels()]
-            msg = 'label %r' % label
-        elif value is not None:
-            options = [c for c in self.controls
-                       if isMatching(c.value, value)]
-            msg = 'value %r' % value
-
-        res = disambiguate(options, msg, index, controlFormTupleRepr)
-        return res
+        return getControl(self.controls, label, value, index)
 
     @property
     def controls(self):
@@ -892,8 +879,10 @@ class CheckboxListControl(SetattrErrorsMixin):
         return 'checkbox'
 
     def getControl(self, label=None, value=None, index=None):
-        #TODO
-        pass
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+
+        return getControl(self.controls, label, value, index)
 
     @property
     def controls(self):
@@ -901,8 +890,9 @@ class CheckboxListControl(SetattrErrorsMixin):
                 for c, e in self._ctrlelems]
 
     def clear(self):
-        # TODO
-        pass
+        if self._browser_counter != self.browser._counter:
+            raise zope.testbrowser.interfaces.ExpiredError
+        self.value = []
 
     def mechRepr(self):
         return "<SelectControl(%s=[*, ambiguous])>" % self.name
@@ -1180,6 +1170,20 @@ def zeroOrOne(items, description):
     if sum([bool(i) for i in items]) > 1:
         raise ValueError(
             "Supply no more than one of %s as arguments" % description)
+
+def getControl(controls, label=None, value=None, index=None):
+    onlyOne([label, value], '"label" and "value"')
+
+    if label is not None:
+        options = [c for c in controls if label in c.getLabels()]
+        msg = 'label %r' % label
+    elif value is not None:
+        options = [c for c in controls if isMatching(c.value, value)]
+        msg = 'value %r' % value
+
+    res = disambiguate(options, msg, index, controlFormTupleRepr)
+    return res
+
 
 def getControlLabels(celem, html):
         labels = []
