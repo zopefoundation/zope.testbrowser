@@ -57,7 +57,7 @@ setup(
         'zope.interface',
         'zope.schema',
         'pytz',
-        'WebTest',
+        'WebTest >= 2.0.2',
         'WSGIProxy2',
         ],
     extras_require={
