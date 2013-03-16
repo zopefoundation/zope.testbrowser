@@ -1,6 +1,11 @@
 # Configuration script to Travis-CI
-language: python
-python:
-  - "2.7"
-install: python setup.py install
-script:  python setup.py test
++language: python
++python:
++    - 2.7
++install:
++    - python bootstrap.py
++    - bin/buildout
++script:
++    - bin/test -v1
++notifications:
++    email: false
