@@ -59,6 +59,7 @@ setup(
         'pytz',
         'WebTest >= 2.0.2',
         'WSGIProxy2',
+        'six',
         ],
     extras_require={
         'test': tests_require,

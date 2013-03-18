@@ -75,7 +75,7 @@ class AuthorizationMiddleware(object):
 
         # Remove unwanted headers
         def application_start_response(status, headers, exc_info=None):
-            headers = filter(is_wanted_header, headers)
+            headers = [h for h in headers if is_wanted_header(h)]
             start_response(status, headers)
 
         for entry in self.wsgi_stack(environ, application_start_response):

@@ -24,14 +24,18 @@ HAVE_MECHANIZE = False
 if PYTHON2:
     import Cookie as httpcookies
     import urlparse
+    from urllib import quote as url_quote
     import httplib as httpclient
     import urllib2 as urllib_request
+    from urllib import urlencode
     from UserDict import DictMixin
     class MutableMapping(object, DictMixin):
         pass
 else:
     import http.cookies as httpcookies
     import urllib.parse as urlparse
+    from urllib.parse import quote as url_quote
     import urllib.request as urllib_request
+    from urllib.parse import urlencode
     import http.client as httpclient
     from collections import MutableMapping

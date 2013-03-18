@@ -40,11 +40,12 @@ class TestApp(object):
         print("%s %s HTTP/1.1" % (environ['REQUEST_METHOD'],
                                   environ['PATH_INFO']))
         # print all the headers
-        for ek, ev in environ.items():
+        for ek, ev in sorted(environ.items()):
             if ek.startswith('HTTP_'):
                 print("%s: %s" % (ek[5:].title(), ev))
         print()
-        print(environ['wsgi.input'].input.getvalue())
+        inp = environ['wsgi.input'].input.getvalue()
+        print(inp.decode('utf8'))
         status = '%s %s' % (self.next_response_status, self.next_response_reason)
         start_response(status, self.next_response_headers)
         return [self.next_response_body]
@@ -61,7 +62,7 @@ def test_submit_duplicate_name():
 
     When given a form with two submit buttons that have the same name:
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <input type="submit" name="submit_me" value="GOOD" />
@@ -90,7 +91,7 @@ def test_submit_duplicate_name():
     This also works if the labels have whitespace around them (this tests a
     regression caused by the original fix for the above):
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <input type="submit" name="submit_me" value=" GOOD " />
@@ -122,7 +123,7 @@ def test_file_upload():
 
     When given a form with a file-upload
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <input name="foo" type="file" />
@@ -149,7 +150,7 @@ def test_file_upload():
     You can pass a string to add_file:
 
     >>> browser.getControl(name='foo').add_file(
-    ...     'blah blah blah', 'text/csv', 'x.csv')
+    ...     b'blah blah blah', 'text/csv', 'x.csv')
     >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
     ...
@@ -170,7 +171,7 @@ def test_submit_gets_referrer():
 
     A simple form for testing, like abobe.
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...   <form id="form" action="." method="post"
     ...                   enctype="multipart/form-data">
@@ -186,6 +187,7 @@ def test_submit_gets_referrer():
     >>> form = browser.getForm(id='form')
     >>> form.submit(name='submit_me') # doctest: +ELLIPSIS
     POST / HTTP/1.1
+    ...
     Referer: http://localhost/
     ...
 """
@@ -212,7 +214,7 @@ def test_strip_linebreaks_from_textarea(self):
     ignored, but real browsers only ignore a line break after a start tag.
     So if we give the following form:
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <textarea name="textarea">
@@ -234,7 +236,7 @@ def test_strip_linebreaks_from_textarea(self):
     after the start tag, the textarea value will start and end with a line
     break.
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <textarea name="textarea">
@@ -254,7 +256,7 @@ def test_strip_linebreaks_from_textarea(self):
     Also, if there is some other whitespace after the start tag, it will be
     preserved.
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...   <form action="." method="post" enctype="multipart/form-data">
     ...      <textarea name="textarea">  Foo  </textarea>
@@ -277,7 +279,7 @@ def test_relative_link():
     >>> app = TestApp()
     >>> browser = Browser(wsgi_app=app)
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...     <a href="foo">link</a>
     ... </body></html>
@@ -294,7 +296,7 @@ def test_relative_link():
     It's possible to have a relative URL consisting of only a query part. In
     that case it should simply be appended to the base URL.
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ...     <a href="?key=value">link</a>
     ... </body></html>
@@ -311,7 +313,7 @@ def test_relative_link():
     In the example above, the base URL was the page URL, but we can also
     specify a base URL using a <base> tag.
 
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><head><base href="http://localhost/base" /></head><body>
     ...     <a href="?key=value">link</a>
     ... </body></html>

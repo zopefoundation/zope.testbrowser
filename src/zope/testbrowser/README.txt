@@ -30,7 +30,7 @@ applications. It can be imported from ``zope.testbrowser.wsgi``:
     >>> from zope.testbrowser.wsgi import Browser
     >>> from zope.testbrowser.testing import demo_app
     >>> browser = Browser('http://localhost/', wsgi_app=demo_app)
-    >>> print browser.contents
+    >>> print(browser.contents)
     Hello world!
     ...
 
@@ -125,7 +125,7 @@ Page Contents
 
 The contents of the current page are available:
 
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>
       <head>
         <title>Simple Page</title>
@@ -205,7 +205,7 @@ library):
 
 The headers can be accessed as a string:
 
-    >>> print browser.headers
+    >>> print(browser.headers)
     Status: 200 OK
     Content-Length: 123
     Content-Type: text/html;charset=utf-8
@@ -236,9 +236,9 @@ a few examples.
     'bar'
     >>> browser.cookies.keys()
     ['foo']
-    >>> browser.cookies.values()
+    >>> list(browser.cookies.values())
     ['bar']
-    >>> browser.cookies.items()
+    >>> list(browser.cookies.items())
     [('foo', 'bar')]
     >>> 'foo' in browser.cookies
     True
@@ -254,9 +254,9 @@ a few examples.
     >>> sorted(browser.cookies.items())
     [('foo', 'bar'), ('sha', 'zam')]
     >>> browser.open('http://localhost/get_cookie.html')
-    >>> print browser.headers.get('set-cookie')
+    >>> print(browser.headers.get('set-cookie'))
     None
-    >>> print browser.contents # server got the cookie change
+    >>> print(browser.contents) # server got the cookie change
     foo: bar
     sha: zam
     >>> sorted(browser.cookies.items())
@@ -842,9 +842,9 @@ The various types of controls are demonstrated here.
     True
     >>> ctrl.value is None
     True
-    >>> import cStringIO
+    >>> import io
 
-    >>> ctrl.add_file(cStringIO.StringIO('File contents'),
+    >>> ctrl.add_file(io.BytesIO(b'File contents'),
     ...               'text/plain', 'test.txt')
 
     The file control (like the other controls) also knows if it is disabled
@@ -1109,7 +1109,7 @@ Both the submit and image type should be clickable and submit the form:
 
     >>> browser.getControl('Text Control').value = 'Other Text'
     >>> browser.getControl('Submit').click()
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>
     ...
     <em>Other Text</em>
@@ -1136,7 +1136,7 @@ All the above also holds true for the image control:
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> browser.getControl('Text Control').value = 'Other Text'
     >>> browser.getControl(name='image-value').click()
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>
     ...
     <em>Other Text</em>
@@ -1161,7 +1161,7 @@ But when sending an image, you can also specify the coordinate you clicked:
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> browser.getControl(name='image-value').click((50,25))
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>
     ...
     <em>50</em>
@@ -1232,7 +1232,7 @@ browser, you can get control objects, but limited to the current form...
 ...and submit the form.
 
     >>> form.submit('Submit')
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>
     ...
     <em>First Text</em>
@@ -1319,7 +1319,7 @@ helpful when testing Ajax methods.
 Let's visit a page that echos some interesting values from it's request:
 
     >>> browser.open('http://localhost/echo.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     HTTP_ACCEPT_LANGUAGE: en-US
     HTTP_CONNECTION: close
     HTTP_HOST: localhost
@@ -1333,7 +1333,7 @@ and an optional content type.  If we just pass a string, then
 a URL-encoded query string is assumed:
 
     >>> browser.post('http://localhost/echo.html', 'x=1&y=2')
-    >>> print browser.contents
+    >>> print(browser.contents)
     CONTENT_LENGTH: 7
     CONTENT_TYPE: application/x-www-form-urlencoded
     HTTP_ACCEPT_LANGUAGE: en-US
@@ -1352,7 +1352,7 @@ We can pass a content-type explicitly:
 
     >>> browser.post('http://localhost/echo.html',
     ...              '{"x":1,"y":2}', 'application/x-javascript')
-    >>> print browser.contents
+    >>> print(browser.contents)
     CONTENT_LENGTH: 13
     CONTENT_TYPE: application/x-javascript
     HTTP_ACCEPT_LANGUAGE: en-US
@@ -1482,11 +1482,11 @@ Depending on the scheme of the request the variable wsgi.url_scheme will be set
 correctly on the request:
 
     >>> browser.open('http://localhost/echo_one.html?var=wsgi.url_scheme')
-    >>> print browser.contents
+    >>> print(browser.contents)
     'http'
 
     >>> browser.open('https://localhost/echo_one.html?var=wsgi.url_scheme')
-    >>> print browser.contents
+    >>> print(browser.contents)
     'https'
 
 see http://www.python.org/dev/peps/pep-3333/ for details.

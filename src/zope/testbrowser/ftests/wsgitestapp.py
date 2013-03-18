@@ -75,13 +75,15 @@ def handle_resource(req, extra=None):
     filename = req.path_info.split('/')[-1]
     type, _ = mimetypes.guess_type(filename)
     path = os.path.join(_HERE, filename)
-    contents = open(path, 'r').read()
+    contents = open(path, 'rb').read()
     if type == 'text/html':
         params = {}
         params.update(req.params)
         if extra is not None:
             params.update(extra)
+        contents = contents.decode('latin1')
         contents = contents % ParamsWrapper(params)
+        contents = contents.encode('latin1')
     return Response(contents, content_type=type)
 
 def forms(req):
@@ -132,12 +134,12 @@ def echo(req):
         if v is None:
             continue
         items.append('%s: %s' % (k, v))
-    items.extend('%s: %s' % x for x in sorted(req.params.items())) 
+    items.extend('%s: %s' % x for x in sorted(req.params.items()))
     if req.method == 'POST' and req.content_type == 'application/x-www-form-urlencoded':
-        body = ''
+        body = b''
     else:
         body = req.body
-    items.append('Body: %r' % body)
+    items.append("Body: '%s'" % body.decode('utf8'))
     return Response('\n'.join(items))
 
 def redirect(req):

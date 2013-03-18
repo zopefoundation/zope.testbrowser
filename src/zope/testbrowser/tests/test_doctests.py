@@ -31,6 +31,7 @@ def test_suite():
         package='zope.testbrowser')
 
     wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags,
+                                checker=zope.testbrowser.tests.helper.checker,
                                 package='zope.testbrowser')
     wire.level = 2
 

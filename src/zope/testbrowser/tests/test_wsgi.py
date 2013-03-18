@@ -13,12 +13,11 @@
 ##############################################################################
 
 import unittest
-from urllib import urlencode
 
 import zope.testbrowser.wsgi
 from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
-
 from zope.testbrowser.testing import demo_app
+from zope.testbrowser._compat import urlencode
 
 
 class SimpleLayer(zope.testbrowser.wsgi.Layer):

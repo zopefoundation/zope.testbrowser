@@ -18,8 +18,9 @@ Mostly ported from mechanize soruces for backwards compatibility.
 
 import re
 import time
-import urlparse
 from calendar import timegm
+
+from zope.testbrowser._compat import urlparse
 
 strict_re = re.compile(r"^[SMTWF][a-z][a-z], (\d\d) ([JFMASOND][a-z][a-z]) "
                        r"(\d\d\d\d) (\d\d):(\d\d):(\d\d) GMT$")

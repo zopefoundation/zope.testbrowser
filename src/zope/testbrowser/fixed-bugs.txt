@@ -114,7 +114,7 @@ This is how it works with a simple open():
     >>> browser.handleErrors=False
 
     >>> browser.open('http://localhost/set_status.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     Everything fine
 
     >>> browser.open('http://localhost/set_status.html?status=403')
@@ -122,7 +122,7 @@ This is how it works with a simple open():
     ...
     HTTPError: HTTP Error 403: Forbidden
 
-    >>> print browser.contents
+    >>> print(browser.contents)
     Just set a status of 403
 
 
@@ -131,7 +131,7 @@ These are the various controls:
 A link:
 
     >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>...
 
     >>> browser.getLink('403').click()
@@ -139,13 +139,13 @@ A link:
     ...
     HTTPError: HTTP Error 403: Forbidden
 
-    >>> print browser.contents
+    >>> print(browser.contents)
     Just set a status of 403
 
 A submit button:
 
     >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>...
 
     >>> browser.getControl(name='status').value = '404'
@@ -154,13 +154,13 @@ A submit button:
     ...
     HTTPError: HTTP Error 404: Not Found
 
-    >>> print browser.contents
+    >>> print(browser.contents)
     Just set a status of 404
 
 A submit image control:
 
     >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>...
 
     >>> browser.getControl(name='status').value = '403'
@@ -169,13 +169,13 @@ A submit image control:
     ...
     HTTPError: HTTP Error 403: Forbidden
 
-    >>> print browser.contents
+    >>> print(browser.contents)
     Just set a status of 403
 
 A javascript-ish form submit:
 
     >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>...
 
     >>> browser.getControl(name='status').value = '404'
@@ -184,13 +184,13 @@ A javascript-ish form submit:
     ...
     HTTPError: HTTP Error 404: Not Found
 
-    >>> print browser.contents
+    >>> print(browser.contents)
     Just set a status of 404
 
 A non-javascript-ish form submit:
 
     >>> browser.open('http://localhost/@@/testbrowser/status_lead.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     <html>...
 
     >>> browser.getControl(name='status').value = '403'
@@ -199,5 +199,5 @@ A non-javascript-ish form submit:
     ...
     HTTPError: HTTP Error 403: Forbidden
 
-    >>> print browser.contents
+    >>> print(browser.contents)
     Just set a status of 403

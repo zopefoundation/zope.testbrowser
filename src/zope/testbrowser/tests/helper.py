@@ -38,4 +38,19 @@ checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'; charset=UTF-8'), ';charset=utf-8'),
     # webtest seems to expire cookies one second before the date set in set_cookie
     (re.compile(r"'expires': datetime.datetime\(2029, 12, 31, 23, 59, 59, tzinfo=<UTC>\),"), "'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),"),
+
+    # python3 formats exceptions differently
+    (re.compile(r'zope.testbrowser.browser.BrowserStateError'), 'BrowserStateError'),
+    (re.compile(r'zope.testbrowser.interfaces.ExpiredError'), 'ExpiredError'),
+    (re.compile(r'zope.testbrowser.browser.LinkNotFoundError'), 'LinkNotFoundError'),
+    (re.compile(r'zope.testbrowser.browser.AmbiguityError'), 'AmbiguityError'),
+    (re.compile(r'zope.testbrowser.ftests.wsgitestapp.NotFound'), 'NotFound'),
+    (re.compile(r'zope.testbrowser.interfaces.AlreadyExpiredError'), 'AlreadyExpiredError'),
+    (re.compile(r'zope.testbrowser.browser.RobotExclusionError'), 'RobotExclusionError'),
+    (re.compile(r'urllib.error.HTTPError'), 'HTTPError'),
+
+
+    # In py3 HTTPMessage class was moved and represented differently
+    (re.compile(r'<http.client.HTTPMessage object'), '<httplib.HTTPMessage instance'),
+    #(re.compile(r''), ''),
     ])

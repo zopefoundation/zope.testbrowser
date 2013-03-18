@@ -18,18 +18,17 @@ __docformat__ = "reStructuredText"
 import sys
 import re
 import time
-import urlparse
 import io
-import robotparser
 from contextlib import contextmanager
 
-import six
+from six.moves import urllib_robotparser
+
 from zope.interface import implementer
 from wsgiproxy.proxies import TransparentProxy
 from bs4 import BeautifulSoup
 
 from zope.testbrowser import interfaces
-from zope.testbrowser._compat import httpclient, PYTHON2, urllib_request
+from zope.testbrowser._compat import httpclient, PYTHON2, urllib_request, urlparse
 import zope.testbrowser.cookies
 
 import webtest
@@ -70,7 +69,7 @@ class TestbrowserApp(webtest.TestApp):
             # Unrestricted mode: retrieve robots.txt and check against it
             robotsurl = urlparse.urlunsplit((parsed.scheme, parsed.netloc,
                                              '/robots.txt', '', ''))
-            rp = robotparser.RobotFileParser()
+            rp = urllib_robotparser.RobotFileParser()
             rp.set_url(robotsurl)
             rp.read()
             if not rp.can_fetch("*", url):
@@ -194,7 +193,7 @@ class Browser(SetattrErrorsMixin):
     def contents(self):
         """See zope.testbrowser.interfaces.IBrowser"""
         if self._response is not None:
-            return self._response.body
+            return self.toStr(self._response.body)
         else:
             return None
 
@@ -202,12 +201,16 @@ class Browser(SetattrErrorsMixin):
     def headers(self):
         """See zope.testbrowser.interfaces.IBrowser"""
         resptxt = []
-        resptxt.append(b'Status: '+self._response.status)
+        resptxt.append('Status: %s' % self._response.status)
         for h, v in sorted(self._response.headers.items()):
             resptxt.append(str("%s: %s" % (h, v)))
 
-        stream = io.BytesIO(b'\n'.join(resptxt))
-        return httpclient.HTTPMessage(stream)
+        inp = '\n'.join(resptxt)
+        stream = io.BytesIO(inp.encode('latin1'))
+        if PYTHON2:
+            return httpclient.HTTPMessage(stream)
+        else:
+            return httpclient.parse_headers(stream)
 
     @property
     def cookies(self):
@@ -464,6 +467,8 @@ class Browser(SetattrErrorsMixin):
             return None
         if PYTHON2 and not isinstance(s, bytes):
             return s.encode(self._response.charset)
+        if not PYTHON2 and isinstance(s, bytes):
+            return s.decode(self._response.charset)
         return s
 
 def controlFactory(name, wtcontrols, elemindex, browser, include_subcontrols=False):
@@ -1235,7 +1240,7 @@ class PystoneTimer(object):
         # http://www.zope.org/Collectors/Zope/2268
         from test import pystone
         if self._pystones_per_second == None:
-            self._pystones_per_second = pystone.pystones(pystone.LOOPS/10)[1]
+            self._pystones_per_second = pystone.pystones(pystone.LOOPS//10)[1]
         return self._pystones_per_second
 
     def _getTime(self):

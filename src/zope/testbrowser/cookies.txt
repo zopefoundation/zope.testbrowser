@@ -72,11 +72,11 @@ basic accessor operators and methods.
 
     >>> browser.cookies['foo']
     'bar'
-    >>> browser.cookies.keys()
+    >>> list(browser.cookies.keys())
     ['foo']
-    >>> browser.cookies.values()
+    >>> list(browser.cookies.values())
     ['bar']
-    >>> browser.cookies.items()
+    >>> list(browser.cookies.items())
     [('foo', 'bar')]
     >>> 'foo' in browser.cookies
     True
@@ -93,7 +93,7 @@ another view that does not set cookies but reports on the cookies it receives
 from the browser.
 
     >>> browser.open('http://localhost/get_cookie.html')
-    >>> print browser.headers.get('set-cookie')
+    >>> print(browser.headers.get('set-cookie'))
     None
     >>> browser.contents
     'foo: bar'
@@ -110,18 +110,18 @@ seen here.
     >>> pprint.pprint(sorted(browser.cookies.items()))
     [('foo', 'bar'), ('sha', 'zam')]
     >>> browser.open('http://localhost/get_cookie.html')
-    >>> print browser.headers.get('set-cookie')
+    >>> print(browser.headers.get('set-cookie'))
     None
-    >>> print browser.contents # server got the cookie change
+    >>> print(browser.contents) # server got the cookie change
     foo: bar
     sha: zam
     >>> browser.cookies.update({'va': 'voom', 'tweedle': 'dee'})
     >>> pprint.pprint(sorted(browser.cookies.items()))
     [('foo', 'bar'), ('sha', 'zam'), ('tweedle', 'dee'), ('va', 'voom')]
     >>> browser.open('http://localhost/get_cookie.html')
-    >>> print browser.headers.get('set-cookie')
+    >>> print(browser.headers.get('set-cookie'))
     None
-    >>> print browser.contents
+    >>> print(browser.contents)
     foo: bar
     sha: zam
     tweedle: dee
@@ -129,7 +129,7 @@ seen here.
     >>> del browser.cookies['foo']
     >>> del browser.cookies['tweedle']
     >>> browser.open('http://localhost/get_cookie.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     sha: zam
     va: voom
 
@@ -316,7 +316,7 @@ the other page in the browser, or, as already mentioned, you can use the
     ['foo', 'max', 'sha', 'va', 'wow']
 
     >>> browser.open('http://localhost/inner/get_cookie.html')
-    >>> print browser.contents # has gewgaw
+    >>> print(browser.contents) # has gewgaw
     foo: bar
     gew: gaw
     max: min
@@ -324,7 +324,7 @@ the other page in the browser, or, as already mentioned, you can use the
     va: voom
     wow: wee
     >>> browser.open('http://localhost/inner/path/get_cookie.html')
-    >>> print browser.contents # has gewgaw
+    >>> print(browser.contents) # has gewgaw
     foo: bar
     gew: gaw
     max: min
@@ -332,7 +332,7 @@ the other page in the browser, or, as already mentioned, you can use the
     va: voom
     wow: wee
     >>> browser.open('http://localhost/get_cookie.html')
-    >>> print browser.contents # NO gewgaw
+    >>> print(browser.contents) # NO gewgaw
     foo: bar
     max: min
     sha: zam
@@ -353,7 +353,7 @@ inner page.
     '/inner'
     >>> browser.cookies.getinfo('foo')['path']
     '/'
-    >>> print browser.cookies.forURL('http://localhost/').get('big')
+    >>> print(browser.cookies.forURL('http://localhost/').get('big'))
     None
 
 
@@ -418,32 +418,32 @@ domains to Zope, and both http and https.
     >>> sorted(browser.cookies.keys())
     ['boo', 'tweedle']
     >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     boo: yah
     tweedle: dee
     >>> browser.open( # not https, so not secure, so not 'boo'
     ...     'http://dev.example.com/inner/path/get_cookie.html')
     >>> sorted(browser.cookies.keys())
     ['tweedle']
-    >>> print browser.contents
+    >>> print(browser.contents)
     tweedle: dee
     >>> browser.open( # not tweedle's domain
     ...     'https://prod.example.com/inner/path/get_cookie.html')
     >>> sorted(browser.cookies.keys())
     ['boo']
-    >>> print browser.contents
+    >>> print(browser.contents)
     boo: yah
     >>> browser.open( # not tweedle's domain
     ...     'https://example.com/inner/path/get_cookie.html')
     >>> sorted(browser.cookies.keys())
     ['boo']
-    >>> print browser.contents
+    >>> print(browser.contents)
     boo: yah
     >>> browser.open( # not tweedle's path
     ...     'https://dev.example.com/inner/get_cookie.html')
     >>> sorted(browser.cookies.keys())
     ['boo']
-    >>> print browser.contents
+    >>> print(browser.contents)
     boo: yah
 
 
@@ -470,7 +470,7 @@ First, unless you pass an explicit path, you will be modifying the existing
 cookie.
 
     >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     boo: yah
     tweedle: dee
     >>> browser.cookies.getinfo('boo')['path']
@@ -591,7 +591,7 @@ loose rules, so 'boo' is around too.
     >>> browser.open('https://dev.example.org/get_cookie.html')
     >>> sorted(browser.cookies)
     ['boo', 'tweedle']
-    >>> print browser.contents
+    >>> print(browser.contents)
     boo: yah
     tweedle: dee
 
@@ -601,7 +601,7 @@ If we set strict_domain_policy to True, then only tweedle is included.
     >>> sorted(browser.cookies)
     ['tweedle']
     >>> browser.open('https://dev.example.org/get_cookie.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     tweedle: dee
 
 If we set the "boo" domain to ".example.org" (as it would be set under the more
@@ -628,7 +628,7 @@ OK, we'll create a new cookie then.
     >>> sorted(browser.cookies)
     ['snoo', 'tweedle']
     >>> browser.open('https://dev.example.org/get_cookie.html')
-    >>> print browser.contents
+    >>> print(browser.contents)
     snoo: kums
     tweedle: dee
 
@@ -639,7 +639,7 @@ Let's set things back to the way they were.
     >>> browser.open('https://dev.example.org/get_cookie.html')
     >>> sorted(browser.cookies)
     ['boo', 'tweedle']
-    >>> print browser.contents
+    >>> print(browser.contents)
     boo: yah
     tweedle: dee
 
@@ -681,7 +681,7 @@ To identify the additional cookies, you can change the URL...
 
 ...or use ``iterinfo`` and pass in a name.
 
-    >>> pprint.pprint(list(browser.cookies.iterinfo('boo')))
+    >>> pprint.pprint(list(browser.cookies.iterinfo('boo'))) # doctest: +REPORT_NDIFF
     [{'comment': None,
       'commenturl': None,
       'domain': 'dev.example.org',

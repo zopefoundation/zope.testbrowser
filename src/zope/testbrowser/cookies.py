@@ -16,8 +16,9 @@ import datetime
 import time
 import urllib
 
-from zope.testbrowser._compat import (httpcookies, urlparse,
+from zope.testbrowser._compat import (httpcookies, urlparse, url_quote,
                                       MutableMapping, urllib_request)
+import six
 import pytz
 import zope.interface
 from zope.testbrowser import interfaces, utils
@@ -30,11 +31,13 @@ class _StubHTTPMessage(object):
     def __init__(self, cookies):
         self._cookies = cookies
 
-    def getheaders(self, name):
+    def getheaders(self, name, default=[]):
         if name.lower() != 'set-cookie':
-            return []
+            return default
         else:
             return self._cookies
+
+    get_all = getheaders
 
 
 class _StubResponse(object):
@@ -108,7 +111,10 @@ class Cookies(MutableMapping):
         if not request.has_header('Cookie'):
             return ''
 
-        return request.get_header('Cookie')
+        hdr = request.get_header('Cookie')
+        # We need a predictable order of cookies for tests, so we reparse and
+        # sort the header here.
+        return '; '.join(sorted(hdr.split('; ')))
 
     def __str__(self):
         return self.header
@@ -129,7 +135,7 @@ class Cookies(MutableMapping):
 
         # Sort cookies so that the longer paths would come first. This allows
         # masking parent cookies.
-        cookies.sort(key=lambda c: len(c.path), reverse=True)
+        cookies.sort(key=lambda c: (len(c.path), len(c.domain)), reverse=True)
         return cookies
 
     def _get_cookies(self, key=None):
@@ -311,7 +317,8 @@ class Cookies(MutableMapping):
                     'cannot create cookie without request or domain')
         c = httpcookies.SimpleCookie()
         name = str(name)
-        c[name] = value.encode('utf8')
+        # Cookie value must be native string
+        c[name] = value.encode('utf8') if not six.PY3 else value
         if secure:
             c[name]['secure'] = True
         if domain:
@@ -321,7 +328,7 @@ class Cookies(MutableMapping):
         if expires:
             c[name]['expires'] = expiration_string(expires)
         if comment:
-            c[name]['comment'] = urllib.quote(
+            c[name]['comment'] = url_quote(
                 comment.encode('utf-8'), safe="/?:@&+")
         if port:
             c[name]['port'] = port
@@ -360,7 +367,7 @@ class Cookies(MutableMapping):
                     return True
             elif value <= dnow:
                 return True
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             if datetime.datetime.fromtimestamp(
                 utils.http2time(value),
                 pytz.UTC) <= dnow:
@@ -378,3 +385,20 @@ class Cookies(MutableMapping):
 
     def clearAll(self):
         self._jar.clear()
+
+    def pop(self, k, *args):
+        """See zope.interface.common.mapping.IExtendedWriteMapping
+        """
+        # Python3' MutableMapping doesn't offer pop() with variable arguments,
+        # so we are reimplementing it here as defined in IExtendedWriteMapping
+        super(Cookies, self).pop(k, *args)
+
+    def itervalues(self):
+        # Method, missing in Py3' MutableMapping, but required by
+        # IIterableMapping
+        return self.values()
+
+    def iterkeys(self):
+        # Method, missing in Py3' MutableMapping, but required by
+        # IIterableMapping
+        return self.keys()
