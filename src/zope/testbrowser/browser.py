@@ -118,6 +118,7 @@ class Browser(SetattrErrorsMixin):
     """A web user agent."""
 
     _contents = None
+    _controls = None
     _counter = 0
     _response = None
     _req_headers = None
@@ -137,6 +138,7 @@ class Browser(SetattrErrorsMixin):
         self._req_headers = {}
         self._history = History()
         self._enable_setattr_errors = True
+        self._controls = {}
 
         if url is not None:
             self.open(url)
@@ -414,19 +416,33 @@ class Browser(SetattrErrorsMixin):
 
 
     def _findAllControls(self, forms, include_subcontrols=False):
+        res = []
         for f in forms:
-            allelems = self._indexControls(f)
+            if f not in self._controls:
+                fc = []
+                allelems = self._indexControls(f)
 
-            for cname, wtcontrols in f.fields.items():
-                for c in controlFactory(cname, wtcontrols, allelems, self,
-                                        include_subcontrols):
-                    yield c
+                for cname, wtcontrols in f.fields.items():
+                    for c in controlFactory(cname, wtcontrols, allelems, self):
+                        fc.append((c, False))
+
+                        for subcontrol in c.controls:
+                            fc.append((subcontrol, True))
+
+                self._controls[f] = fc
+
+            controls = [c for c, subcontrol in self._controls[f]
+                        if not subcontrol or include_subcontrols]
+            res.extend(controls)
+
+        return res
 
 
     def _changed(self):
         self._counter += 1
         self._contents = None
         self._req_headers = {}
+        self._controls = {}
 
     @contextmanager
     def _preparedRequest(self, url):
@@ -471,7 +487,7 @@ class Browser(SetattrErrorsMixin):
             return s.decode(self._response.charset)
         return s
 
-def controlFactory(name, wtcontrols, elemindex, browser, include_subcontrols=False):
+def controlFactory(name, wtcontrols, elemindex, browser):
     assert len(wtcontrols) > 0
 
     first_wtc = wtcontrols[0]
@@ -487,14 +503,7 @@ def controlFactory(name, wtcontrols, elemindex, browser, include_subcontrols=Fal
         for wtc in wtcontrols:
             controls.append(simpleControlFactory(wtc, wtc.form, elemindex, browser))
 
-    # Yield all created controls
-    for control in controls:
-        yield control
-
-        if include_subcontrols:
-            for subcontrol in control.controls:
-                yield subcontrol
-
+    return controls
 
 def simpleControlFactory(wtcontrol, form, elemindex, browser):
     if isinstance(wtcontrol, webtest.forms.Radio):
