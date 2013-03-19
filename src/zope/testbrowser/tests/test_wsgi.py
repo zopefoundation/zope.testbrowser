@@ -95,6 +95,14 @@ class TestBrowser(unittest.TestCase):
         browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
         self.assertEqual(browser.contents, 'False')
 
+    def test_binary_content_type(self):
+        # regression during webtest porting
+        app = WSGITestApplication()
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+        browser.handleErrors = False
+        browser.open('http://localhost/@@/testbrowser/zope3logo.gif')
+        self.assertEqual(browser.headers['content-type'], 'image/gif')
+
 class TestWSGILayer(unittest.TestCase):
 
     def setUp(self):
