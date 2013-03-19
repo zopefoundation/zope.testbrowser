@@ -36,16 +36,16 @@ class TestBrowser(unittest.TestCase):
         # redirecting locally works
         browser.open('http://localhost/redirect.html?%s'
                      % urlencode(dict(to='/set_status.html')))
-        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        self.assertEqual(browser.url, 'http://localhost/set_status.html')
         browser.open('http://localhost/redirect.html?%s'
                      % urlencode(dict(to='/set_status.html', type='301')))
-        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        self.assertEqual(browser.url, 'http://localhost/set_status.html')
         browser.open('http://localhost/redirect.html?%s'
                      % urlencode(dict(to='http://localhost/set_status.html')))
-        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        self.assertEqual(browser.url, 'http://localhost/set_status.html')
         browser.open('http://localhost/redirect.html?%s'
                      % urlencode(dict(to='http://localhost/set_status.html', type='301')))
-        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        self.assertEqual(browser.url, 'http://localhost/set_status.html')
         # non-local redirects raise HostNotAllowed error
         self.assertRaises(zope.testbrowser.wsgi.HostNotAllowed,
                           browser.open,
@@ -82,18 +82,18 @@ class TestBrowser(unittest.TestCase):
         app = WSGITestApplication()
         browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
         browser.open('http://localhost/echo_one.html?var=x-wsgiorg.throw_errors')
-        self.assertEquals(browser.contents, 'None')
+        self.assertEqual(browser.contents, 'None')
         browser.open('http://localhost/echo_one.html?var=paste.throw_errors')
-        self.assertEquals(browser.contents, 'None')
+        self.assertEqual(browser.contents, 'None')
         browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
-        self.assertEquals(browser.contents, 'None')
+        self.assertEqual(browser.contents, 'None')
         browser.handleErrors = False
         browser.open('http://localhost/echo_one.html?var=x-wsgiorg.throw_errors')
-        self.assertEquals(browser.contents, 'True')
+        self.assertEqual(browser.contents, 'True')
         browser.open('http://localhost/echo_one.html?var=paste.throw_errors')
-        self.assertEquals(browser.contents, 'True')
+        self.assertEqual(browser.contents, 'True')
         browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
-        self.assertEquals(browser.contents, 'False')
+        self.assertEqual(browser.contents, 'False')
 
 class TestWSGILayer(unittest.TestCase):
 
@@ -132,7 +132,7 @@ class TestAuthorizationMiddleware(unittest.TestCase):
         #x-powered-by and x-content-type-warning are filtered
         url = 'http://localhost/set_header.html?x-other=another&x-powered-by=zope&x-content-type-warning=bar'
         self.browser.open(url)
-        self.assertEquals(self.browser.headers['x-other'], 'another')
+        self.assertEqual(self.browser.headers['x-other'], 'another')
         self.assertTrue('x-other' in self.browser.headers)
         self.assertFalse('x-powered-by' in self.browser.headers)
         self.assertFalse('x-content-type-warning' in self.browser.headers)
@@ -145,10 +145,10 @@ class TestAuthorizationMiddleware(unittest.TestCase):
         # Basic authorization headers are encoded in base64
         self.browser.addHeader('Authorization', 'Basic mgr:mgrpw')
         self.browser.open('http://localhost/echo_one.html?var=HTTP_AUTHORIZATION')
-        self.assertEquals(self.browser.contents, repr('Basic bWdyOm1ncnB3'))
+        self.assertEqual(self.browser.contents, repr('Basic bWdyOm1ncnB3'))
 
     def test_authorization_other(self):
         # Non-Basic authorization headers are unmolested
         self.browser.addHeader('Authorization', 'Digest foobar')
         self.browser.open('http://localhost/echo_one.html?var=HTTP_AUTHORIZATION')
-        self.assertEquals(self.browser.contents, repr('Digest foobar'))
+        self.assertEqual(self.browser.contents, repr('Digest foobar'))

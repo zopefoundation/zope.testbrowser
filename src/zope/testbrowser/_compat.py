@@ -27,8 +27,10 @@ if PYTHON2:
     from urllib import quote as url_quote
     import httplib as httpclient
     import urllib2 as urllib_request
+    from cgi import escape as html_escape
     from urllib import urlencode
     from UserDict import DictMixin
+    from base64 import encodestring as base64_encodebytes
     class MutableMapping(object, DictMixin):
         pass
 else:
@@ -39,3 +41,5 @@ else:
     from urllib.parse import urlencode
     import http.client as httpclient
     from collections import MutableMapping
+    from html import escape as html_escape
+    from base64 import encodebytes as base64_encodebytes

@@ -14,12 +14,12 @@
 """WSGI-specific testing code
 """
 
-import base64
 import re
 
 import zope.testbrowser.browser
 
 from zope.testbrowser.browser import HostNotAllowed # BBB
+from zope.testbrowser._compat import base64_encodebytes
 
 class Browser(zope.testbrowser.browser.Browser):
     def __init__(self, url=None, wsgi_app=None):
@@ -45,7 +45,7 @@ def auth_header(header):
         if p is None:
             p = ''
         plain = '%s:%s' % (u, p)
-        auth = base64.encodestring(plain.encode('utf-8'))
+        auth = base64_encodebytes(plain.encode('utf-8'))
         return 'Basic %s' % str(auth.rstrip().decode('latin1'))
     return header
 

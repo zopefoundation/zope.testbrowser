@@ -20,6 +20,8 @@ from datetime import datetime
 
 from webob import Request, Response
 
+from zope.testbrowser._compat import html_escape
+
 class NotFound(Exception):
     pass
 
@@ -68,14 +70,15 @@ class ParamsWrapper(object):
 
     def __getitem__(self, key):
         if key in self.params:
-            return cgi.escape(self.params[key])
+            return html_escape(self.params[key])
         return ''
 
 def handle_resource(req, extra=None):
     filename = req.path_info.split('/')[-1]
     type, _ = mimetypes.guess_type(filename)
     path = os.path.join(_HERE, filename)
-    contents = open(path, 'rb').read()
+    with open(path, 'rb') as f:
+        contents = f.read()
     if type == 'text/html':
         params = {}
         params.update(req.params)
