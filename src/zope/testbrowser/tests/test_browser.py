@@ -50,6 +50,27 @@ class TestApp(object):
         start_response(status, self.next_response_headers)
         return [self.next_response_body]
 
+def test_button_without_name(self):
+    """
+    This once blew up.
+
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...   <form action="." method="post" enctype="multipart/form-data">
+    ...      <button type="button">Do Stuff</button>
+    ...   </form></body></html>
+    ... ''')
+    >>> browser.open('http://localhost/') # doctest: +ELLIPSIS
+    GET / HTTP/1.1
+    ...
+    >>> browser.getControl('NotThere') # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+        ...
+    LookupError: ...
+    ...
+    """
 
 def test_submit_duplicate_name():
     """
