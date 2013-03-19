@@ -2,4 +2,4 @@ include *.txt
 include bootstrap.py
 include buildout.cfg
 include MANIFEST.in
-recursive-include src *.html *.txt
+recursive-include src *.html *.gif *.txt
