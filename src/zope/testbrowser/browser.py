@@ -295,9 +295,10 @@ class Browser(SetattrErrorsMixin):
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
         qa = 'a' if id is None else 'a#%s' % id
-        qarea = 'aa' if id is None else 'area#%s' % id
-        links = self._response.html.select(qa)
-        links.extend(self._response.html.select(qarea))
+        qarea = 'area' if id is None else 'area#%s' % id
+        html = self._response.html
+        links = html.select(qa)
+        links.extend(html.select(qarea))
 
         matching = []
         for elem in links:
