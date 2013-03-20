@@ -24,6 +24,7 @@ from contextlib import contextmanager
 from six.moves import urllib_robotparser
 
 from zope.interface import implementer
+from zope.cachedescriptors.property import Lazy
 from wsgiproxy.proxies import TransparentProxy
 from bs4 import BeautifulSoup
 
@@ -396,7 +397,7 @@ class Browser(SetattrErrorsMixin):
                              % re.escape(normalizeWhitespace(label))).search
         found = []
         for wtcontrol in self._findAllControls(forms, include_subcontrols):
-            for l in wtcontrol.getLabels():
+            for l in wtcontrol.labels:
                 if matches(l):
                     found.append(wtcontrol)
                     break
@@ -666,7 +667,8 @@ class Control(SetattrErrorsMixin):
         return "<%s name='%s' type='%s'>" % (
             self.__class__.__name__, self.name, self.type)
 
-    def getLabels(self):
+    @Lazy
+    def labels(self):
         return [self.browser.toStr(l)
                 for l in getControlLabels(self._elem, self._form.html)]
 
@@ -704,8 +706,9 @@ class SubmitControl(Control):
             raise interfaces.ExpiredError
         self.browser._clickSubmit(self._form, self._control)
 
-    def getLabels(self):
-        labels = super(SubmitControl, self).getLabels()
+    @Lazy
+    def labels(self):
+        labels = super(SubmitControl, self).labels
         labels.append(self._control.value_if_submitted())
         return [l for l in labels if l]
 
@@ -802,7 +805,7 @@ class ListControl(Control):
         return ctrls
 
     def _getOptions(self):
-        return [(c.optionValue, c.getLabels()) for c in self.controls]
+        return [(c.optionValue, c.labels) for c in self.controls]
 
     def mechRepr(self):
         # TODO: figure out what is replacement for "[*, ambiguous])"
@@ -832,7 +835,8 @@ class RadioListControl(ListControl):
         for opt in self._elems:
             yield RadioItemControl(self, opt, self._form, self.browser)
 
-    def getLabels(self):
+    @Lazy
+    def labels(self):
         # Parent radio button control has no labels. Children are labeled.
         return []
 
@@ -852,7 +856,7 @@ class CheckboxListControl(SetattrErrorsMixin):
 
     @property
     def displayOptions(self):
-        return [c.getLabels()[0] for c in self.controls]
+        return [c.labels[0] for c in self.controls]
 
 
     @property
@@ -875,12 +879,12 @@ class CheckboxListControl(SetattrErrorsMixin):
 
     @property
     def displayValue(self):
-        return [c.getLabels()[0] for c in self.controls if c.selected]
+        return [c.labels[0] for c in self.controls if c.selected]
 
     @displayValue.setter
     def displayValue(self, value):
         for c in self.controls:
-            c.selected = any(v in c.getLabels() for v in value)
+            c.selected = any(v in c.labels for v in value)
 
     @property
     def multiple(self):
@@ -913,7 +917,8 @@ class CheckboxListControl(SetattrErrorsMixin):
     def mechRepr(self):
         return "<SelectControl(%s=[*, ambiguous])>" % self.name
 
-    def getLabels(self):
+    @Lazy
+    def labels(self):
         return []
 
     def __repr__(self):
@@ -983,7 +988,8 @@ class ItemControl(SetattrErrorsMixin):
         return "<ItemControl name='%s' type='select' optionValue=%r selected=%r>" % \
                 (self._parent.name, self.optionValue, self.selected)
 
-    def getLabels(self):
+    @Lazy
+    def labels(self):
         lbl = self._elem.attrs.get('label', self._elem.text)
         labels = [self._elem.attrs.get('label'), self._elem.text]
         return [self.browser.toStr(normalizeWhitespace(lbl))
@@ -1003,7 +1009,8 @@ class RadioItemControl(ItemControl):
     def optionValue(self):
         return self.browser.toStr(self._elem.attrs.get('value'))
 
-    def getLabels(self):
+    @Lazy
+    def labels(self):
         return [self.browser.toStr(l)
                 for l in getControlLabels(self._elem, self._form.html)]
 
@@ -1053,7 +1060,8 @@ class CheckboxItemControl(ItemControl):
     def optionValue(self):
         return self.browser.toStr(self._control._value or 'on')
 
-    def getLabels(self):
+    @Lazy
+    def labels(self):
         return [self.browser.toStr(l)
                 for l in getControlLabels(self._elem, self._form.html)]
 
@@ -1191,7 +1199,7 @@ def getControl(controls, label=None, value=None, index=None):
     onlyOne([label, value], '"label" and "value"')
 
     if label is not None:
-        options = [c for c in controls if label in c.getLabels()]
+        options = [c for c in controls if label in c.labels]
         msg = 'label %r' % label
     elif value is not None:
         options = [c for c in controls if isMatching(c.value, value)]
