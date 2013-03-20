@@ -124,6 +124,7 @@ class Browser(SetattrErrorsMixin):
     _response = None
     _req_headers = None
     _history = None
+    __html = None
 
     def __init__(self, url=None, wsgi_app=None):
         self.timer = PystoneTimer()
@@ -153,6 +154,7 @@ class Browser(SetattrErrorsMixin):
             return None
         return self.testapp.getRequestUrlWithFragment(self._response)
 
+
     @property
     def isHtml(self):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -174,7 +176,7 @@ class Browser(SetattrErrorsMixin):
         if not self.isHtml:
             raise BrowserStateError('not viewing HTML')
 
-        titles = self._response.html.find_all('title')
+        titles = self._html.find_all('title')
         if not titles:
             return None
         return self.toStr(titles[0].text)
@@ -296,7 +298,7 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         qa = 'a' if id is None else 'a#%s' % id
         qarea = 'area' if id is None else 'area#%s' % id
-        html = self._response.html
+        html = self._html
         links = html.select(qa)
         links.extend(html.select(qarea))
 
@@ -328,7 +330,7 @@ class Browser(SetattrErrorsMixin):
             return url
 
         # we suspect there is a base tag in body, try to find href there
-        html = self._response.html
+        html = self._html
         if not html.head:
             return url
         base = html.head.base
@@ -446,6 +448,7 @@ class Browser(SetattrErrorsMixin):
         self._contents = None
         self._req_headers = {}
         self._controls = {}
+        self.__html = None
 
     @contextmanager
     def _preparedRequest(self, url):
@@ -491,6 +494,12 @@ class Browser(SetattrErrorsMixin):
         if not PYTHON2 and isinstance(s, bytes):
             return s.decode(self._response.charset)
         return s
+
+    @property
+    def _html(self):
+        if self.__html is None:
+            self.__html = self._response.html
+        return self.__html
 
 def controlFactory(name, wtcontrols, elemindex, browser):
     assert len(wtcontrols) > 0
