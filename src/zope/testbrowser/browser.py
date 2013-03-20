@@ -322,12 +322,18 @@ class Browser(SetattrErrorsMixin):
 
     def _getBaseUrl(self):
         # Look for <base href> tag and use it as base, if it exists
-        bases = self._response.html.find_all('base')
-        if bases:
-            return bases[0]['href']
+        url = self._response.request.url
+        if b"<base" not in self._response.body:
+            return url
 
-        # If no base tags found, use last request url as a base
-        return self._response.request.url
+        # we suspect there is a base tag in body, try to find href there
+        html = self._response.html
+        if not html.head:
+            return url
+        base = html.head.base
+        if not base:
+            return url
+        return base['href'] or url
 
     def getForm(self, id=None, name=None, action=None, index=None):
         """See zope.testbrowser.interfaces.IBrowser"""
