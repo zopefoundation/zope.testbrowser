@@ -130,9 +130,11 @@ class Browser(SetattrErrorsMixin):
         self.handleErrors = True
 
         if wsgi_app is None:
-            self.testapp = TestbrowserApp(TransparentProxy())
+            self.testapp = TestbrowserApp(TransparentProxy(),
+                                          use_unicode=False)
         else:
-            self.testapp = TestbrowserApp(wsgi_app)
+            self.testapp = TestbrowserApp(wsgi_app,
+                                          use_unicode=False)
             self.testapp.restricted = True
 
         self._req_headers = {}
@@ -288,8 +290,6 @@ class Browser(SetattrErrorsMixin):
 
     def _setResponse(self, response):
         self._response = response
-        if self._response.charset is None:
-            self._response.charset = 'latin1'
 
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -479,6 +479,8 @@ class Browser(SetattrErrorsMixin):
     def toStr(self, s):
         """Convert possibly unicode object to native string using response
         charset"""
+        if not self._response.charset:
+            return s
         if s is None:
             return None
         if PYTHON2 and not isinstance(s, bytes):
