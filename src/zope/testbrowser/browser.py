@@ -705,7 +705,7 @@ class SubmitControl(Control):
     def getLabels(self):
         labels = super(SubmitControl, self).getLabels()
         labels.append(self._control.value_if_submitted())
-        return labels
+        return [l for l in labels if l]
 
     def mechRepr(self):
         return "SubmitControl???"  # TODO
