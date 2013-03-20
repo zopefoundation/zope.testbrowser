@@ -370,14 +370,9 @@ class Browser(SetattrErrorsMixin):
     def _getAllResponseForms(self):
         """ Return set of response forms in the order they appear in
         ``self._response.form``."""
-        forms = []
-        seen = set()
-        for f in self._response.forms.values():
-            if f in seen:
-                continue
-            seen.add(f)
-            forms.append(f)
-        return forms
+        respforms = self._response.forms
+        idxkeys = [k for k in respforms.keys() if isinstance(k, int)]
+        return [respforms[k] for k in sorted(idxkeys)]
 
     def _getAllControls(self, label, name, forms, include_subcontrols=False):
         onlyOne([label, name], '"label" and "name"')
