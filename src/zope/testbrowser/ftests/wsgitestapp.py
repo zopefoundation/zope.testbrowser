@@ -35,7 +35,6 @@ class WSGITestApplication(object):
                    '/echo.html': echo,
                    '/redirect.html': redirect,
                    '/@@/testbrowser/forms.html': forms,
-                   '/echo_one.html': echo_one,
                    '/set_header.html': set_header,
                    '/set_cookie.html': set_cookie,
                    '/get_cookie.html': get_cookie,
@@ -44,6 +43,8 @@ class WSGITestApplication(object):
                    '/inner/path/set_cookie.html': set_cookie,
                    '/inner/path/get_cookie.html': get_cookie,
                    }.get(req.path_info)
+        if handler is None and req.path_info.endswith('/echo_one.html'):
+            handler = echo_one
         if handler is None and req.path_info.startswith('/@@/testbrowser/'):
             handler = handle_resource
         if handler is None:

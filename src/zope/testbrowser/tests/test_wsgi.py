@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2011 Zope Foundation and Contributors.
@@ -17,7 +18,7 @@ import unittest
 import zope.testbrowser.wsgi
 from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
 from zope.testbrowser.testing import demo_app
-from zope.testbrowser._compat import urlencode
+from zope.testbrowser._compat import urlencode, url_quote
 
 
 class SimpleLayer(zope.testbrowser.wsgi.Layer):
@@ -94,6 +95,14 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(browser.contents, 'True')
         browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
         self.assertEqual(browser.contents, 'False')
+
+    def test_non_ascii_urls(self):
+        teststr = u'~ひらがな'
+        url = "http://localhost/%s/echo_one.html?var=PATH_INFO" % url_quote(teststr.encode('utf-8'))
+        app = WSGITestApplication()
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+        browser.handleErrors = False
+        browser.open(url)
 
     def test_binary_content_type(self):
         # regression during webtest porting
