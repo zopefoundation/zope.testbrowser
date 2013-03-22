@@ -37,8 +37,11 @@ class TestApp(object):
         self.next_response_reason = reason
 
     def __call__(self, environ, start_response):
-        print("%s %s HTTP/1.1" % (environ['REQUEST_METHOD'],
-                                  environ['PATH_INFO']))
+        qs = environ.get('QUERY_STRING')
+        print("%s %s%s HTTP/1.1" % (environ['REQUEST_METHOD'],
+                                    environ['PATH_INFO'],
+                                    '?'+qs if qs else ""
+                                    ))
         # print all the headers
         for ek, ev in sorted(environ.items()):
             if ek.startswith('HTTP_'):
@@ -414,6 +417,30 @@ def test_relative_open():
     GET /bar HTTP/1.1
     ...
 
+    """
+def test_submit_button():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <button name='clickable' value='test' type='submit'>
+    ...         Click Me</button>
+    ...     </form>
+    ...     <a href="foo">link</a>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+
+    >>> browser.getControl('Click Me')
+    <SubmitControl name='clickable' type='submit'>
+
+    >>> browser.getControl('Click Me').click()
+    GET /action?clickable=test HTTP/1.1
+    ...
     """
 
 def test_suite():

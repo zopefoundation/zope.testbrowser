@@ -728,6 +728,8 @@ class SubmitControl(Control):
     def labels(self):
         labels = super(SubmitControl, self).labels
         labels.append(self._control.value_if_submitted())
+        if self._elem.text:
+            labels.append(normalizeWhitespace(self._elem.text))
         return [l for l in labels if l]
 
     def mechRepr(self):
