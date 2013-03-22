@@ -158,7 +158,7 @@ class Browser(SetattrErrorsMixin):
     @property
     def isHtml(self):
         """See zope.testbrowser.interfaces.IBrowser"""
-        return 'html' in self._response.content_type
+        return self._response and 'html' in self._response.content_type
 
     @property
     def lastRequestPystones(self):
@@ -236,7 +236,7 @@ class Browser(SetattrErrorsMixin):
 
     def open(self, url, data=None):
         """See zope.testbrowser.interfaces.IBrowser"""
-        url = str(url)
+        url = self._absoluteUrl(url)
         if data is not None:
             make_request = lambda args:  self.testapp.post(url, data, **args)
         else:
@@ -480,6 +480,13 @@ class Browser(SetattrErrorsMixin):
         self.timer.stop()
 
     def _absoluteUrl(self, url):
+        absolute = url.startswith('http://') or url.startswith('https://')
+        if absolute:
+            return url
+
+        if not self.isHtml:
+            raise BrowserStateError("can't fetch relative reference: not viewing any document")
+
         return str(urlparse.urljoin(self._getBaseUrl(), url))
 
     def toStr(self, s):

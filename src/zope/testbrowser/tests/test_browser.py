@@ -348,6 +348,36 @@ def test_relative_link():
     'http://localhost/base?key=value'
     """
 
+def test_relative_open():
+    """
+    Browser is capable of opening relative urls as well as relative links
+
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...     <a href="foo">link</a>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('bar') # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    BrowserStateError: can't fetch relative reference: not viewing any document
+
+    >>> browser.open('http://localhost/hello/foo') # doctest: +ELLIPSIS
+    GET /hello/foo HTTP/1.1
+    ...
+
+    >>> browser.open('bar') # doctest: +ELLIPSIS
+    GET /hello/bar HTTP/1.1
+    ...
+
+    >>> browser.open('/bar') # doctest: +ELLIPSIS
+    GET /bar HTTP/1.1
+    ...
+
+    """
 
 def test_suite():
     return doctest.DocTestSuite(
