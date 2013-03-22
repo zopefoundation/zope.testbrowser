@@ -31,6 +31,14 @@ SIMPLE_LAYER = SimpleLayer()
 
 class TestBrowser(unittest.TestCase):
 
+    def test_redirect_and_raiseHttpErrors(self):
+        app = WSGITestApplication()
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+        browser.raiseHttpErrors = False
+        browser.open('http://localhost/redirect.html?to=/not_found.html')
+        self.assertEqual(browser.headers['status'], '404 Not Found')
+        self.assertEqual(browser.url, 'http://localhost/not_found.html')
+
     def test_redirect(self):
         app = WSGITestApplication()
         browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
