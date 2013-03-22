@@ -29,13 +29,16 @@ _HERE = os.path.dirname(__file__)
 
 class WSGITestApplication(object):
 
-    def __init__(self):
+    def __init__(self, handler=None):
         self.request_log = []
+        self.handler = handler
 
     def __call__(self, environ, start_response):
         req = Request(environ)
         self.request_log.append(req)
-        handler = {'/set_status.html': set_status,
+        handler = self.handler
+        if handler is None:
+            handler = {'/set_status.html': set_status,
                    '/echo.html': echo,
                    '/echo_one.html': echo_one,
                    '/redirect.html': redirect,
