@@ -81,7 +81,7 @@ class TestbrowserApp(webtest.TestApp):
         self._assertAllowed(req.url)
 
         response = super(TestbrowserApp, self).do_request(req, status,
-                                                             expect_errors)
+                                                          expect_errors)
         # Store _last_fragment in response to preserve fragment for history
         # (goBack() will not lose fragment).
         response._last_fragment = self._last_fragment
@@ -265,7 +265,7 @@ class Browser(SetattrErrorsMixin):
         with self._preparedRequest(url) as reqargs:
             self._history.add(self._response)
             resp = make_request(reqargs)
-            resp = resp.maybe_follow()
+            resp = resp.maybe_follow(expect_errors=True)
             self._setResponse(resp)
             self._checkStatus()
 
