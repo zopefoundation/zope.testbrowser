@@ -29,10 +29,15 @@ _HERE = os.path.dirname(__file__)
 
 class WSGITestApplication(object):
 
+    def __init__(self):
+        self.request_log = []
+
     def __call__(self, environ, start_response):
         req = Request(environ)
+        self.request_log.append(req)
         handler = {'/set_status.html': set_status,
                    '/echo.html': echo,
+                   '/echo_one.html': echo_one,
                    '/redirect.html': redirect,
                    '/@@/testbrowser/forms.html': forms,
                    '/set_header.html': set_header,
@@ -43,8 +48,6 @@ class WSGITestApplication(object):
                    '/inner/path/set_cookie.html': set_cookie,
                    '/inner/path/get_cookie.html': get_cookie,
                    }.get(req.path_info)
-        if handler is None and req.path_info.endswith('/echo_one.html'):
-            handler = echo_one
         if handler is None and req.path_info.startswith('/@@/testbrowser/'):
             handler = handle_resource
         if handler is None:

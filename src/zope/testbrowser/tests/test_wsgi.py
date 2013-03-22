@@ -98,11 +98,14 @@ class TestBrowser(unittest.TestCase):
 
     def test_non_ascii_urls(self):
         teststr = u'~ひらがな'
-        url = "http://localhost/%s/echo_one.html?var=PATH_INFO" % url_quote(teststr.encode('utf-8'))
+        url = "http://localhost/%s" % url_quote(teststr.encode('utf-8'))
         app = WSGITestApplication()
         browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
-        browser.handleErrors = False
+        browser.raiseHttpErrors = False
         browser.open(url)
+        req = app.request_log[0]
+        self.assertEqual(req.url, url)
+        self.assertEqual(req.path_info, u'/' + teststr)
 
     def test_binary_content_type(self):
         # regression during webtest porting
