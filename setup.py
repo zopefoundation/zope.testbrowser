@@ -29,7 +29,7 @@ tests_require = ['zope.testing']
 
 setup(
     name='zope.testbrowser',
-    version='4.0.3dev',
+    version='4.1.0dev',
     url='http://pypi.python.org/pypi/zope.testbrowser',
     license='ZPL 2.1',
     description='Programmable browser for functional black-box tests',
@@ -65,10 +65,7 @@ setup(
     extras_require={
         'test': tests_require,
         'test_bbb': [
-            'zope.testbrowser [test,zope-functional-testing]',
-            ],
-        'zope-functional-testing': [
-            'zope.app.testing >= 3.9.0dev',
+            'zope.testbrowser [test]',
             ],
         'wsgi': [
                  # BBB

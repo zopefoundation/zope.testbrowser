@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-4.0.3 (unreleased)
+4.1.0 (unreleased)
 ------------------
 
 - Internal implementation now uses webtest instead of mechanize. Mechanize
@@ -25,6 +25,8 @@ CHANGES
 - Removed support for Python-2.5
 
 - Added support for Python-3.3
+
+- Removed dependency on deprecated zope.app.testing
 
 
 
