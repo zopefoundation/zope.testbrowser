@@ -427,6 +427,8 @@ def test_submit_button():
     ...     <form method='get' action='action'>
     ...         <button name='clickable' value='test' type='submit'>
     ...         Click Me</button>
+    ...         <button name='simple' value='value'>
+    ...         Don't Click</button>
     ...     </form>
     ...     <a href="foo">link</a>
     ... </body></html>
