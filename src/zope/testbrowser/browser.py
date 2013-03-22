@@ -482,7 +482,7 @@ class Browser(SetattrErrorsMixin):
     def _absoluteUrl(self, url):
         absolute = url.startswith('http://') or url.startswith('https://')
         if absolute:
-            return url
+            return str(url)
 
         if not self.isHtml:
             raise BrowserStateError("can't fetch relative reference: not viewing any document")
