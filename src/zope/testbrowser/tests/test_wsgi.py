@@ -123,19 +123,6 @@ class TestBrowser(unittest.TestCase):
         browser.open('http://localhost/@@/testbrowser/zope3logo.gif')
         self.assertEqual(browser.headers['content-type'], 'image/gif')
 
-    def test_json_content_type(self):
-        # regression during webtest porting
-        from webob import Response
-        some_json = '["a", "json", "list"]'
-        def handler(req):
-            return Response(some_json, content_type='application/json')
-        app = WSGITestApplication(handler=handler)
-        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
-        browser.open('http://localhost/whatever')
-        self.assertEqual(browser.headers['content-type'], 'application/json')
-        self.assertEqual(browser.cotnents, some_json)
-
-
 class TestWSGILayer(unittest.TestCase):
 
     def setUp(self):
