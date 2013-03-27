@@ -78,11 +78,12 @@ def test_relative_redirect(self):
     >>> app = YetAnotherTestApp()
     >>> browser = Browser(wsgi_app=app)
     >>> body = b'redirecting'
-    >>> headers = [('Content-Type', 'text/html'),
+    >>> content_type = ('Content-Type', 'text/html; charset=UTF-8')
+    >>> headers = [content_type,
     ...            ('Location', 'foundit'),
     ...            ('Content-Length', str(len(body)))]
     >>> app.add_response(body, headers=headers, status=302, reason='Found')
-    >>> app.add_response(b'found_it')
+    >>> app.add_response(b'found_it', headers=[content_type])
     >>> browser.open('https://localhost/foo/bar')
     >>> browser.contents
     'found_it'
