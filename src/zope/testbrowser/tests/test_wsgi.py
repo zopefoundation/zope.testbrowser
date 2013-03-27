@@ -101,6 +101,8 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(browser.contents, 'None')
         browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
         self.assertEqual(browser.contents, 'None')
+        browser.open('http://localhost/echo_one.html?var=HTTP_X_ZOPE_HANDLE_ERRORS')
+        self.assertEqual(browser.contents, "'True'")
         browser.handleErrors = False
         browser.open('http://localhost/echo_one.html?var=x-wsgiorg.throw_errors')
         self.assertEqual(browser.contents, 'True')
@@ -108,6 +110,8 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(browser.contents, 'True')
         browser.open('http://localhost/echo_one.html?var=wsgi.handleErrors')
         self.assertEqual(browser.contents, 'False')
+        browser.open('http://localhost/echo_one.html?var=HTTP_X_ZOPE_HANDLE_ERRORS')
+        self.assertEqual(browser.contents, 'None')
 
     def test_non_ascii_urls(self):
         teststr = u'~ひらがな'
@@ -173,10 +177,13 @@ class TestAuthorizationMiddleware(unittest.TestCase):
         self.unwrapped_browser.open(url)
         self.assertTrue('x-powered-by' in self.unwrapped_browser.headers)
         self.assertTrue('x-content-type-warning' in self.unwrapped_browser.headers)
-    
+
     def test_authorization(self):
         # Basic authorization headers are encoded in base64
         self.browser.addHeader('Authorization', 'Basic mgr:mgrpw')
+        self.browser.open('http://localhost/echo_one.html?var=HTTP_AUTHORIZATION')
+        self.assertEqual(self.browser.contents, repr('Basic bWdyOm1ncnB3'))
+        # this header persists over multiple requests
         self.browser.open('http://localhost/echo_one.html?var=HTTP_AUTHORIZATION')
         self.assertEqual(self.browser.contents, repr('Basic bWdyOm1ncnB3'))
 

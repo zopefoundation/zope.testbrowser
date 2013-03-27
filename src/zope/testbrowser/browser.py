@@ -446,7 +446,6 @@ class Browser(SetattrErrorsMixin):
     def _changed(self):
         self._counter += 1
         self._contents = None
-        self._req_headers = {}
         self._controls = {}
         self.__html = None
 
@@ -469,6 +468,7 @@ class Browser(SetattrErrorsMixin):
             extra_environ['wsgi.handleErrors'] = False
             extra_environ['paste.throw_errors'] = True
             extra_environ['x-wsgiorg.throw_errors'] = True
+            self._req_headers.pop('X-zope-handle-errors', None)
 
         kwargs = {'headers': sorted(self._req_headers.items()),
                   'extra_environ': extra_environ,
