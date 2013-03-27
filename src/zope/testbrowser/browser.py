@@ -58,7 +58,7 @@ class TestbrowserApp(webtest.TestApp):
         parsed = urlparse.urlparse(url)
         if self.restricted:
             # We are in restricted mode, check host part only
-            host = parsed.netloc
+            host = parsed.netloc.partition(':')[0]
             if host in _allowed:
                 return
             for dom in _allowed_2nd_level:

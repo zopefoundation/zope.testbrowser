@@ -75,6 +75,11 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(browser.contents.startswith('Hello world!\n'))
         browser.open('http://127.0.0.1')
         self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        # even if they include port numbers
+        browser.open('http://localhost:8080')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        browser.open('http://127.0.0.1:8080')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
         # as are example ones
         browser.open('http://example.com')
         self.assertTrue(browser.contents.startswith('Hello world!\n'))
