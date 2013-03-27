@@ -238,7 +238,7 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         url = self._absoluteUrl(url)
         if data is not None:
-            make_request = lambda args:  self.testapp.post(url, data, **args)
+            make_request = lambda args: self.testapp.post(url, data, **args)
         else:
             make_request = lambda args: self.testapp.get(url, **args)
 
@@ -265,7 +265,13 @@ class Browser(SetattrErrorsMixin):
         with self._preparedRequest(url) as reqargs:
             self._history.add(self._response)
             resp = make_request(reqargs)
-            resp = resp.maybe_follow(expect_errors=True)
+            remaining_redirects = 100 # infinite loops protection
+            while 300 <= resp.status_int < 400 and remaining_redirects:
+                remaining_redirects -= 1
+                url = urlparse.urljoin(url, resp.headers['location'])
+                with self._preparedRequest(url) as reqargs:
+                    resp = self.testapp.get(url, **reqargs)
+            assert remaining_redirects > 0, "redirects chain looks infinite"
             self._setResponse(resp)
             self._checkStatus()
 

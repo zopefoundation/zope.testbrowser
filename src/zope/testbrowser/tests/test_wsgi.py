@@ -187,6 +187,11 @@ class TestAuthorizationMiddleware(unittest.TestCase):
         self.browser.open('http://localhost/echo_one.html?var=HTTP_AUTHORIZATION')
         self.assertEqual(self.browser.contents, repr('Basic bWdyOm1ncnB3'))
 
+    def test_authorization_persists_over_redirects(self):
+        self.browser.addHeader('Authorization', 'Basic mgr:mgrpw')
+        self.browser.open('http://localhost/redirect.html?to=echo_one.html%3fvar%3dHTTP_AUTHORIZATION')
+        self.assertEqual(self.browser.contents, repr('Basic bWdyOm1ncnB3'))
+
     def test_authorization_other(self):
         # Non-Basic authorization headers are unmolested
         self.browser.addHeader('Authorization', 'Digest foobar')
