@@ -781,7 +781,10 @@ class ListControl(Control):
         if val is None:
             return []
 
-        return [self.browser.toStr(v) for v in val]
+        if self.multiple and isinstance(val, (list, tuple)):
+            return [self.browser.toStr(v) for v in val]
+        else:
+            return [self.browser.toStr(val)]
 
     @value.setter
     def value(self, value):
@@ -888,6 +891,7 @@ class CheckboxListControl(SetattrErrorsMixin):
     def __init__(self, name, ctrlelems, browser):
         self.name = name
         self.browser = browser
+        self._browser_counter = self.browser._counter
         self._ctrlelems = ctrlelems
         self._enable_setattr_errors = True
 
@@ -999,26 +1003,43 @@ class ItemControl(SetattrErrorsMixin):
         return self._parent
 
     @property
+    def _value(self):
+        return self._elem.attrs.get('value', self._elem.text)
+
+    @property
     def disabled(self):
         return 'disabled' in self._elem.attrs
 
     @property
     def selected(self):
         """See zope.testbrowser.interfaces.IControl"""
-        return self._elem.attrs.get('value') in self._parent.value
+        return self._value in self._parent.value
 
     @selected.setter
     def selected(self, value):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        if value:
-            self._parent.value = self._elem.attrs.get('value')
+        if self._parent.multiple:
+            values = list(self._parent.value)
+            if value:
+                values.append(self._value)
+            else:
+                values = [v for v in values if v != self._value]
+            self._parent.value = values
         else:
-            self._parent.value = None
+            if value:
+                self._parent.value = self._value
+            else:
+                self._parent.value = None
 
     @property
     def optionValue(self):
-        return self.browser.toStr(self._elem.attrs.get('value'))
+        return self.browser.toStr(self._value)
+
+    @property
+    def value(self):
+        # internal alias for convenience implementing getControl()
+        return self.optionValue
 
     def click(self):
         if self._browser_counter != self.browser._counter:
@@ -1031,7 +1052,6 @@ class ItemControl(SetattrErrorsMixin):
 
     @Lazy
     def labels(self):
-        lbl = self._elem.attrs.get('label', self._elem.text)
         labels = [self._elem.attrs.get('label'), self._elem.text]
         return [self.browser.toStr(normalizeWhitespace(lbl))
                 for lbl in labels if lbl]
@@ -1040,8 +1060,8 @@ class ItemControl(SetattrErrorsMixin):
         contents = normalizeWhitespace(self._elem.text)
         id = self._elem.attrs.get('id')
         label = self._elem.attrs.get('label', contents)
-        value = self._elem.attrs.get('value')
-        name = self._elem.attrs.get('name', value)
+        value = self._value
+        name = self._elem.attrs.get('name', value) # XXX wha????
         return "<Item name='%s' id=%s contents='%s' value='%s' label='%s'>" % \
                 (name, id, contents, value, label)
 

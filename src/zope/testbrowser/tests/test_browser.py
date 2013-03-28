@@ -21,6 +21,7 @@ import doctest
 from zope.testbrowser.browser import Browser
 import zope.testbrowser.tests.helper
 
+
 class TestApp(object):
     next_response_body = None
     next_response_headers = None
@@ -29,7 +30,7 @@ class TestApp(object):
 
     def set_next_response(self, body, headers=None, status='200', reason='OK'):
         if headers is None:
-            headers = [('Content-Type', 'text/html'),
+            headers = [('Content-Type', 'text/html; charset="UTF-8"'),
                        ('Content-Length', str(len(body)))]
         self.next_response_body = body
         self.next_response_headers = headers
@@ -53,6 +54,7 @@ class TestApp(object):
         start_response(status, self.next_response_headers)
         return [self.next_response_body]
 
+
 class YetAnotherTestApp(object):
 
     def __init__(self):
@@ -73,6 +75,7 @@ class YetAnotherTestApp(object):
         start_response(status, next_response['headers'])
         return [next_response['body']]
 
+
 def test_relative_redirect(self):
     """
     >>> app = YetAnotherTestApp()
@@ -90,6 +93,7 @@ def test_relative_redirect(self):
     >>> browser.url
     'https://localhost/foo/foundit'
     """
+
 
 def test_button_without_name(self):
     """
@@ -112,6 +116,7 @@ def test_button_without_name(self):
     LookupError: ...
     ...
     """
+
 
 def test_submit_duplicate_name():
     """
@@ -175,7 +180,7 @@ def test_submit_duplicate_name():
     <BLANKLINE>
      BAD
     ...
-"""
+    """
 
 
 def test_file_upload():
@@ -252,7 +257,7 @@ def test_submit_gets_referrer():
     ...
     Referer: http://localhost/
     ...
-"""
+    """
 
 
 def test_new_instance_no_contents_should_not_fail(self):
@@ -389,6 +394,7 @@ def test_relative_link():
     'http://localhost/base?key=value'
     """
 
+
 def test_relative_open():
     """
     Browser is capable of opening relative urls as well as relative links
@@ -419,6 +425,8 @@ def test_relative_open():
     ...
 
     """
+
+
 def test_submit_button():
     """
     >>> app = TestApp()
@@ -445,6 +453,7 @@ def test_submit_button():
     GET /action?clickable=test HTTP/1.1
     ...
     """
+
 
 def test_repeated_button():
     """
@@ -478,6 +487,159 @@ def test_repeated_button():
     >>> browser.getControl('Button', index=2)
     <SubmitControl name='one' type='submit'>
     """
+
+
+def test_subcontrols_can_be_selected_by_value():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <input id="foo1" type='checkbox' name='foo' value="1">
+    ...         <label for="foo1">One</label>
+    ...         <input id="foo2" type='checkbox' name='foo' value="2">
+    ...         <label for="foo2">Two</label>
+    ...         <input id="foo3" type='checkbox' name='foo' value="3">
+    ...         <label for="foo3">Three</label>
+    ...         <br>
+    ...         <input id="bar1" type='radio' name='bar' value="1">
+    ...         <label for="bar1">First</label>
+    ...         <input id="bar2" type='radio' name='bar' value="2">
+    ...         <label for="bar2">Second</label>
+    ...         <input id="bar3" type='radio' name='bar' value="3">
+    ...         <label for="bar3">Third</label>
+    ...         <br>
+    ...         <select name="baz">
+    ...             <option value="1">uno</option>
+    ...             <option value="2">duos</option>
+    ...             <option>tres</option>
+    ...         </select>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+
+    >>> checkboxes = browser.getControl(name='foo')
+    >>> checkboxes
+    <ListControl name='foo' type='checkbox'>
+    >>> checkboxes.getControl('One')
+    <ItemControl name='foo' type='checkbox' optionValue='1' selected=False>
+    >>> checkboxes.getControl(value='1')
+    <ItemControl name='foo' type='checkbox' optionValue='1' selected=False>
+
+    >>> radiobuttons = browser.getControl(name='bar')
+    >>> radiobuttons
+    <ListControl name='bar' type='radio'>
+    >>> radiobuttons.getControl('First')
+    <ItemControl name='bar' type='radio' optionValue='1' selected=False>
+    >>> radiobuttons.getControl(value='1')
+    <ItemControl name='bar' type='radio' optionValue='1' selected=False>
+
+    >>> listcontrol = browser.getControl(name='baz')
+    >>> listcontrol
+    <ListControl name='baz' type='select'>
+    >>> listcontrol.getControl('uno')
+    <ItemControl name='baz' type='select' optionValue='1' selected=True>
+    >>> listcontrol.getControl(value='1')
+    <ItemControl name='baz' type='select' optionValue='1' selected=True>
+
+    >>> listcontrol.getControl('tres')
+    <ItemControl name='baz' type='select' optionValue='tres' selected=False>
+    >>> listcontrol.getControl(value='tres')
+    <ItemControl name='baz' type='select' optionValue='tres' selected=False>
+
+    """
+
+
+def test_option_without_explicit_value():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <select name="baz">
+    ...             <option value="1">uno</option>
+    ...             <option value="2">duos</option>
+    ...             <option>tres</option>
+    ...         </select>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+    >>> listcontrol = browser.getControl(name='baz')
+    >>> listcontrol
+    <ListControl name='baz' type='select'>
+    >>> listcontrol.getControl('uno')
+    <ItemControl name='baz' type='select' optionValue='1' selected=True>
+    >>> listcontrol.getControl(value='1')
+    <ItemControl name='baz' type='select' optionValue='1' selected=True>
+
+    >>> listcontrol.getControl('uno').selected = True
+    >>> listcontrol.value
+    ['1']
+    >>> listcontrol.displayValue
+    ['uno']
+
+    >>> listcontrol.getControl(value='2').selected = True
+    >>> listcontrol.value
+    ['2']
+    >>> listcontrol.displayValue
+    ['duos']
+
+    >>> listcontrol.getControl('tres').selected = True
+    >>> listcontrol.value
+    ['tres']
+    >>> listcontrol.displayValue
+    ['tres']
+
+    """
+
+
+def test_multiselect_option_without_explicit_value():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <select name="baz" multiple>
+    ...             <option>uno</option>
+    ...             <option selected value="2">duos</option>
+    ...             <option selected>tres</option>
+    ...         </select>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+    >>> listcontrol = browser.getControl(name='baz')
+    >>> listcontrol
+    <ListControl name='baz' type='select'>
+    >>> listcontrol.getControl('uno')
+    <ItemControl name='baz' type='select' optionValue='uno' selected=False>
+    >>> listcontrol.getControl('duos')
+    <ItemControl name='baz' type='select' optionValue='2' selected=True>
+    >>> listcontrol.getControl('tres')
+    <ItemControl name='baz' type='select' optionValue='tres' selected=True>
+
+    >>> listcontrol.value
+    ['2', 'tres']
+
+    >>> listcontrol.getControl(value='uno').selected = True
+    >>> listcontrol.value
+    ['uno', '2', 'tres']
+    >>> listcontrol.displayValue
+    ['uno', 'duos', 'tres']
+
+    """
+
 
 def test_suite():
     return doctest.DocTestSuite(
