@@ -446,6 +446,39 @@ def test_submit_button():
     ...
     """
 
+def test_repeated_button():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <input name='one' value='Button' type='submit'>
+    ...         <input name='two' value='Button' type='submit'>
+    ...         <input name='one' value='Button' type='submit'>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+
+    >>> browser.getControl('Button')
+    Traceback (most recent call last):
+      ...
+    AmbiguityError: label 'Button' matches:
+      <SubmitControl(one=Button)>
+      <SubmitControl(two=Button)>
+      <SubmitControl(one=Button)>
+
+    >>> browser.getControl('Button', index=0)
+    <SubmitControl name='one' type='submit'>
+    >>> browser.getControl('Button', index=1)
+    <SubmitControl name='two' type='submit'>
+    >>> browser.getControl('Button', index=2)
+    <SubmitControl name='one' type='submit'>
+    """
+
 def test_suite():
     return doctest.DocTestSuite(
         checker=zope.testbrowser.tests.helper.checker,
