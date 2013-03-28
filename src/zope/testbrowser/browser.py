@@ -432,8 +432,18 @@ class Browser(SetattrErrorsMixin):
             if f not in self._controls:
                 fc = []
                 allelems = self._indexControls(f)
-
-                for cname, wtcontrols in f.fields.items():
+                already_processed = set()
+                for cname, wtcontrol in f.field_order:
+                    # we need to group checkboxes by name, but leave
+                    # the other controls in the original order,
+                    # even if the name repeats
+                    if isinstance(wtcontrol, webtest.forms.Checkbox):
+                        if cname in already_processed:
+                            continue
+                        already_processed.add(cname)
+                        wtcontrols = f.fields[cname]
+                    else:
+                        wtcontrols = [wtcontrol]
                     for c in controlFactory(cname, wtcontrols, allelems, self):
                         fc.append((c, False))
 
@@ -739,7 +749,13 @@ class SubmitControl(Control):
         return [l for l in labels if l]
 
     def mechRepr(self):
-        return "SubmitControl???"  # TODO
+        name = self.name if self.name is not None else "<None>"
+        value = self.value if self.value is not None else "<None>"
+        extra = ' (disabled)' if self.disabled else ''
+        # Mechanize explicitly told us submit controls were readonly, as
+        # if they could be any other way.... *sigh*  Let's take this
+        # opportunity and strip that off.
+        return "<SubmitControl(%s=%s)%s>" % (name, value, extra)
 
 @implementer(interfaces.IListControl)
 class ListControl(Control):
