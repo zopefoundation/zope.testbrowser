@@ -900,7 +900,6 @@ class CheckboxListControl(SetattrErrorsMixin):
     def displayOptions(self):
         return [c.labels[0] for c in self.controls]
 
-
     @property
     def value(self):
         ctrls = self.controls
@@ -1252,19 +1251,19 @@ def getControl(controls, label=None, value=None, index=None):
 
 
 def getControlLabels(celem, html):
-        labels = []
+    labels = []
 
-        # In case celem is contained in label element, use its text as a label
-        if celem.parent.name == 'label':
-            labels.append(normalizeWhitespace(celem.parent.text))
+    # In case celem is contained in label element, use its text as a label
+    if celem.parent.name == 'label':
+        labels.append(normalizeWhitespace(celem.parent.text))
 
-        # find all labels, connected by 'for' attribute
-        controlid = celem.attrs.get('id')
-        if controlid:
-            forlbls = html.select('label[for=%s]' % controlid)
-            labels.extend([normalizeWhitespace(l.text) for l in forlbls])
+    # find all labels, connected by 'for' attribute
+    controlid = celem.attrs.get('id')
+    if controlid:
+        forlbls = html.select('label[for=%s]' % controlid)
+        labels.extend([normalizeWhitespace(l.text) for l in forlbls])
 
-        return [l for l in labels if l is not None]
+    return [l for l in labels if l is not None]
 
 def normalizeWhitespace(string):
     return ' '.join(string.split())
