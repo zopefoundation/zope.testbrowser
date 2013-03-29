@@ -111,6 +111,58 @@ def test_relative_open_allowed_after_non_html_page(self):
     'https://localhost/baz'
     """
 
+def test_reload_after_post():
+    """
+    If we reload page just after submitting the form, all form data should be
+    submitted again (just as real browsers do).
+
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+
+    First response is a form:
+
+    >>> html = (b'''\
+    ... <html><body>
+    ...   <form action="submit" method="post" enctype="multipart/form-data">
+    ...      <input type='text' name='name' value='Linus' />
+    ...      <button name="do" type="button">Do Stuff</button>
+    ...   </form></body></html>
+    ... ''')
+    >>> content_type = ('Content-Type', 'text/html; charset=UTF-8')
+    >>> app.set_next_response(html, headers=[content_type])
+
+    >>> browser.open('https://localhost/foo/bar')
+    GET /foo/bar HTTP/1.1
+    ...
+
+    After submit, show result page
+    >>> app.set_next_response(b'OK', headers=[content_type])
+
+    Form data is there in POST request
+    >>> browser.getControl(name="do").click()
+    POST /foo/submit HTTP/1.1
+    ...
+    Content-Disposition: form-data; name="name"
+    <BLANKLINE>
+    Linus
+    ...
+
+    >>> browser.contents
+    'OK'
+
+    >>> browser.url
+    'https://localhost/foo/submit'
+
+    POST data is still there after reload
+    >>> browser.reload()
+    POST /foo/submit HTTP/1.1
+    ...
+    Content-Disposition: form-data; name="name"
+    <BLANKLINE>
+    Linus
+    ...
+
+    """
 
 def test_button_without_name(self):
     """
