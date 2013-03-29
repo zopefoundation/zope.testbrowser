@@ -243,6 +243,19 @@ def test_file_upload():
     <BLANKLINE>
     blah blah blah
     ...
+
+    You can assign a value
+
+    >>> browser.getControl(name='foo').value = b'bluh bluh'
+    >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
+    POST / HTTP/1.1
+    ...
+    Content-disposition: form-data; name="foo"; filename=""
+    Content-type: application/octet-stream
+    <BLANKLINE>
+    bluh bluh
+    ...
+
     """
 
 

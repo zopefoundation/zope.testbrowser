@@ -671,8 +671,7 @@ class Control(SetattrErrorsMixin):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
         if self.type == 'file':
-            self.add_file(value, content_type=self.content_type,
-                          filename=self.filename)
+            self.add_file(value, content_type=None, filename=None)
         else:
             self._control.value = value
 
@@ -690,7 +689,7 @@ class Control(SetattrErrorsMixin):
         # upload file and doesn't let to set it explicitly, so we are ignoring
         # content_type parameter here. If it is still unacceptable, consider
         # using mock.object to force mimetypes to return "right" type.
-        self._form[self.name] = webtest.forms.Upload(filename, contents)
+        self._form[self.name] = webtest.forms.Upload(filename or '', contents)
 
     def clear(self):
         if self._browser_counter != self.browser._counter:
