@@ -74,7 +74,7 @@ class YetAnotherTestApp(object):
         self.requests.append(environ)
         next_response = self.responses.pop(0)
         self.last_environ = environ
-        self.last_input = environ['wsgi.input'].input.getvalue()
+        self.last_input = environ['wsgi.input'].input.getvalue().decode('utf-8')
         status = '%s %s' % (next_response['status'], next_response['reason'])
         start_response(status, next_response['headers'])
         return [next_response['body']]
@@ -151,8 +151,8 @@ def test_reload_after_redirect():
     'Processed'
     >>> app.last_environ['REQUEST_METHOD']
     'GET'
-    >>> app.last_input
-    ''
+    >>> print(app.last_input)
+    <BLANKLINE>
 
     After reload, expect no form data to be submitted
     >>> browser.reload()
@@ -162,8 +162,8 @@ def test_reload_after_redirect():
     'Reloaded'
     >>> app.last_environ['REQUEST_METHOD']
     'GET'
-    >>> app.last_input
-    ''
+    >>> print(app.last_input)
+    <BLANKLINE>
     """
 
 def test_reload_after_post():
