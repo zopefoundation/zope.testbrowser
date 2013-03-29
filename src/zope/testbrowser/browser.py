@@ -1260,7 +1260,8 @@ def getControl(controls, label=None, value=None, index=None):
     onlyOne([label, value], '"label" and "value"')
 
     if label is not None:
-        options = [c for c in controls if label in c.labels]
+        options = [c for c in controls
+                   if any(isMatching(l, label) for l in c.labels)]
         msg = 'label %r' % label
     elif value is not None:
         options = [c for c in controls if isMatching(c.value, value)]

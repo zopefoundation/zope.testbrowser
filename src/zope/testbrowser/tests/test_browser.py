@@ -641,6 +641,30 @@ def test_multiselect_option_without_explicit_value():
     """
 
 
+def test_subcontrols_can_be_selected_by_label_substring():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <select name="foo">
+    ...             <option>one/two</option>
+    ...             <option>three</option>
+    ...         </select>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+    >>> listcontrol = browser.getControl(name='foo')
+    >>> listcontrol.getControl('one')
+    <ItemControl name='foo' type='select' optionValue='one/two' selected=True>
+
+    """
+
+
 def test_suite():
     return doctest.DocTestSuite(
         checker=zope.testbrowser.tests.helper.checker,
