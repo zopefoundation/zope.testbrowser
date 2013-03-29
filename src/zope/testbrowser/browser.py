@@ -1266,7 +1266,8 @@ def getControl(controls, label=None, value=None, index=None):
         options = [c for c in controls if isMatching(c.value, value)]
         msg = 'value %r' % value
 
-    res = disambiguate(options, msg, index, controlFormTupleRepr)
+    res = disambiguate(options, msg, index, controlFormTupleRepr,
+                       available=controls)
     return res
 
 
