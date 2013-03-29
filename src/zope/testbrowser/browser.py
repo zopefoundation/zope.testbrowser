@@ -500,7 +500,7 @@ class Browser(SetattrErrorsMixin):
         if absolute:
             return str(url)
 
-        if not self.isHtml:
+        if self._response is None:
             raise BrowserStateError("can't fetch relative reference: not viewing any document")
 
         return str(urlparse.urljoin(self._getBaseUrl(), url))

@@ -95,6 +95,23 @@ def test_relative_redirect(self):
     """
 
 
+def test_relative_open_allowed_after_non_html_page(self):
+    """
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> content_type = ('Content-Type', 'text/csv')
+    >>> app.add_response(b'have,some,csv', headers=[content_type])
+    >>> content_type = ('Content-Type', 'text/html')
+    >>> app.add_response(b'have some html', headers=[content_type])
+    >>> browser.open('https://localhost/foo/bar')
+    >>> browser.open('/baz')
+    >>> browser.contents
+    b'have some html'
+    >>> browser.url
+    'https://localhost/baz'
+    """
+
+
 def test_button_without_name(self):
     """
     This once blew up.
