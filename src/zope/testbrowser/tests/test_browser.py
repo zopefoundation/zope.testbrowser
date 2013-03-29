@@ -60,6 +60,8 @@ class YetAnotherTestApp(object):
     def __init__(self):
         self.requests = []
         self.responses = []
+        self.last_environ = {}
+        self.last_input = None
 
     def add_response(self, body, headers=None, status='200', reason='OK'):
         if headers is None:
@@ -71,6 +73,8 @@ class YetAnotherTestApp(object):
     def __call__(self, environ, start_response):
         self.requests.append(environ)
         next_response = self.responses.pop(0)
+        self.last_environ = environ
+        self.last_input = environ['wsgi.input'].input.getvalue()
         status = '%s %s' % (next_response['status'], next_response['reason'])
         start_response(status, next_response['headers'])
         return [next_response['body']]
@@ -109,6 +113,57 @@ def test_relative_open_allowed_after_non_html_page(self):
     'have some html'
     >>> browser.url
     'https://localhost/baz'
+    """
+
+def test_reload_after_redirect():
+    """
+    When browser is redirected after form submit, reload() will not resubmit
+    oroginal form data.
+
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> html = (b'''\
+    ... <html><body>
+    ...   <form action="submit" method="post" enctype="multipart/form-data">
+    ...      <input type='text' name='name' value='Linus' />
+    ...      <button name="do" type="button">Do Stuff</button>
+    ...   </form></body></html>
+    ... ''')
+    >>> content_type = ('Content-Type', 'text/html; charset=UTF-8')
+    >>> app.add_response(html, headers=[content_type])
+
+    >>> redirect = ('Location', 'http://localhost/processed')
+    >>> app.add_response(b"Moved", headers=[redirect],
+    ...                  status=302, reason='Found')
+    >>> app.add_response(b"Processed", headers=[content_type])
+
+    >>> app.add_response(b"Reloaded", headers=[content_type])
+
+    Start conversation
+
+    >>> browser.open("http://localhost/form")
+    >>> browser.getControl(name="do").click()
+
+    We should have followed the redirect with GET request
+    >>> browser.url
+    'http://localhost/processed'
+    >>> browser.contents
+    'Processed'
+    >>> app.last_environ['REQUEST_METHOD']
+    'GET'
+    >>> app.last_input
+    ''
+
+    After reload, expect no form data to be submitted
+    >>> browser.reload()
+    >>> browser.url
+    'http://localhost/processed'
+    >>> browser.contents
+    'Reloaded'
+    >>> app.last_environ['REQUEST_METHOD']
+    'GET'
+    >>> app.last_input
+    ''
     """
 
 def test_reload_after_post():
