@@ -471,7 +471,6 @@ class Browser(SetattrErrorsMixin):
         if self.url:
             self._req_headers['Referer'] = self.url
 
-        self._req_headers['Accept-Language'] = 'en-US'
         self._req_headers['Connection'] = 'close'
         self._req_headers['Host'] = urlparse.urlparse(url).netloc
         self._req_headers['User-Agent'] = 'Python-urllib/2.4'

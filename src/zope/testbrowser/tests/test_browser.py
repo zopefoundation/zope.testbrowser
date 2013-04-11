@@ -115,6 +115,20 @@ def test_relative_open_allowed_after_non_html_page(self):
     'https://localhost/baz'
     """
 
+def test_accept_language_header_non_us():
+    """Regression test for Accept-Language header
+
+    Once was hardcoded to us-US!
+
+    >>> app = YetAnotherTestApp()
+    >>> app.add_response(b'mundo')
+    >>> browser = Browser(wsgi_app=app)
+    >>> browser.addHeader('Accept-Language', 'es-ES')
+    >>> browser.open("http://localhost/hello")
+    >>> app.last_environ['HTTP_ACCEPT_LANGUAGE']
+    'es-ES'
+    """
+
 def test_reload_after_redirect():
     """
     When browser is redirected after form submit, reload() will not resubmit
