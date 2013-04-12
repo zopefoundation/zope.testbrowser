@@ -815,6 +815,44 @@ def test_subcontrols_can_be_selected_by_label_substring():
 
     """
 
+UNICODE_TEST = u'\u4e2d\u6587\u7dad' # unicode in doctests is hard!
+
+def test_non_ascii_in_input_field(self):
+    """
+    Test non-ascii chars in form postings.
+
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> body = u'''\
+    ... <html><body>
+    ...   <form action="." method="post" enctype="multipart/form-data">
+    ...      <input name="text" type="text" value="{0}"/>
+    ...      <button name="do" type="button">Do Stuff</button>
+    ...   </form></body></html>
+    ... '''.format(UNICODE_TEST).encode('utf-8')
+    >>> headers = [('Content-Type', 'text/html; charset="UTF-8"'),
+    ...             ('Content-Length', str(len(body)))]
+    >>> app.add_response(body, headers=headers)
+    >>> app.add_response(body, headers=headers)
+
+    Getting a form with non-ascii form values should do something sane:
+
+    >>> browser.open('http://localhost/')
+    >>> non_ascii = browser.getControl(name='text').value
+    >>> from .. import _compat
+    >>> if _compat.PYTHON2:
+    ...     non_ascii = non_ascii.decode('utf-8')
+    >>> non_ascii == UNICODE_TEST
+    True
+
+    Posting a form with non-ascii values should give the server access to the
+    real data:
+
+    >>> browser.getControl("Do Stuff").click()
+    >>> UNICODE_TEST in app.last_input
+    True
+"""
+
 
 def test_suite():
     return doctest.DocTestSuite(
