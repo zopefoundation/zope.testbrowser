@@ -132,11 +132,9 @@ class Browser(SetattrErrorsMixin):
         self.handleErrors = True
 
         if wsgi_app is None:
-            self.testapp = TestbrowserApp(TransparentProxy(),
-                                          use_unicode=False)
+            self.testapp = TestbrowserApp(TransparentProxy())
         else:
-            self.testapp = TestbrowserApp(wsgi_app,
-                                          use_unicode=False)
+            self.testapp = TestbrowserApp(wsgi_app)
             self.testapp.restricted = True
 
         self._req_headers = {}
@@ -654,7 +652,7 @@ class Control(SetattrErrorsMixin):
                 return ''
 
         if isinstance(self._control, webtest.forms.Submit):
-            return str(self._control.value_if_submitted())
+            return self.browser.toStr(self._control.value_if_submitted())
 
         val = self._control.value
         if val is None:
@@ -663,7 +661,7 @@ class Control(SetattrErrorsMixin):
         if val.startswith('\n'):
             val = val[1:]
 
-        return str(val)
+        return self.browser.toStr(val)
 
     @value.setter
     def value(self, value):
