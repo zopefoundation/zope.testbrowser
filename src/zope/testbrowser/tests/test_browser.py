@@ -875,6 +875,41 @@ def test_non_ascii_in_input_field(self):
 """
 
 
+def test_post_encoding_doesnt_leak_between_requests(self):
+    """
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> body = b'''\
+    ... <html><body>
+    ...   <form action="." method="POST" enctype="multipart/form-data">
+    ...      <input name="text.other-e" type="text" value="somedata"/>
+    ...      <button name="do" type="button">Do Stuff</button>
+    ...   </form></body></html>
+    ... '''
+    >>> app.add_response(b'json')
+    >>> app.add_response(body)
+    >>> app.add_response(b'done')
+
+    Post some JSON
+
+    >>> browser.post('http://localhost/', '1', 'application/json')
+    >>> browser.contents
+    'json'
+
+    then get a form and post it
+
+    >>> browser.open('http://localhost/')
+    >>> browser.getControl("Do Stuff").click()
+    >>> browser.contents
+    'done'
+
+    The content_type of the last post should come from the form's enctype attr:
+
+    >>> print(app.last_environ['CONTENT_TYPE'])
+    multipart/form-data
+"""
+
+
 def test_suite():
     return doctest.DocTestSuite(
         checker=zope.testbrowser.tests.helper.checker,
