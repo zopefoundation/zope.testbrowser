@@ -705,6 +705,27 @@ def test_subcontrols_can_be_selected_by_value():
     """
 
 
+def test_option_with_explicit_value_and_first_value_an_empty_string():
+    """
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.add_response(b'''\
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <select name="baz">
+    ...             <option value="">uno</option>
+    ...             <option value="2" selected="selected">duos</option>
+    ...             <option>tres</option>
+    ...         </select>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo')
+    >>> browser.getControl(name='baz').displayValue
+    ['duos']
+    """
+
+
 def test_option_without_explicit_value():
     """
     >>> app = TestApp()
