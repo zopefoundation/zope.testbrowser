@@ -65,7 +65,7 @@ class YetAnotherTestApp(object):
 
     def add_response(self, body, headers=None, status='200', reason='OK'):
         if headers is None:
-            headers = [('Content-Type', 'text/html'),
+            headers = [('Content-Type', 'text/html; charset="UTF-8"'),
                        ('Content-Length', str(len(body)))]
         resp = dict(body=body, headers=headers, status=status, reason=reason)
         self.responses.append(resp)
