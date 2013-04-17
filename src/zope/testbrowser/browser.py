@@ -808,13 +808,16 @@ class ListControl(Control):
     def displayValue(self):
         """See zope.testbrowser.interfaces.IListControl"""
         # not implemented for anything other than select;
-
-        if self._control.value is None:
+        cvalue = self._control.value
+        if cvalue is None:
             return []
+
+        if not isinstance(cvalue, list):
+            cvalue = [cvalue]
 
         alltitles = []
         for key, titles in self._getOptions():
-            if key in self._control.value:
+            if key in cvalue:
                 alltitles.append(titles[0])
         return alltitles
 
