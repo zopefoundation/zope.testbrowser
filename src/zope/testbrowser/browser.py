@@ -50,8 +50,6 @@ _allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 26
 _allowed = set(['localhost', '127.0.0.1'])
 _allowed.update(_allowed_2nd_level)
 
-PERSISTENT_HEADERS = ['authorization', 'accept-language']
-
 class TestbrowserApp(webtest.TestApp):
     _last_fragment = ""
     restricted = False
@@ -125,7 +123,6 @@ class Browser(SetattrErrorsMixin):
     _counter = 0
     _response = None
     _req_headers = None
-    _persistent_headers = None
     _history = None
     __html = None
 
@@ -141,7 +138,6 @@ class Browser(SetattrErrorsMixin):
             self.testapp.restricted = True
 
         self._req_headers = {}
-        self._persistent_headers = {}
         self._history = History()
         self._enable_setattr_errors = True
         self._controls = {}
@@ -230,9 +226,6 @@ class Browser(SetattrErrorsMixin):
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
-        if key.lower() in PERSISTENT_HEADERS:
-            self._persistent_headers[key] = value
-
         if (self.url and
             key.lower() in ('cookie', 'cookie2') and
             self.cookies.header):
@@ -480,8 +473,6 @@ class Browser(SetattrErrorsMixin):
         self._req_headers['Host'] = urlparse.urlparse(url).netloc
         self._req_headers['User-Agent'] = 'Python-urllib/2.4'
 
-        self._req_headers.update(self._persistent_headers)
-
         extra_environ = {}
         if self.handleErrors:
             extra_environ['paste.throw_errors'] = None
@@ -498,7 +489,6 @@ class Browser(SetattrErrorsMixin):
 
         yield kwargs
 
-        self._req_headers = {}
         self._changed()
         self.timer.stop()
 
