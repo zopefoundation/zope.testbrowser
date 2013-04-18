@@ -123,6 +123,7 @@ class Browser(SetattrErrorsMixin):
     _counter = 0
     _response = None
     _req_headers = None
+    _req_content_type = None
     _history = None
     __html = None
 
@@ -244,7 +245,7 @@ class Browser(SetattrErrorsMixin):
 
     def post(self, url, data, content_type=None):
         if content_type is not None:
-            self.addHeader('Content-Type', content_type)
+            self._req_content_type = content_type
         return self.open(url, data)
 
     def _clickSubmit(self, form, control=None, coord=None):
@@ -462,28 +463,36 @@ class Browser(SetattrErrorsMixin):
         self._contents = None
         self._controls = {}
         self.__html = None
+        self._req_content_type = None
 
     @contextmanager
     def _preparedRequest(self, url):
         self.timer.start()
-        if self.url:
-            self._req_headers['Referer'] = self.url
 
-        self._req_headers['Connection'] = 'close'
-        self._req_headers['Host'] = urlparse.urlparse(url).netloc
-        self._req_headers['User-Agent'] = 'Python-urllib/2.4'
+        headers = {}
+        if self.url:
+            headers['Referer'] = self.url
+
+        if self._req_content_type:
+            headers['Content-Type'] = self._req_content_type
+
+        headers['Connection'] = 'close'
+        headers['Host'] = urlparse.urlparse(url).netloc
+        headers['User-Agent'] = 'Python-urllib/2.4'
+
+        headers.update(self._req_headers)
 
         extra_environ = {}
         if self.handleErrors:
             extra_environ['paste.throw_errors'] = None
-            self._req_headers['X-zope-handle-errors'] = 'True'
+            headers['X-zope-handle-errors'] = 'True'
         else:
             extra_environ['wsgi.handleErrors'] = False
             extra_environ['paste.throw_errors'] = True
             extra_environ['x-wsgiorg.throw_errors'] = True
-            self._req_headers.pop('X-zope-handle-errors', None)
+            headers.pop('X-zope-handle-errors', None)
 
-        kwargs = {'headers': sorted(self._req_headers.items()),
+        kwargs = {'headers': sorted(headers.items()),
                   'extra_environ': extra_environ,
                   'expect_errors': True}
 

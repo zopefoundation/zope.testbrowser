@@ -906,7 +906,7 @@ def test_post_encoding_doesnt_leak_between_requests(self):
     The content_type of the last post should come from the form's enctype attr:
 
     >>> print(app.last_environ['CONTENT_TYPE'])
-    multipart/form-data
+    multipart/form-data...
 """
 
 
