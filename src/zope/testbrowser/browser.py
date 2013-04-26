@@ -1201,7 +1201,6 @@ def getControlLabels(celem, html):
         return [l for l in labels if l is not None]
 
 def normalizeWhitespace(string):
-    
     return ' '.join(string.split())
 
 def isMatching(string, expr):
