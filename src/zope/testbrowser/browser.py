@@ -296,7 +296,7 @@ class Browser(SetattrErrorsMixin):
         matching = []
         for elem in links:
             matches = (isMatching(elem.text, text) and
-                       isMatching(elem.get('href'), url))
+                       isMatching(elem.get('href', ''), url))
 
             if matches:
                 matching.append(elem)
@@ -392,7 +392,7 @@ class Browser(SetattrErrorsMixin):
         found = []
         for wtcontrol in self._findAllControls(forms, include_subcontrols):
             for l in wtcontrol.getLabels():
-                if matches(l):
+                if l and matches(l):
                     found.append(wtcontrol)
                     break
         return found
