@@ -797,6 +797,10 @@ class Form(SetattrErrorsMixin):
                 try:
                     try:
                         self.browser.mech_browser.open(request)
+                    except mechanize.HTTPError, e:
+                        if self.browser.raiseHttpErrors:
+                            fix_exception_name(e)
+                            raise
                     except Exception, e:
                         fix_exception_name(e)
                         raise
