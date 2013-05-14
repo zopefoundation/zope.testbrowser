@@ -56,6 +56,41 @@ class TestBrowser(unittest.TestCase):
                           'http://localhost/redirect.html?%s'
                           % urlencode(dict(to='http://www.google.com/', type='301')))
 
+        # we're also automatically redirected on submit
+        browser.open('http://localhost/@@/testbrowser/forms.html')
+        self.assertEquals(browser.headers.get('status'), '200 OK')
+        form = browser.getForm(name='redirect')
+        form.submit()
+        self.assertEquals(browser.headers.get('status'), '200 OK')
+        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+
+    def test_no_redirect(self):
+        app = WSGITestApplication()
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+
+        # tell testbrowser to not handle redirects automatically
+        browser.mech_browser.set_handle_redirect(False)
+
+        # and tell zope.testbrowser to not raise HTTP errors (everything but
+        # 20x responses is considered an error)
+        browser.raiseHttpErrors = False
+
+        url = ('http://localhost/redirect.html?%s'
+               % urlencode(dict(to='/set_status.html')))
+        browser.open(url)
+
+        # see - we're not redirected
+        self.assertEquals(browser.url, url)
+        self.assertEquals(browser.headers.get('status'), '302 Found')
+
+        # the same should happen on submit (issue #4)
+        browser.open('http://localhost/@@/testbrowser/forms.html')
+        self.assertEquals(browser.headers.get('status'), '200 OK')
+        form = browser.getForm(name='redirect')
+        form.submit()
+        self.assertEquals(browser.headers.get('status'), '302 Found')
+        self.assertEquals(browser.url, url)
+
     def test_allowed_domains(self):
         browser = zope.testbrowser.wsgi.Browser(wsgi_app=demo_app)
         # external domains are not allowed
