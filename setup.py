@@ -64,7 +64,7 @@ setup(
         'setuptools',
         'zope.interface',
         'zope.schema',
-        'pytz',
+        'pytz==2013b',
         ],
     extras_require={
         'test': tests_require,
