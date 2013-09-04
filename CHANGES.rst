@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-4.0.3 (unreleased)
+4.0.3 (2013-09-04)
 ------------------
 
 - pinning version 'WebTest <= 1.3.4', because of some incompatibility and
