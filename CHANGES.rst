@@ -8,6 +8,9 @@ CHANGES
 - pinning version 'WebTest <= 1.3.4', because of some incompatibility and
   test failures
 
+- Make zope.testbrowser installable via pip
+  (https://github.com/zopefoundation/zope.testbrowser/issues/6).
+
 - When ``Browser.handleErrors`` is False, also add ``x-wsgiorg.throw_errors``
   to the environment. http://wsgi.org/wsgi/Specifications/throw_errors
 
