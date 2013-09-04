@@ -17,6 +17,8 @@ import unittest
 
 import zope.testbrowser.ftests.wsgitestapp
 import zope.testbrowser.wsgi
+import zope.testbrowser.tests.helper
+
 
 def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
