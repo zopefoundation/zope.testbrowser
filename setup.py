@@ -18,11 +18,11 @@ from setuptools import setup, find_packages
 
 long_description = (
     '.. contents::\n\n'
-    + open('README.txt').read()
+    + open('README.rst').read()
     + '\n\n'
     + open(os.path.join('src', 'zope', 'testbrowser', 'README.txt')).read()
     + '\n\n'
-    + open('CHANGES.txt').read()
+    + open('CHANGES.rst').read()
     )
 
 # pinning version, because of some incompatibility and test failures
