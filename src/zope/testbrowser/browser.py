@@ -11,27 +11,1214 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Mechanize-based Functional Doctest interfaces
+"""Webtest-based Functional Doctest interfaces
 """
-
 __docformat__ = "reStructuredText"
 
-
-import cStringIO
-import re
 import sys
+import re
 import time
+import io
+from contextlib import contextmanager
 
-import mechanize
-import zope.interface
+from six.moves import urllib_robotparser
 
+from zope.interface import implementer
+from zope.cachedescriptors.property import Lazy
+from wsgiproxy.proxies import TransparentProxy
+from bs4 import BeautifulSoup
+
+from zope.testbrowser import interfaces
+from zope.testbrowser._compat import httpclient, PYTHON2, urllib_request, urlparse
 import zope.testbrowser.cookies
-import zope.testbrowser.interfaces
 
+import webtest
 
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
 compressText = lambda text: _compress_re.sub(' ', text.strip())
+
+class HostNotAllowed(Exception):
+    pass
+
+class RobotExclusionError(urllib_request.HTTPError):
+    def __init__(self, *args):
+        super(RobotExclusionError, self).__init__(*args)
+
+_allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 2606
+
+_allowed = set(['localhost', '127.0.0.1'])
+_allowed.update(_allowed_2nd_level)
+
+class TestbrowserApp(webtest.TestApp):
+    _last_fragment = ""
+    restricted = False
+
+    def _assertAllowed(self, url):
+        parsed = urlparse.urlparse(url)
+        if self.restricted:
+            # We are in restricted mode, check host part only
+            host = parsed.netloc.partition(':')[0]
+            if host in _allowed:
+                return
+            for dom in _allowed_2nd_level:
+                if host.endswith('.%s' % dom):
+                    return
+
+            raise HostNotAllowed(url)
+        else:
+            # Unrestricted mode: retrieve robots.txt and check against it
+            robotsurl = urlparse.urlunsplit((parsed.scheme, parsed.netloc,
+                                             '/robots.txt', '', ''))
+            rp = urllib_robotparser.RobotFileParser()
+            rp.set_url(robotsurl)
+            rp.read()
+            if not rp.can_fetch("*", url):
+                msg = "request disallowed by robots.txt"
+                raise RobotExclusionError(url, 403, msg, [], None)
+
+    def do_request(self, req, status, expect_errors):
+        self._assertAllowed(req.url)
+
+        response = super(TestbrowserApp, self).do_request(req, status,
+                                                          expect_errors)
+        # Store _last_fragment in response to preserve fragment for history
+        # (goBack() will not lose fragment).
+        response._last_fragment = self._last_fragment
+        return response
+
+    def _remove_fragment(self, url):
+        # HACK: we need to preserve fragment part of url, but webtest strips it
+        # from url on every request. So we override this protected method,
+        # assuming it is called on every request and therefore _last_fragment
+        # will not get outdated. ``getRequestUrlWithFragment()`` will
+        # reconstruct url with fragment for the last request.
+        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
+        self._last_fragment = fragment
+        return super(TestbrowserApp, self)._remove_fragment(url)
+
+    def getRequestUrlWithFragment(self, response):
+        url = response.request.url
+        if not self._last_fragment:
+            return url
+        return "%s#%s" % (url, response._last_fragment)
+
+class SetattrErrorsMixin(object):
+    _enable_setattr_errors = False
+
+    def __setattr__(self, name, value):
+        if self._enable_setattr_errors:
+            # cause an attribute error if the attribute doesn't already exist
+            getattr(self, name)
+
+        # set the value
+        object.__setattr__(self, name, value)
+
+@implementer(interfaces.IBrowser)
+class Browser(SetattrErrorsMixin):
+    """A web user agent."""
+
+    _contents = None
+    _controls = None
+    _counter = 0
+    _response = None
+    _req_headers = None
+    _req_content_type = None
+    _history = None
+    __html = None
+
+    def __init__(self, url=None, wsgi_app=None):
+        self.timer = PystoneTimer()
+        self.raiseHttpErrors = True
+        self.handleErrors = True
+
+        if wsgi_app is None:
+            self.testapp = TestbrowserApp(TransparentProxy())
+        else:
+            self.testapp = TestbrowserApp(wsgi_app)
+            self.testapp.restricted = True
+
+        self._req_headers = {}
+        self._history = History()
+        self._enable_setattr_errors = True
+        self._controls = {}
+
+        if url is not None:
+            self.open(url)
+
+    @property
+    def url(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        if self._response is None:
+            return None
+        return self.testapp.getRequestUrlWithFragment(self._response)
+
+
+    @property
+    def isHtml(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        return self._response and 'html' in self._response.content_type
+
+    @property
+    def lastRequestPystones(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        return self.timer.elapsedPystones
+
+    @property
+    def lastRequestSeconds(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        return self.timer.elapsedSeconds
+
+    @property
+    def title(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        if not self.isHtml:
+            raise BrowserStateError('not viewing HTML')
+
+        titles = self._html.find_all('title')
+        if not titles:
+            return None
+        return self.toStr(titles[0].text)
+
+    def reload(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        if self._response is None:
+            raise BrowserStateError("no URL has yet been .open()ed")
+
+        req = self._response.request
+        with self._preparedRequest(self.url):
+            resp = self.testapp.request(req)
+            self._setResponse(resp)
+
+    def goBack(self, count=1):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        resp = self._history.back(count, self._response)
+        self._setResponse(resp)
+
+    @property
+    def contents(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        if self._response is not None:
+            return self.toStr(self._response.body)
+        else:
+            return None
+
+    @property
+    def headers(self):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        resptxt = []
+        resptxt.append('Status: %s' % self._response.status)
+        for h, v in sorted(self._response.headers.items()):
+            resptxt.append(str("%s: %s" % (h, v)))
+
+        inp = '\n'.join(resptxt)
+        stream = io.BytesIO(inp.encode('latin1'))
+        if PYTHON2:
+            return httpclient.HTTPMessage(stream)
+        else:
+            return httpclient.parse_headers(stream)
+
+    @property
+    def cookies(self):
+        if self.url is None:
+            raise RuntimeError("no request found")
+        return zope.testbrowser.cookies.Cookies(self.testapp, self.url,
+                                                self._req_headers)
+
+    def addHeader(self, key, value):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        if (self.url and
+            key.lower() in ('cookie', 'cookie2') and
+            self.cookies.header):
+            raise ValueError('cookies are already set in `cookies` attribute')
+        self._req_headers[key] = value
+
+    def open(self, url, data=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        url = self._absoluteUrl(url)
+        if data is not None:
+            make_request = lambda args: self.testapp.post(url, data, **args)
+        else:
+            make_request = lambda args: self.testapp.get(url, **args)
+
+        self._processRequest(url, make_request)
+
+    def post(self, url, data, content_type=None):
+        if content_type is not None:
+            self._req_content_type = content_type
+        return self.open(url, data)
+
+    def _clickSubmit(self, form, control=None, coord=None):
+        # find index of given control in the form
+        url = self._absoluteUrl(form.action)
+        if control:
+            index = form.fields[control.name].index(control)
+            make_request = lambda args: self._submit(form, control.name,
+                                                     index, coord=coord, **args)
+        else:
+            make_request = lambda args: self._submit(form, coord=coord, **args)
+
+        self._processRequest(url, make_request)
+
+    def _processRequest(self, url, make_request):
+        with self._preparedRequest(url) as reqargs:
+            self._history.add(self._response)
+            resp = make_request(reqargs)
+            remaining_redirects = 100 # infinite loops protection
+            while 300 <= resp.status_int < 400 and remaining_redirects:
+                remaining_redirects -= 1
+                url = urlparse.urljoin(url, resp.headers['location'])
+                with self._preparedRequest(url) as reqargs:
+                    resp = self.testapp.get(url, **reqargs)
+            assert remaining_redirects > 0, "redirects chain looks infinite"
+            self._setResponse(resp)
+            self._checkStatus()
+
+    def _checkStatus(self):
+        # if the headers don't have a status, I suppose there can't be an error
+        if 'Status' in self.headers:
+            code, msg = self.headers['Status'].split(' ', 1)
+            code = int(code)
+            if self.raiseHttpErrors and code >= 400:
+                raise urllib_request.HTTPError(self.url, code, msg, [], None)
+
+    def _submit(self, form, name=None, index=None, coord=None, **args):
+        # A reimplementation of webtest.forms.Form.submit() to allow to insert
+        # coords into the request
+        fields = form.submit_fields(name, index=index)
+        if coord is not None:
+            fields.extend([('%s.x' % name, coord[0]),
+                           ('%s.y' % name, coord[1])])
+
+        if form.method.upper() != "GET":
+            args.setdefault("content_type",  form.enctype)
+        return form.response.goto(form.action, method=form.method,
+                                  params=fields, **args)
+
+
+    def _setResponse(self, response):
+        self._response = response
+
+    def getLink(self, text=None, url=None, id=None, index=0):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        qa = 'a' if id is None else 'a#%s' % id
+        qarea = 'area' if id is None else 'area#%s' % id
+        html = self._html
+        links = html.select(qa)
+        links.extend(html.select(qarea))
+
+        matching = []
+        for elem in links:
+            matches = (isMatching(elem.text, text) and
+                       isMatching(elem.get('href'), url))
+
+            if matches:
+                matching.append(elem)
+
+        if index >= len(matching):
+            raise LinkNotFoundError()
+        elem = matching[index]
+
+        baseurl = self._getBaseUrl()
+
+        return Link(elem, self, baseurl)
+
+    def follow(self, *args, **kw):
+        """Select a link and follow it."""
+        self.getLink(*args, **kw).click()
+
+
+    def _getBaseUrl(self):
+        # Look for <base href> tag and use it as base, if it exists
+        url = self._response.request.url
+        if b"<base" not in self._response.body:
+            return url
+
+        # we suspect there is a base tag in body, try to find href there
+        html = self._html
+        if not html.head:
+            return url
+        base = html.head.base
+        if not base:
+            return url
+        return base['href'] or url
+
+    def getForm(self, id=None, name=None, action=None, index=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        zeroOrOne([id, name, action], '"id", "name", and "action"')
+        matching_forms = []
+        allforms = self._getAllResponseForms()
+        for form in allforms:
+            if ((id is not None and form.id == id)
+            or (name is not None and form.html.form.get('name') == name)
+            or (action is not None and re.search(action, form.action))
+            or id == name == action == None):
+                matching_forms.append(form)
+
+        if index is None and not any([id, name, action]):
+            if len(matching_forms) == 1:
+                index = 0
+            else:
+                raise ValueError(
+                    'if no other arguments are given, index is required.')
+
+        form = disambiguate(matching_forms, '', index)
+        return Form(self, form)
+
+    def getControl(self, label=None, name=None, index=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        intermediate, msg, available = self._getAllControls(
+            label, name, self._getAllResponseForms(),
+            include_subcontrols=True)
+        control = disambiguate(intermediate, msg, index,
+                               controlFormTupleRepr,
+                               available)
+        return control
+
+    def _getAllResponseForms(self):
+        """ Return set of response forms in the order they appear in
+        ``self._response.form``."""
+        respforms = self._response.forms
+        idxkeys = [k for k in respforms.keys() if isinstance(k, int)]
+        return [respforms[k] for k in sorted(idxkeys)]
+
+    def _getAllControls(self, label, name, forms, include_subcontrols=False):
+        onlyOne([label, name], '"label" and "name"')
+
+        forms = list(forms) # might be an iterator, and we need to iterate twice
+
+        available = None
+        if label is not None:
+            res = self._findByLabel(label, forms, include_subcontrols)
+            msg = 'label %r' % label
+        elif name is not None:
+            include_subcontrols = False
+            res = self._findByName(name, forms)
+            msg = 'name %r' % name
+        if not res:
+            available = list(self._findAllControls(forms, include_subcontrols))
+        return res, msg, available
+
+
+    def _findByLabel(self, label, forms, include_subcontrols=False):
+        # forms are iterable of mech_forms
+        matches = re.compile(r'(^|\b|\W)%s(\b|\W|$)'
+                             % re.escape(normalizeWhitespace(label))).search
+        found = []
+        for wtcontrol in self._findAllControls(forms, include_subcontrols):
+            for l in wtcontrol.labels:
+                if matches(l):
+                    found.append(wtcontrol)
+                    break
+        return found
+
+    def _indexControls(self, form):
+        # Unfortunately, webtest will remove all 'name' attributes from
+        # form.html after parsing. But we need them (at least to locate labels
+        # for radio buttons). So we are forced to reparse part of html, to
+        # extract elements.
+        html = BeautifulSoup(form.text)
+        tags = ('input', 'select', 'textarea', 'button')
+        return html.find_all(tags)
+
+    def _findByName(self, name, forms):
+        return [c for c in self._findAllControls(forms) if c.name == name]
+
+
+    def _findAllControls(self, forms, include_subcontrols=False):
+        res = []
+        for f in forms:
+            if f not in self._controls:
+                fc = []
+                allelems = self._indexControls(f)
+                already_processed = set()
+                for cname, wtcontrol in f.field_order:
+                    # we need to group checkboxes by name, but leave
+                    # the other controls in the original order,
+                    # even if the name repeats
+                    if isinstance(wtcontrol, webtest.forms.Checkbox):
+                        if cname in already_processed:
+                            continue
+                        already_processed.add(cname)
+                        wtcontrols = f.fields[cname]
+                    else:
+                        wtcontrols = [wtcontrol]
+                    for c in controlFactory(cname, wtcontrols, allelems, self):
+                        fc.append((c, False))
+
+                        for subcontrol in c.controls:
+                            fc.append((subcontrol, True))
+
+                self._controls[f] = fc
+
+            controls = [c for c, subcontrol in self._controls[f]
+                        if not subcontrol or include_subcontrols]
+            res.extend(controls)
+
+        return res
+
+
+    def _changed(self):
+        self._counter += 1
+        self._contents = None
+        self._controls = {}
+        self.__html = None
+        self._req_content_type = None
+
+    @contextmanager
+    def _preparedRequest(self, url):
+        self.timer.start()
+
+        headers = {}
+        if self.url:
+            headers['Referer'] = self.url
+
+        if self._req_content_type:
+            headers['Content-Type'] = self._req_content_type
+
+        headers['Connection'] = 'close'
+        headers['Host'] = urlparse.urlparse(url).netloc
+        headers['User-Agent'] = 'Python-urllib/2.4'
+
+        headers.update(self._req_headers)
+
+        extra_environ = {}
+        if self.handleErrors:
+            extra_environ['paste.throw_errors'] = None
+            headers['X-zope-handle-errors'] = 'True'
+        else:
+            extra_environ['wsgi.handleErrors'] = False
+            extra_environ['paste.throw_errors'] = True
+            extra_environ['x-wsgiorg.throw_errors'] = True
+            headers.pop('X-zope-handle-errors', None)
+
+        kwargs = {'headers': sorted(headers.items()),
+                  'extra_environ': extra_environ,
+                  'expect_errors': True}
+
+        yield kwargs
+
+        self._changed()
+        self.timer.stop()
+
+    def _absoluteUrl(self, url):
+        absolute = url.startswith('http://') or url.startswith('https://')
+        if absolute:
+            return str(url)
+
+        if self._response is None:
+            raise BrowserStateError("can't fetch relative reference: not viewing any document")
+
+        return str(urlparse.urljoin(self._getBaseUrl(), url))
+
+    def toStr(self, s):
+        """Convert possibly unicode object to native string using response
+        charset"""
+        if not self._response.charset:
+            return s
+        if s is None:
+            return None
+        if PYTHON2 and not isinstance(s, bytes):
+            return s.encode(self._response.charset)
+        if not PYTHON2 and isinstance(s, bytes):
+            return s.decode(self._response.charset)
+        return s
+
+    @property
+    def _html(self):
+        if self.__html is None:
+            self.__html = self._response.html
+        return self.__html
+
+def controlFactory(name, wtcontrols, elemindex, browser):
+    assert len(wtcontrols) > 0
+
+    first_wtc = wtcontrols[0]
+    checkbox = isinstance(first_wtc, webtest.forms.Checkbox)
+
+    # Create control list
+    if checkbox:
+        ctrlelems = [(wtc, elemindex[wtc.pos]) for wtc in wtcontrols]
+        controls = [CheckboxListControl(name, ctrlelems, browser)]
+
+    else:
+        controls = []
+        for wtc in wtcontrols:
+            controls.append(simpleControlFactory(wtc, wtc.form, elemindex, browser))
+
+    return controls
+
+def simpleControlFactory(wtcontrol, form, elemindex, browser):
+    if isinstance(wtcontrol, webtest.forms.Radio):
+        elems = [e for e in elemindex
+                 if e.attrs.get('name') == wtcontrol.name]
+        return RadioListControl(wtcontrol, form, elems, browser)
+
+    elem = elemindex[wtcontrol.pos]
+    if isinstance(wtcontrol, (webtest.forms.Select,
+                              webtest.forms.MultipleSelect)):
+        return ListControl(wtcontrol, form, elem, browser)
+
+    elif isinstance(wtcontrol, webtest.forms.Submit):
+        if wtcontrol.attrs.get('type', 'submit') == 'image':
+            return ImageControl(wtcontrol, form, elem, browser)
+        else:
+            return SubmitControl(wtcontrol, form, elem, browser)
+    else:
+        return Control(wtcontrol, form, elem, browser)
+
+@implementer(interfaces.ILink)
+class Link(SetattrErrorsMixin):
+
+    def __init__(self, link, browser, baseurl=""):
+        self._link = link
+        self.browser = browser
+        self._baseurl = baseurl
+        self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
+
+    def click(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self.browser.open(self.url)
+
+    @property
+    def url(self):
+        relurl = self._link['href']
+        return self.browser._absoluteUrl(relurl)
+
+    @property
+    def text(self):
+        txt = normalizeWhitespace(self._link.text)
+        return self.browser.toStr(txt)
+
+    @property
+    def tag(self):
+        return str(self._link.name)
+
+    @property
+    def attrs(self):
+        toStr = self.browser.toStr
+        return dict((toStr(k), toStr(v)) for k, v in self._link.attrs.items())
+
+    def __repr__(self):
+        return "<%s text='%s' url='%s'>" % (
+            self.__class__.__name__, normalizeWhitespace(self.text), self.url)
+
+def controlFormTupleRepr(wtcontrol):
+    return wtcontrol.mechRepr()
+
+
+@implementer(interfaces.IControl)
+class Control(SetattrErrorsMixin):
+
+    _enable_setattr_errors = False
+
+    def __init__(self, control, form, elem, browser):
+        self._control = control
+        self._form = form
+        self._elem = elem
+        self.browser = browser
+        self._browser_counter = self.browser._counter
+
+        # disable addition of further attributes
+        self._enable_setattr_errors = True
+
+    @property
+    def disabled(self):
+        return 'disabled' in self._control.attrs
+
+    @property
+    def type(self):
+        typeattr = self._control.attrs.get('type', None)
+        if typeattr is None:
+            # try to figure out type by tag
+            if self._control.tag == 'textarea':
+                return 'textarea'
+            else:
+                # By default, inputs are of 'text' type
+                return 'text'
+        return self.browser.toStr(typeattr)
+
+    @property
+    def name(self):
+        if self._control.name is None:
+            return None
+        return self.browser.toStr(self._control.name)
+
+    @property
+    def multiple(self):
+        return 'multiple' in self._control.attrs
+
+    @property
+    def value(self):
+        if self.type == 'file':
+            if not self._control.value:
+                return None
+
+        if self.type == 'image':
+            if not self._control.value:
+                return ''
+
+        if isinstance(self._control, webtest.forms.Submit):
+            return self.browser.toStr(self._control.value_if_submitted())
+
+        val = self._control.value
+        if val is None:
+            return None
+
+        return self.browser.toStr(val)
+
+    @value.setter
+    def value(self, value):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        if self.type == 'file':
+            self.add_file(value, content_type=None, filename=None)
+        else:
+            self._control.value = value
+
+    def add_file(self, file, content_type, filename):
+        if self.type != 'file':
+            raise TypeError("Can't call add_file on %s controls"
+                            % self.mech_control.type)
+
+        if isinstance(file, io.IOBase):
+            contents = file.read()
+        else:
+            contents = file
+
+        # XXX: webtest relies on mimetypes.guess_type to get mime type of
+        # upload file and doesn't let to set it explicitly, so we are ignoring
+        # content_type parameter here. If it is still unacceptable, consider
+        # using mock.object to force mimetypes to return "right" type.
+        self._form[self.name] = webtest.forms.Upload(filename or '', contents)
+
+    def clear(self):
+        if self._browser_counter != self.browser._counter:
+            raise zope.testbrowser.interfaces.ExpiredError
+        self.value = None
+
+    def __repr__(self):
+        return "<%s name='%s' type='%s'>" % (
+            self.__class__.__name__, self.name, self.type)
+
+    @Lazy
+    def labels(self):
+        return [self.browser.toStr(l)
+                for l in getControlLabels(self._elem, self._form.html)]
+
+    @property
+    def controls(self):
+        return []
+
+    def mechRepr(self):
+        # emulate mechanize control representation
+        ctrl = self._control
+        if isinstance(ctrl, webtest.forms.Text):
+            tp = ctrl.attrs.get('type')
+            infos = []
+            if 'readonly' in ctrl.attrs or tp == 'hidden':
+                infos.append('readonly')
+            if 'disabled' in ctrl.attrs:
+                infos.append('disabled')
+
+            classnames = {'password': "PasswordControl",
+                          'hidden': "HiddenControl"
+                          }
+            clname = classnames.get(tp, "TextControl")
+            return "<%s(%s=%s)%s>" % (clname, ctrl.name, ctrl.value,
+                                      ' (%s)' % (', '.join(infos)) if infos else '')
+
+        if isinstance(ctrl, webtest.forms.File):
+            return repr(ctrl) + "<-- unknown"
+        raise NotImplementedError(str((self, ctrl)))
+
+@implementer(interfaces.ISubmitControl)
+class SubmitControl(Control):
+
+    def click(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self.browser._clickSubmit(self._form, self._control)
+
+    @Lazy
+    def labels(self):
+        labels = super(SubmitControl, self).labels
+        labels.append(self._control.value_if_submitted())
+        if self._elem.text:
+            labels.append(normalizeWhitespace(self._elem.text))
+        return [l for l in labels if l]
+
+    def mechRepr(self):
+        name = self.name if self.name is not None else "<None>"
+        value = self.value if self.value is not None else "<None>"
+        extra = ' (disabled)' if self.disabled else ''
+        # Mechanize explicitly told us submit controls were readonly, as
+        # if they could be any other way.... *sigh*  Let's take this
+        # opportunity and strip that off.
+        return "<SubmitControl(%s=%s)%s>" % (name, value, extra)
+
+@implementer(interfaces.IListControl)
+class ListControl(Control):
+
+    def __init__(self, control, form, elem, browser):
+        super(ListControl, self).__init__(control, form, elem, browser)
+        # HACK: set default value of a list control and then forget about
+        # initial default values. Otherwise webtest will not allow to set None
+        # as a value of select and radio controls.
+        v = control.value
+        if v:
+            control.value = v
+            # Uncheck all the options
+            control.options = [(o, False) for o, checked in control.options]
+
+    @property
+    def type(self):
+        return 'select'
+
+    @property
+    def value(self):
+        val = self._control.value
+        if val is None:
+            return []
+
+        if self.multiple and isinstance(val, (list, tuple)):
+            return [self.browser.toStr(v) for v in val]
+        else:
+            return [self.browser.toStr(val)]
+
+    @value.setter
+    def value(self, value):
+        if not value:
+            # HACK: Force unsetting selected value, by avoiding validity check.
+            # Note, that force_value will not work for webtest.forms.Radio
+            # controls.
+            self._control.selectedIndex = None
+        else:
+            if not self.multiple and isinstance(value, (list, tuple)):
+                value = value[0]
+            self._control.value = value
+
+    @property
+    def displayValue(self):
+        """See zope.testbrowser.interfaces.IListControl"""
+        # not implemented for anything other than select;
+        cvalue = self._control.value
+        if cvalue is None:
+            return []
+
+        if not isinstance(cvalue, list):
+            cvalue = [cvalue]
+
+        alltitles = []
+        for key, titles in self._getOptions():
+            if key in cvalue:
+                alltitles.append(titles[0])
+        return alltitles
+
+    @displayValue.setter
+    def displayValue(self, value):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+
+        values = []
+        for key, titles in self._getOptions():
+            if any(t in value for t in titles):
+                values.append(key)
+        self.value = values
+
+    @property
+    def displayOptions(self):
+        """See zope.testbrowser.interfaces.IListControl"""
+        return [titles[0] for key, titles in self._getOptions()]
+
+    @property
+    def options(self):
+        """See zope.testbrowser.interfaces.IListControl"""
+        return [key for key, title in self._getOptions()]
+
+    def getControl(self, label=None, value=None, index=None):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+
+        return getControl(self.controls, label, value, index)
+
+    @property
+    def controls(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        ctrls = []
+        for elem in self._elem.select('option'):
+            ctrls.append(ItemControl(self, elem, self._form, self.browser))
+
+        return ctrls
+
+    def _getOptions(self):
+        return [(c.optionValue, c.labels) for c in self.controls]
+
+    def mechRepr(self):
+        # TODO: figure out what is replacement for "[*, ambiguous])"
+        return "<SelectControl(%s=[*, ambiguous])>" % self.name
+
+@implementer(interfaces.IListControl)
+class RadioListControl(ListControl):
+
+    _elems = None
+
+    def __init__(self, control, form, elems, browser):
+        super(RadioListControl, self).__init__(control, form, elems[0], browser)
+        self._elems = elems
+
+    @property
+    def type(self):
+        return 'radio'
+
+    def __repr__(self):
+        # Return backwards compatible representation
+        return "<ListControl name='%s' type='radio'>" % self.name
+
+    @property
+    def controls(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        for opt in self._elems:
+            yield RadioItemControl(self, opt, self._form, self.browser)
+
+    @Lazy
+    def labels(self):
+        # Parent radio button control has no labels. Children are labeled.
+        return []
+
+
+@implementer(interfaces.IListControl)
+class CheckboxListControl(SetattrErrorsMixin):
+    def __init__(self, name, ctrlelems, browser):
+        self.name = name
+        self.browser = browser
+        self._browser_counter = self.browser._counter
+        self._ctrlelems = ctrlelems
+        self._enable_setattr_errors = True
+
+    @property
+    def options(self):
+        opts = [self._trValue(c.optionValue) for c in self.controls]
+        return opts
+
+    @property
+    def displayOptions(self):
+        return [c.labels[0] for c in self.controls]
+
+    @property
+    def value(self):
+        ctrls = self.controls
+        val = [self._trValue(c.optionValue) for c in ctrls if c.selected]
+
+        if len(self._ctrlelems) == 1 and val == [True]:
+            return True
+        return val
+
+    @value.setter
+    def value(self, value):
+        ctrls = self.controls
+        if isinstance(value, (list, tuple)):
+            for c in ctrls:
+                c.selected = c.optionValue in value
+        else:
+            ctrls[0].selected = value
+
+    @property
+    def displayValue(self):
+        return [c.labels[0] for c in self.controls if c.selected]
+
+    @displayValue.setter
+    def displayValue(self, value):
+        for c in self.controls:
+            c.selected = any(v in c.labels for v in value)
+
+    @property
+    def multiple(self):
+        return True
+
+    @property
+    def disabled(self):
+        return all('disabled' in e.attrs for c, e in self._ctrlelems)
+
+    @property
+    def type(self):
+        return 'checkbox'
+
+    def getControl(self, label=None, value=None, index=None):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+
+        return getControl(self.controls, label, value, index)
+
+    @property
+    def controls(self):
+        return [CheckboxItemControl(self, c, e, c.form, self.browser)
+                for c, e in self._ctrlelems]
+
+    def clear(self):
+        if self._browser_counter != self.browser._counter:
+            raise zope.testbrowser.interfaces.ExpiredError
+        self.value = []
+
+    def mechRepr(self):
+        return "<SelectControl(%s=[*, ambiguous])>" % self.name
+
+    @Lazy
+    def labels(self):
+        return []
+
+    def __repr__(self):
+        # Return backwards compatible representation
+        return "<ListControl name='%s' type='checkbox'>" % self.name
+
+    def _trValue(self, chbval):
+        return True if chbval == 'on' else chbval
+
+@implementer(interfaces.IImageSubmitControl)
+class ImageControl(Control):
+
+    def click(self, coord=(1,1)):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self.browser._clickSubmit(self._form, self._control, coord)
+
+    def mechRepr(self):
+        return "ImageControl???"  # TODO
+
+
+@implementer(interfaces.IItemControl)
+class ItemControl(SetattrErrorsMixin):
+
+    def __init__(self, parent, elem, form, browser):
+        self._parent = parent
+        self._elem = elem
+        self._form = form
+        self.browser = browser
+        self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
+
+    @property
+    def control(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        return self._parent
+
+    @property
+    def _value(self):
+        return self._elem.attrs.get('value', self._elem.text)
+
+    @property
+    def disabled(self):
+        return 'disabled' in self._elem.attrs
+
+    @property
+    def selected(self):
+        """See zope.testbrowser.interfaces.IControl"""
+        return self._value in self._parent.value
+
+    @selected.setter
+    def selected(self, value):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        if self._parent.multiple:
+            values = list(self._parent.value)
+            if value:
+                values.append(self._value)
+            else:
+                values = [v for v in values if v != self._value]
+            self._parent.value = values
+        else:
+            if value:
+                self._parent.value = self._value
+            else:
+                self._parent.value = None
+
+    @property
+    def optionValue(self):
+        return self.browser.toStr(self._value)
+
+    @property
+    def value(self):
+        # internal alias for convenience implementing getControl()
+        return self.optionValue
+
+    def click(self):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self.selected = not self.selected
+
+    def __repr__(self):
+        return "<ItemControl name='%s' type='select' optionValue=%r selected=%r>" % \
+                (self._parent.name, self.optionValue, self.selected)
+
+    @Lazy
+    def labels(self):
+        labels = [self._elem.attrs.get('label'), self._elem.text]
+        return [self.browser.toStr(normalizeWhitespace(lbl))
+                for lbl in labels if lbl]
+
+    def mechRepr(self):
+        contents = normalizeWhitespace(self._elem.text)
+        id = self._elem.attrs.get('id')
+        label = self._elem.attrs.get('label', contents)
+        value = self._value
+        name = self._elem.attrs.get('name', value) # XXX wha????
+        return "<Item name='%s' id=%s contents='%s' value='%s' label='%s'>" % \
+                (name, id, contents, value, label)
+
+class RadioItemControl(ItemControl):
+    @property
+    def optionValue(self):
+        return self.browser.toStr(self._elem.attrs.get('value'))
+
+    @Lazy
+    def labels(self):
+        return [self.browser.toStr(l)
+                for l in getControlLabels(self._elem, self._form.html)]
+
+    def __repr__(self):
+        return "<ItemControl name='%s' type='radio' optionValue=%r selected=%r>" % (
+            self._parent.name, self.optionValue, self.selected)
+
+    def mechRepr(self):
+        toStr = self.browser.toStr
+        id = toStr(self._elem.attrs.get('id'))
+        value = toStr(self._elem.attrs.get('value'))
+        name = toStr(self._elem.attrs.get('name'))
+
+        props = []
+        if self._elem.parent.name == 'label':
+            props.append(('__label', {'__text': toStr(self._elem.parent.text)}))
+        if self.selected:
+            props.append(('checked', 'checked'))
+        props.append(('type', 'radio'))
+        props.append(('name', name))
+        props.append(('value', value))
+        props.append(('id', id))
+
+        propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
+        return "<Item name='%s' id='%s' %s>" % \
+                (value, id, propstr)
+
+class CheckboxItemControl(ItemControl):
+    _control = None
+
+    def __init__(self, parent, wtcontrol, elem, form, browser):
+        super(CheckboxItemControl, self).__init__(parent, elem, form, browser)
+        self._control = wtcontrol
+
+    @property
+    def selected(self):
+        """See zope.testbrowser.interfaces.IControl"""
+        return self._control.checked
+
+    @selected.setter
+    def selected(self, value):
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        self._control.checked = value
+
+    @property
+    def optionValue(self):
+        return self.browser.toStr(self._control._value or 'on')
+
+    @Lazy
+    def labels(self):
+        return [self.browser.toStr(l)
+                for l in getControlLabels(self._elem, self._form.html)]
+
+    def __repr__(self):
+        return "<ItemControl name='%s' type='checkbox' optionValue=%r selected=%r>" % (
+            self._control.name, self.optionValue, self.selected)
+
+    def mechRepr(self):
+        id = self.browser.toStr(self._elem.attrs.get('id'))
+        value = self.browser.toStr(self._elem.attrs.get('value'))
+        name = self.browser.toStr(self._elem.attrs.get('name'))
+
+        props = []
+        if self._elem.parent.name == 'label':
+            props.append(('__label', {'__text': self.browser.toStr(self._elem.parent.text)}))
+        if self.selected:
+            props.append(('checked', 'checked'))
+        props.append(('name', name))
+        props.append(('type', 'checkbox'))
+        props.append(('id', id))
+        props.append(('value', value))
+
+        propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
+        return "<Item name='%s' id='%s' %s>" % \
+                (value, id, propstr)
+
+@implementer(interfaces.IForm)
+class Form(SetattrErrorsMixin):
+    """HTML Form"""
+
+    def __init__(self, browser, form):
+        """Initialize the Form
+
+        browser - a Browser instance
+        form - a webtest.Form instance
+        """
+        self.browser = browser
+        self._form = form
+        self._browser_counter = self.browser._counter
+        self._enable_setattr_errors = True
+
+    @property
+    def action(self):
+        return self.browser._absoluteUrl(self._form.action)
+
+    @property
+    def method(self):
+        return str(self._form.method)
+
+    @property
+    def enctype(self):
+        return str(self._form.enctype)
+
+    @property
+    def name(self):
+        return str(self._form.html.form.get('name'))
+
+    @property
+    def id(self):
+        """See zope.testbrowser.interfaces.IForm"""
+        return str(self._form.id)
+
+    def submit(self, label=None, name=None, index=None, coord=None):
+        """See zope.testbrowser.interfaces.IForm"""
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+
+        form = self._form
+        if label is not None or name is not None:
+            controls, msg, available = self.browser._getAllControls(
+                label, name, [form])
+            controls = [c for c in controls
+                        if isinstance(c, (ImageControl, SubmitControl))]
+            control= disambiguate(controls, msg, index,
+                                  controlFormTupleRepr,
+                                  available)
+            self.browser._clickSubmit(form, control._control, coord)
+        else: # JavaScript sort of submit
+            if index is not None or coord is not None:
+                raise ValueError(
+                    'May not use index or coord without a control')
+            self.browser._clickSubmit(form)
+
+    def getControl(self, label=None, name=None, index=None):
+        """See zope.testbrowser.interfaces.IBrowser"""
+        if self._browser_counter != self.browser._counter:
+            raise interfaces.ExpiredError
+        intermediate, msg, available = self.browser._getAllControls(
+                        label, name, [self._form], include_subcontrols=True)
+        return disambiguate(intermediate, msg, index,
+                            controlFormTupleRepr, available)
 
 def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
     if intermediate:
@@ -41,7 +1228,7 @@ def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
                     msg += ' matches:' + ''.join([
                                 '\n  %s' % choice_repr(choice)
                                 for choice in intermediate])
-                raise mechanize.AmbiguityError(msg)
+                raise AmbiguityError(msg)
             else:
                 return intermediate[0]
         else:
@@ -62,32 +1249,6 @@ def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
             msg += '\n(there are no form items in the HTML)'
     raise LookupError(msg)
 
-def control_form_tuple_repr((ctrl, form)):
-    if isinstance(ctrl, mechanize._form.Control):
-        # mechanize._form controls have a useful __str__ and a useless __repr__
-        return str(ctrl)
-    else:
-        # mechanize._form list control items have a useful __repr__ and a
-        # too-terse __str__.
-        return repr(ctrl)
-
-def controlFactory(control, form, browser):
-    if isinstance(control, mechanize.Item):
-        # it is a subcontrol
-        return ItemControl(control, form, browser)
-    else:
-        t = control.type
-        if t in ('checkbox', 'select', 'radio'):
-            return ListControl(control, form, browser)
-        elif t in ('submit', 'submitbutton'):
-            return SubmitControl(control, form, browser)
-        elif t=='image':
-            return ImageControl(control, form, browser)
-        else:
-            return Control(control, form, browser)
-
-def any(items):
-    return bool(sum([bool(i) for i in items]))
 
 def onlyOne(items, description):
     total = sum([bool(i) for i in items])
@@ -100,25 +1261,57 @@ def zeroOrOne(items, description):
         raise ValueError(
             "Supply no more than one of %s as arguments" % description)
 
-def fix_exception_name(e):
-    # mechanize unceremoniously changed the repr of HTTPErrors, in
-    # in order not to break existing doctests, we have to undo that
-    if hasattr(e, '_exc_class_name'):
-        name = e._exc_class_name
-        name = name.rsplit('.', 1)[-1]
-        e.__class__.__name__ = name
+def getControl(controls, label=None, value=None, index=None):
+    onlyOne([label, value], '"label" and "value"')
+
+    if label is not None:
+        options = [c for c in controls
+                   if any(isMatching(l, label) for l in c.labels)]
+        msg = 'label %r' % label
+    elif value is not None:
+        options = [c for c in controls if isMatching(c.value, value)]
+        msg = 'value %r' % value
+
+    res = disambiguate(options, msg, index, controlFormTupleRepr,
+                       available=controls)
+    return res
 
 
-class SetattrErrorsMixin(object):
-    _enable_setattr_errors = False
+def getControlLabels(celem, html):
+    labels = []
 
-    def __setattr__(self, name, value):
-        if self._enable_setattr_errors:
-            # cause an attribute error if the attribute doesn't already exist
-            getattr(self, name)
+    # In case celem is contained in label element, use its text as a label
+    if celem.parent.name == 'label':
+        labels.append(normalizeWhitespace(celem.parent.text))
 
-        # set the value
-        object.__setattr__(self, name, value)
+    # find all labels, connected by 'for' attribute
+    controlid = celem.attrs.get('id')
+    if controlid:
+        forlbls = html.select('label[for=%s]' % controlid)
+        labels.extend([normalizeWhitespace(l.text) for l in forlbls])
+
+    return [l for l in labels if l is not None]
+
+def normalizeWhitespace(string):
+    return ' '.join(string.split())
+
+def isMatching(string, expr):
+    """Determine whether ``expr`` matches to ``string``
+
+    ``expr`` can be None, plain text or regular expression.
+
+      * If ``expr`` is ``None``, ``string`` is considered matching
+      * If ``expr`` is plain text, its equality to ``string`` will be checked
+      * If ``expr`` is regexp, regexp matching agains ``string`` will
+        be performed
+    """
+    if expr is None:
+        return True
+
+    if isinstance(expr, RegexType):
+        return expr.match(normalizeWhitespace(string))
+    else:
+        return normalizeWhitespace(expr) in normalizeWhitespace(string)
 
 
 class PystoneTimer(object):
@@ -134,7 +1327,7 @@ class PystoneTimer(object):
         # http://www.zope.org/Collectors/Zope/2268
         from test import pystone
         if self._pystones_per_second == None:
-            self._pystones_per_second = pystone.pystones(pystone.LOOPS/10)[1]
+            self._pystones_per_second = pystone.pystones(pystone.LOOPS//10)[1]
         return self._pystones_per_second
 
     def _getTime(self):
@@ -176,646 +1369,42 @@ class PystoneTimer(object):
         return self.elapsedSeconds * self.pystonesPerSecond
 
 
-class Browser(SetattrErrorsMixin):
-    """A web user agent."""
-    zope.interface.implements(zope.testbrowser.interfaces.IBrowser)
+    def __enter__(self):
+        self.start()
 
-    _contents = None
-    _counter = 0
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.stop()
 
-    def __init__(self, url=None, mech_browser=None):
-        if mech_browser is None:
-            mech_browser = mechanize.Browser()
-        self.mech_browser = mech_browser
-        self.timer = PystoneTimer()
-        self.raiseHttpErrors = True
-        self.cookies = zope.testbrowser.cookies.Cookies(self.mech_browser)
-        self._enable_setattr_errors = True
+class History:
+    """
 
-        if url is not None:
-            self.open(url)
+    Though this will become public, the implied interface is not yet stable.
 
-    @property
-    def url(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return self.mech_browser.geturl()
+    """
+    def __init__(self):
+        self._history = []  # LIFO
 
-    @property
-    def isHtml(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return self.mech_browser.viewing_html()
+    def add(self, response):
+        self._history.append(response)
 
-    @property
-    def title(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return self.mech_browser.title()
-
-    @property
-    def contents(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        if self._contents is not None:
-            return self._contents
-        response = self.mech_browser.response()
-        if response is None:
-            return None
-        old_location = response.tell()
-        response.seek(0)
-        self._contents = response.read()
-        response.seek(old_location)
-        return self._contents
-
-    @property
-    def headers(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return self.mech_browser.response().info()
-
-    @apply
-    def handleErrors():
-        """See zope.testbrowser.interfaces.IBrowser"""
-        header_key = 'X-zope-handle-errors'
-
-        def get(self):
-            headers = self.mech_browser.addheaders
-            value = dict(headers).get(header_key, True)
-            return {'False': False}.get(value, True)
-
-        def set(self, value):
-            headers = self.mech_browser.addheaders
-            current_value = get(self)
-            if current_value == value:
-                return
-
-            # Remove the current header...
-            for key, header_value in headers[:]:
-                if key == header_key:
-                    headers.remove((key, header_value))
-            # ... Before adding the new one.
-            headers.append((header_key, {False: 'False'}.get(value, 'True')))
-
-        return property(get, set)
-
-    def open(self, url, data=None):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        url = str(url)
-        self._start_timer()
-        try:
+    def back(self, n, _response):
+        response = _response
+        while n > 0 or response is None:
             try:
-                try:
-                    self.mech_browser.open(url, data)
-                except Exception, e:
-                    fix_exception_name(e)
-                    raise
-            except mechanize.HTTPError, e:
-                if e.code >= 200 and e.code <= 299:
-                    # 200s aren't really errors
-                    pass
-                elif self.raiseHttpErrors:
-                    raise
-        finally:
-            self._stop_timer()
-            self._changed()
-
-        # if the headers don't have a status, I suppose there can't be an error
-        if 'Status' in self.headers:
-            code, msg = self.headers['Status'].split(' ', 1)
-            code = int(code)
-            if self.raiseHttpErrors and code >= 400:
-                raise mechanize.HTTPError(url, code, msg, self.headers, fp=None)
-
-    def post(self, url, data, content_type=None):
-        if content_type is not None:
-            data = {'body': data, 'content-type': content_type}
-        return self.open(url, data)
-
-    def _start_timer(self):
-        self.timer.start()
-
-    def _stop_timer(self):
-        self.timer.stop()
-
-    @property
-    def lastRequestPystones(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return self.timer.elapsedPystones
-
-    @property
-    def lastRequestSeconds(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return self.timer.elapsedSeconds
-
-    def reload(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        self._start_timer()
-        self.mech_browser.reload()
-        self._stop_timer()
-        self._changed()
-
-    def goBack(self, count=1):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        self._start_timer()
-        self.mech_browser.back(count)
-        self._stop_timer()
-        self._changed()
-
-    def addHeader(self, key, value):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        if (self.mech_browser.request is not None and
-            key.lower() in ('cookie', 'cookie2') and
-            self.cookies.header):
-            # to prevent unpleasant intermittent errors, only set cookies with
-            # the browser headers OR the cookies mapping.
-            raise ValueError('cookies are already set in `cookies` attribute')
-        self.mech_browser.addheaders.append( (str(key), str(value)) )
-
-    def getLink(self, text=None, url=None, id=None, index=0):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        if id is not None:
-            def predicate(link):
-                return dict(link.attrs).get('id') == id
-            args = {'predicate': predicate}
-        else:
-            if isinstance(text, RegexType):
-                text_regex = text
-            elif text is not None:
-                text_regex = re.compile(re.escape(text), re.DOTALL)
-            else:
-                text_regex = None
-
-            if isinstance(url, RegexType):
-                url_regex = url
-            elif url is not None:
-                url_regex = re.compile(re.escape(url), re.DOTALL)
-            else:
-                url_regex = None
-            args = {'text_regex': text_regex, 'url_regex': url_regex}
-        args['nr'] = index
-        return Link(self.mech_browser.find_link(**args), self)
-
-    def follow(self, *args, **kw):
-        """Select a link and follow it."""
-        self.getLink(*args, **kw).click()
-
-    def _findAllControls(self, forms, include_subcontrols=False):
-        for f in forms:
-            for control in f.controls:
-                phantom = control.type in ('radio', 'checkbox')
-                if not phantom:
-                    yield (control, f)
-                if include_subcontrols and (
-                    phantom or control.type=='select'):
-                    for i in control.items:
-                        yield (i, f)
-
-    def _findByLabel(self, label, forms, include_subcontrols=False):
-        # forms are iterable of mech_forms
-        matches = re.compile(r'(^|\b|\W)%s(\b|\W|$)'
-                             % re.escape(compressText(label))).search
-        found = []
-        for control, form in self._findAllControls(forms, include_subcontrols):
-            for l in control.get_labels():
-                if matches(l.text):
-                    found.append((control, form))
-                    break
-        return found
-
-    def _findByName(self, name, forms):
-        found = []
-        for f in forms:
-            for control in f.controls:
-                if control.name==name:
-                    found.append((control, f))
-        return found
-
-    def getControl(self, label=None, name=None, index=None):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        intermediate, msg, available = self._get_all_controls(
-            label, name, self.mech_browser.forms(), include_subcontrols=True)
-        control, form = disambiguate(intermediate, msg, index,
-                                     control_form_tuple_repr,
-                                     available)
-        return controlFactory(control, form, self)
-
-    def _get_all_controls(self, label, name, forms, include_subcontrols=False):
-        onlyOne([label, name], '"label" and "name"')
-
-        forms = list(forms) # might be an iterator, and we need to iterate twice
-
-        available = None
-        if label is not None:
-            res = self._findByLabel(label, forms, include_subcontrols)
-            msg = 'label %r' % label
-        elif name is not None:
-            include_subcontrols = False
-            res = self._findByName(name, forms)
-            msg = 'name %r' % name
-        if not res:
-            available = list(self._findAllControls(forms, include_subcontrols))
-        return res, msg, available
-
-    def getForm(self, id=None, name=None, action=None, index=None):
-        zeroOrOne([id, name, action], '"id", "name", and "action"')
-
-        matching_forms = []
-        for form in self.mech_browser.forms():
-            if ((id is not None and form.attrs.get('id') == id)
-            or (name is not None and form.name == name)
-            or (action is not None and re.search(action, str(form.action)))
-            or id == name == action == None):
-                matching_forms.append(form)
-
-        if index is None and not any([id, name, action]):
-            if len(matching_forms) == 1:
-                index = 0
-            else:
-                raise ValueError(
-                    'if no other arguments are given, index is required.')
-
-        form = disambiguate(matching_forms, '', index)
-        self.mech_browser.form = form
-        return Form(self, form)
-
-    def _clickSubmit(self, form, control, coord):
-        labels = control.get_labels()
-        if labels:
-            label = labels[0].text
-        else:
-            label = None
-        try:
-            self._start_timer()
-            try:
-                self.mech_browser.form = form
-                self.mech_browser.submit(id=control.id, name=control.name,
-                                         label=label, coord=coord)
-            except Exception, e:
-                fix_exception_name(e)
-                raise
-        finally:
-            self._stop_timer()
-
-    def _changed(self):
-        self._counter += 1
-        self._contents = None
-
-
-class Link(SetattrErrorsMixin):
-    zope.interface.implements(zope.testbrowser.interfaces.ILink)
-
-    def __init__(self, link, browser):
-        self.mech_link = link
-        self.browser = browser
-        self._browser_counter = self.browser._counter
-        self._enable_setattr_errors = True
-
-    def click(self):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        self.browser._start_timer()
-        try:
-            try:
-                self.browser.mech_browser.follow_link(self.mech_link)
-            except Exception, e:
-                fix_exception_name(e)
-                raise
-        finally:
-            self.browser._stop_timer()
-            self.browser._changed()
-
-    @property
-    def url(self):
-        return self.mech_link.absolute_url
-
-    @property
-    def text(self):
-        return self.mech_link.text
-
-    @property
-    def tag(self):
-        return self.mech_link.tag
-
-    @property
-    def attrs(self):
-        return dict(self.mech_link.attrs)
-
-    def __repr__(self):
-        return "<%s text=%r url=%r>" % (
-            self.__class__.__name__, self.text, self.url)
-
-
-class Control(SetattrErrorsMixin):
-    """A control of a form."""
-    zope.interface.implements(zope.testbrowser.interfaces.IControl)
-
-    _enable_setattr_errors = False
-
-    def __init__(self, control, form, browser):
-        self.mech_control = control
-        self.mech_form = form
-        self.browser = browser
-        self._browser_counter = self.browser._counter
-
-        if self.mech_control.type == 'file':
-            self.filename = None
-            self.content_type = None
-
-        # for some reason mechanize thinks we shouldn't be able to modify
-        # hidden fields, but while testing it is sometimes very important
-        if self.mech_control.type == 'hidden':
-            self.mech_control.readonly = False
-
-        # disable addition of further attributes
-        self._enable_setattr_errors = True
-
-    @property
-    def disabled(self):
-        return bool(getattr(self.mech_control, 'disabled', False))
-
-    @property
-    def type(self):
-        return getattr(self.mech_control, 'type', None)
-
-    @property
-    def name(self):
-        return getattr(self.mech_control, 'name', None)
-
-    @property
-    def multiple(self):
-        return bool(getattr(self.mech_control, 'multiple', False))
-
-    @apply
-    def value():
-        """See zope.testbrowser.interfaces.IControl"""
-
-        def fget(self):
-            if (self.type == 'checkbox' and
-                len(self.mech_control.items) == 1 and
-                self.mech_control.items[0].name == 'on'):
-                return self.mech_control.items[0].selected
-            return self.mech_control.value
-
-        def fset(self, value):
-            if self._browser_counter != self.browser._counter:
-                raise zope.testbrowser.interfaces.ExpiredError
-            if self.mech_control.type == 'file':
-                self.mech_control.add_file(value,
-                                           content_type=self.content_type,
-                                           filename=self.filename)
-            elif self.type == 'checkbox' and len(self.mech_control.items) == 1:
-                self.mech_control.items[0].selected = bool(value)
-            else:
-                self.mech_control.value = value
-        return property(fget, fset)
-
-    def add_file(self, file, content_type, filename):
-        if not self.mech_control.type == 'file':
-            raise TypeError("Can't call add_file on %s controls"
-                            % self.mech_control.type)
-        if isinstance(file, str):
-            file = cStringIO.StringIO(file)
-        self.mech_control.add_file(file, content_type, filename)
+                response = self._history.pop()
+            except IndexError:
+                raise BrowserStateError("already at start of history")
+            n -= 1
+        return response
 
     def clear(self):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        self.mech_control.clear()
+        del self._history[:]
 
-    def __repr__(self):
-        return "<%s name=%r type=%r>" % (
-            self.__class__.__name__, self.name, self.type)
+class AmbiguityError(ValueError):
+    pass
 
+class BrowserStateError(Exception):
+    pass
 
-class ListControl(Control):
-    zope.interface.implements(zope.testbrowser.interfaces.IListControl)
-
-    @apply
-    def displayValue():
-        """See zope.testbrowser.interfaces.IListControl"""
-        # not implemented for anything other than select;
-        # would be nice if mechanize implemented for checkbox and radio.
-        # attribute error for all others.
-
-        def fget(self):
-            return self.mech_control.get_value_by_label()
-
-        def fset(self, value):
-            if self._browser_counter != self.browser._counter:
-                raise zope.testbrowser.interfaces.ExpiredError
-            self.mech_control.set_value_by_label(value)
-
-        return property(fget, fset)
-
-    @property
-    def displayOptions(self):
-        """See zope.testbrowser.interfaces.IListControl"""
-        res = []
-        for item in self.mech_control.items:
-            if not item.disabled:
-                for label in item.get_labels():
-                    if label.text:
-                        res.append(label.text)
-                        break
-                else:
-                    res.append(None)
-        return res
-
-    @property
-    def options(self):
-        """See zope.testbrowser.interfaces.IListControl"""
-        if (self.type == 'checkbox' and len(self.mech_control.items) == 1 and
-            self.mech_control.items[0].name == 'on'):
-            return [True]
-        return [i.name for i in self.mech_control.items if not i.disabled]
-
-    @property
-    def disabled(self):
-        if self.type == 'checkbox' and len(self.mech_control.items) == 1:
-            return bool(getattr(self.mech_control.items[0], 'disabled', False))
-        return bool(getattr(self.mech_control, 'disabled', False))
-
-    @property
-    def controls(self):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        res = [controlFactory(i, self.mech_form, self.browser) for i in
-                self.mech_control.items]
-        for s in res:
-            s.__dict__['control'] = self
-        return res
-
-    def getControl(self, label=None, value=None, index=None):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-
-        onlyOne([label, value], '"label" and "value"')
-
-        if label is not None:
-            options = self.mech_control.get_items(label=label)
-            msg = 'label %r' % label
-        elif value is not None:
-            options = self.mech_control.get_items(name=value)
-            msg = 'value %r' % value
-        res = controlFactory(
-            disambiguate(options, msg, index, control_form_tuple_repr),
-            self.mech_form, self.browser)
-        res.__dict__['control'] = self
-        return res
-
-
-class SubmitControl(Control):
-    zope.interface.implements(zope.testbrowser.interfaces.ISubmitControl)
-
-    def click(self):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        try:
-            self.browser._clickSubmit(self.mech_form, self.mech_control, (1,1))
-        finally:
-            self.browser._changed()
-
-
-class ImageControl(Control):
-    zope.interface.implements(zope.testbrowser.interfaces.IImageSubmitControl)
-
-    def click(self, coord=(1,1)):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        try:
-            self.browser._clickSubmit(self.mech_form, self.mech_control, coord)
-        finally:
-            self.browser._changed()
-
-
-class ItemControl(SetattrErrorsMixin):
-    zope.interface.implements(zope.testbrowser.interfaces.IItemControl)
-
-    def __init__(self, item, form, browser):
-        self.mech_item = item
-        self.mech_form = form
-        self.browser = browser
-        self._browser_counter = self.browser._counter
-        self._enable_setattr_errors = True
-
-    @property
-    def control(self):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        res = controlFactory(
-            self.mech_item._control, self.mech_form, self.browser)
-        self.__dict__['control'] = res
-        return res
-
-    @property
-    def disabled(self):
-        return self.mech_item.disabled
-
-    @apply
-    def selected():
-        """See zope.testbrowser.interfaces.IControl"""
-
-        def fget(self):
-            return self.mech_item.selected
-
-        def fset(self, value):
-            if self._browser_counter != self.browser._counter:
-                raise zope.testbrowser.interfaces.ExpiredError
-            self.mech_item.selected = value
-
-        return property(fget, fset)
-
-    @property
-    def optionValue(self):
-        return self.mech_item.attrs.get('value')
-
-    def click(self):
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        self.mech_item.selected = not self.mech_item.selected
-
-    def __repr__(self):
-        return "<%s name=%r type=%r optionValue=%r selected=%r>" % (
-            self.__class__.__name__, self.mech_item._control.name,
-            self.mech_item._control.type, self.optionValue, self.mech_item.selected)
-
-
-class Form(SetattrErrorsMixin):
-    """HTML Form"""
-    zope.interface.implements(zope.testbrowser.interfaces.IForm)
-
-    def __init__(self, browser, form):
-        """Initialize the Form
-
-        browser - a Browser instance
-        form - a mechanize.HTMLForm instance
-        """
-        self.browser = browser
-        self.mech_form = form
-        self._browser_counter = self.browser._counter
-        self._enable_setattr_errors = True
-
-    @property
-    def action(self):
-        return self.mech_form.action
-
-    @property
-    def method(self):
-        return self.mech_form.method
-
-    @property
-    def enctype(self):
-        return self.mech_form.enctype
-
-    @property
-    def name(self):
-        return self.mech_form.name
-
-    @property
-    def id(self):
-        """See zope.testbrowser.interfaces.IForm"""
-        return self.mech_form.attrs.get('id')
-
-    def submit(self, label=None, name=None, index=None, coord=(1,1)):
-        """See zope.testbrowser.interfaces.IForm"""
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        form = self.mech_form
-        try:
-            if label is not None or name is not None:
-                intermediate, msg, available = self.browser._get_all_controls(
-                    label, name, (form,))
-                intermediate = [
-                    (control, form) for (control, form) in intermediate if
-                    control.type in ('submit', 'submitbutton', 'image')]
-                control, form = disambiguate(intermediate, msg, index,
-                                             control_form_tuple_repr,
-                                             available)
-                self.browser._clickSubmit(form, control, coord)
-            else: # JavaScript sort of submit
-                if index is not None or coord != (1,1):
-                    raise ValueError(
-                        'May not use index or coord without a control')
-                request = self.mech_form._switch_click("request", mechanize.Request)
-                self.browser._start_timer()
-                try:
-                    try:
-                        self.browser.mech_browser.open(request)
-                    except mechanize.HTTPError, e:
-                        if self.browser.raiseHttpErrors:
-                            fix_exception_name(e)
-                            raise
-                    except Exception, e:
-                        fix_exception_name(e)
-                        raise
-                finally:
-                    self.browser._stop_timer()
-        finally:
-            self.browser._changed()
-
-    def getControl(self, label=None, name=None, index=None):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        if self._browser_counter != self.browser._counter:
-            raise zope.testbrowser.interfaces.ExpiredError
-        intermediate, msg, available = self.browser._get_all_controls(
-            label, name, (self.mech_form,), include_subcontrols=True)
-        control, form = disambiguate(intermediate, msg, index,
-                                     control_form_tuple_repr,
-                                     available)
-        return controlFactory(control, form, self.browser)
+class LinkNotFoundError(IndexError):
+    pass

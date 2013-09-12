@@ -20,6 +20,8 @@ from datetime import datetime
 
 from webob import Request, Response
 
+from zope.testbrowser._compat import html_escape
+
 class NotFound(Exception):
     pass
 
@@ -27,13 +29,17 @@ _HERE = os.path.dirname(__file__)
 
 class WSGITestApplication(object):
 
+    def __init__(self):
+        self.request_log = []
+
     def __call__(self, environ, start_response):
         req = Request(environ)
+        self.request_log.append(req)
         handler = {'/set_status.html': set_status,
                    '/echo.html': echo,
+                   '/echo_one.html': echo_one,
                    '/redirect.html': redirect,
                    '/@@/testbrowser/forms.html': forms,
-                   '/echo_one.html': echo_one,
                    '/set_header.html': set_header,
                    '/set_cookie.html': set_cookie,
                    '/get_cookie.html': get_cookie,
@@ -48,7 +54,7 @@ class WSGITestApplication(object):
             handler = handle_notfound
         try:
             resp = handler(req)
-        except Exception, exc:
+        except Exception as exc:
             if not environ.get('wsgi.handleErrors', True):
                 raise
             resp = Response()
@@ -68,20 +74,23 @@ class ParamsWrapper(object):
 
     def __getitem__(self, key):
         if key in self.params:
-            return cgi.escape(self.params[key])
+            return html_escape(self.params[key])
         return ''
 
 def handle_resource(req, extra=None):
     filename = req.path_info.split('/')[-1]
     type, _ = mimetypes.guess_type(filename)
     path = os.path.join(_HERE, filename)
-    contents = open(path, 'r').read()
+    with open(path, 'rb') as f:
+        contents = f.read()
     if type == 'text/html':
         params = {}
         params.update(req.params)
         if extra is not None:
             params.update(extra)
+        contents = contents.decode('latin1')
         contents = contents % ParamsWrapper(params)
+        contents = contents.encode('latin1')
     return Response(contents, content_type=type)
 
 def forms(req):
@@ -132,12 +141,12 @@ def echo(req):
         if v is None:
             continue
         items.append('%s: %s' % (k, v))
-    items.extend('%s: %s' % x for x in sorted(req.params.items())) 
+    items.extend('%s: %s' % x for x in sorted(req.params.items()))
     if req.method == 'POST' and req.content_type == 'application/x-www-form-urlencoded':
-        body = ''
+        body = b''
     else:
         body = req.body
-    items.append('Body: %r' % body)
+    items.append("Body: '%s'" % body.decode('utf8'))
     return Response('\n'.join(items))
 
 def redirect(req):

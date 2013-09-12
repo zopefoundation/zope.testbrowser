@@ -310,14 +310,14 @@ class IListControl(IControl):
         required=True)
 
     displayOptions = zope.schema.List(
-        # TODO: currently only implemented for select by mechanize
+        # TODO: currently only implemented for select
         title=u"Options",
         description=u"""\
         A list of possible display values for the control.""",
         required=True)
 
     displayValue = zope.schema.Field(
-        # TODO: currently only implemented for select by mechanize
+        # TODO: currently only implemented for select
         title=u"Value",
         description=u"The value of the control, as rendered by the display",
         default=None,

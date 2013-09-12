@@ -12,30 +12,32 @@
 #
 ##############################################################################
 
-import Cookie
 import datetime
 import time
 import urllib
-import urlparse
-import UserDict
 
-import mechanize
+from zope.testbrowser._compat import (httpcookies, urlparse, url_quote,
+                                      MutableMapping, urllib_request)
+import six
 import pytz
 import zope.interface
-from zope.testbrowser import interfaces
+from zope.testbrowser import interfaces, utils
 
 # Cookies class helpers
 
+class BrowserStateError(Exception): pass
 
 class _StubHTTPMessage(object):
     def __init__(self, cookies):
         self._cookies = cookies
 
-    def getheaders(self, name):
+    def getheaders(self, name, default=[]):
         if name.lower() != 'set-cookie':
-            return []
+            return default
         else:
             return self._cookies
+
+    get_all = getheaders
 
 
 class _StubResponse(object):
@@ -62,25 +64,20 @@ if getattr(property, 'setter', None) is None:
 # end Cookies class helpers
 
 
-class Cookies(object, UserDict.DictMixin):
-    """Cookies for mechanize browser.
+@zope.interface.implementer(interfaces.ICookies)
+class Cookies(MutableMapping):
+    """Cookies for testbrowser.
     """
 
-    zope.interface.implements(interfaces.ICookies)
-
-    def __init__(self, mech_browser, url=None):
-        self.mech_browser = mech_browser
+    def __init__(self, testapp, url=None, req_headers=None):
+        self.testapp = testapp
         self._url = url
-        for handler in self.mech_browser.handlers:
-            if getattr(handler, 'cookiejar', None) is not None:
-                self._jar = handler.cookiejar
-                break
-        else:
-            raise RuntimeError('no cookiejar found')
+        self._jar = testapp.cookiejar
+        self._req_headers = req_headers if req_headers is not None else {}
 
     @property
     def strict_domain_policy(self):
-        policy = self._jar.get_policy()
+        policy = self._jar._policy
         flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
                  policy.DomainStrictNonDomain)
         return policy.strict_ns_domain & flags == flags
@@ -88,7 +85,7 @@ class Cookies(object, UserDict.DictMixin):
     @strict_domain_policy.setter
     def strict_domain_policy(self, value):
         jar = self._jar
-        policy = jar.get_policy()
+        policy = jar._policy
         flags = (policy.DomainStrictNoDots | policy.DomainRFC2965Match |
                  policy.DomainStrictNonDomain)
         policy.strict_ns_domain |= flags
@@ -96,30 +93,28 @@ class Cookies(object, UserDict.DictMixin):
             policy.strict_ns_domain  ^= flags
 
     def forURL(self, url):
-        return self.__class__(self.mech_browser, url)
+        return self.__class__(self.testapp, url)
 
     @property
     def url(self):
-        if self._url is not None:
-            return self._url
-        else:
-            return self.mech_browser.geturl()
+        return self._url
 
     @property
     def _request(self):
-        if self._url is not None:
-            return self.mech_browser.request_class(self._url)
-        else:
-            request = self.mech_browser.request
-            if request is None:
-                raise RuntimeError('no request found')
-            return request
+        return urllib_request.Request(self._url)
 
     @property
     def header(self):
-        request = self.mech_browser.request_class(self.url)
+        request = self._request
         self._jar.add_cookie_header(request)
-        return request.get_header('Cookie')
+
+        if not request.has_header('Cookie'):
+            return ''
+
+        hdr = request.get_header('Cookie')
+        # We need a predictable order of cookies for tests, so we reparse and
+        # sort the header here.
+        return '; '.join(sorted(hdr.split('; ')))
 
     def __str__(self):
         return self.header
@@ -131,7 +126,17 @@ class Cookies(object, UserDict.DictMixin):
             id(self), self.url, self.header)
 
     def _raw_cookies(self):
-        return self._jar.cookies_for_request(self._request)
+        # We are using protected cookielib _cookies_for_request() here to avoid
+        # code duplication.
+
+        # Comply with cookielib internal protocol
+        self._jar._policy._now = self._jar._now = int(time.time())
+        cookies = self._jar._cookies_for_request(self._request)
+
+        # Sort cookies so that the longer paths would come first. This allows
+        # masking parent cookies.
+        cookies.sort(key=lambda c: (len(c.path), len(c.domain)), reverse=True)
+        return cookies
 
     def _get_cookies(self, key=None):
         if key is None:
@@ -267,7 +272,7 @@ class Cookies(object, UserDict.DictMixin):
         tmp_domain = domain
         if domain is not None and domain.startswith('.'):
             tmp_domain = domain[1:]
-        self_host = mechanize.effective_request_host(self._request)
+        self_host = utils.effective_request_host(self._request)
         if (self_host != tmp_domain and
             not self_host.endswith('.' + tmp_domain)):
             raise ValueError('current url must match given domain')
@@ -288,9 +293,10 @@ class Cookies(object, UserDict.DictMixin):
 
     def _setCookie(self, name, value, domain, expires, path, secure, comment,
                    commenturl, port, version=None, ck=None, now=None):
-        for nm, val in self.mech_browser.addheaders:
+        for nm, val in self._req_headers.items():
             if nm.lower() in ('cookie', 'cookie2'):
                 raise ValueError('cookies are already set in `Cookie` header')
+
         if domain and not domain.startswith('.'):
             # we do a dance here so that we keep names that have been passed
             # in consistent (i.e., if we get an explicit 'example.com' it stays
@@ -302,15 +308,17 @@ class Cookies(object, UserDict.DictMixin):
             else:
                 protocol = 'http'
             url = '%s://%s%s' % (protocol, tmp_domain, path or '/')
-            request = self.mech_browser.request_class(url)
+            request = urllib_request.Request(url)
         else:
             request = self._request
             if request is None:
-                raise mechanize.BrowserStateError(
+                # TODO: fix exception
+                raise BrowserStateError(
                     'cannot create cookie without request or domain')
-        c = Cookie.SimpleCookie()
+        c = httpcookies.SimpleCookie()
         name = str(name)
-        c[name] = value.encode('utf8')
+        # Cookie value must be native string
+        c[name] = value.encode('utf8') if not six.PY3 else value
         if secure:
             c[name]['secure'] = True
         if domain:
@@ -320,7 +328,7 @@ class Cookies(object, UserDict.DictMixin):
         if expires:
             c[name]['expires'] = expiration_string(expires)
         if comment:
-            c[name]['comment'] = urllib.quote(
+            c[name]['comment'] = url_quote(
                 comment.encode('utf-8'), safe="/?:@&+")
         if port:
             c[name]['port'] = port
@@ -337,7 +345,7 @@ class Cookies(object, UserDict.DictMixin):
         policy = self._jar._policy
         if now is None:
             now = int(time.time())
-        policy._now = self._jar._now = now # TODO get mechanize to expose this
+        policy._now = self._jar._now = now
         if not policy.set_ok(cookies[0], request):
             raise ValueError('policy does not allow this cookie')
         if ck is not None:
@@ -359,9 +367,9 @@ class Cookies(object, UserDict.DictMixin):
                     return True
             elif value <= dnow:
                 return True
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             if datetime.datetime.fromtimestamp(
-                mechanize.str2time(value),
+                utils.http2time(value),
                 pytz.UTC) <= dnow:
                 return True
         return False
@@ -377,3 +385,20 @@ class Cookies(object, UserDict.DictMixin):
 
     def clearAll(self):
         self._jar.clear()
+
+    def pop(self, k, *args):
+        """See zope.interface.common.mapping.IExtendedWriteMapping
+        """
+        # Python3' MutableMapping doesn't offer pop() with variable arguments,
+        # so we are reimplementing it here as defined in IExtendedWriteMapping
+        super(Cookies, self).pop(k, *args)
+
+    def itervalues(self):
+        # Method, missing in Py3' MutableMapping, but required by
+        # IIterableMapping
+        return self.values()
+
+    def iterkeys(self):
+        # Method, missing in Py3' MutableMapping, but required by
+        # IIterableMapping
+        return self.keys()

@@ -2,10 +2,19 @@
 CHANGES
 =======
 
-4.0.4 (unreleased)
+4.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Internal implementation now uses WebTest instead of mechanize. Mechanize
+  dependency is completely dropped.
+
+- Dropped the 'WebTest <= 1.3.4' pin.  We require WebTest >= 2.0.6 now.
+
+- Removed support for Python 2.5
+
+- Added support for Python 3.3
+
+- Removed dependency on deprecated zope.app.testing
 
 
 4.0.3 (2013-09-04)

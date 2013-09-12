@@ -2,6 +2,7 @@ include *.py
 include *.rst
 include .travis.yml
 include tox.ini
+include bootstrap.py
 include buildout.cfg
 recursive-include src *.gif
 recursive-include src *.html
