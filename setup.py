@@ -23,13 +23,13 @@ long_description = (
     + open(os.path.join('src', 'zope', 'testbrowser', 'README.txt')).read()
     + '\n\n'
     + open('CHANGES.rst').read()
-    )
+)
 
 tests_require = ['zope.testing']
 
 setup(
     name='zope.testbrowser',
-    version='4.1.0.dev0',
+    version='5.0.0.dev0',
     url='http://pypi.python.org/pypi/zope.testbrowser',
     license='ZPL 2.1',
     description='Programmable browser for functional black-box tests',
@@ -45,11 +45,11 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Testing',
         'Topic :: Internet :: WWW/HTTP',
-        ],
+    ],
 
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    namespace_packages=['zope',],
+    namespace_packages=['zope'],
     test_suite='zope.testbrowser.tests',
     tests_require=tests_require,
     install_requires=[
@@ -61,16 +61,16 @@ setup(
         'WebTest >= 2.0.6',
         'WSGIProxy2',
         'six',
-        ],
+    ],
     extras_require={
         'test': tests_require,
         'test_bbb': [
             'zope.testbrowser [test]',
-            ],
+        ],
         'wsgi': [
-                 # BBB
-            ]
-        },
+            # BBB
+        ]
+    },
     include_package_data=True,
     zip_safe=False,
-    )
+)

@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-4.1.0 (unreleased)
+5.0.0 (unreleased)
 ------------------
 
 - Internal implementation now uses WebTest instead of mechanize. Mechanize
