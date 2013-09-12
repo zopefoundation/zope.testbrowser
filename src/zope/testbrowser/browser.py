@@ -666,9 +666,6 @@ class Control(SetattrErrorsMixin):
         val = self._control.value
         if val is None:
             return None
-        # Remove first newline character
-        if val.startswith('\n'):
-            val = val[1:]
 
         return self.browser.toStr(val)
 
