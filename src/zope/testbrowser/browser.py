@@ -688,10 +688,10 @@ class Control(SetattrErrorsMixin):
         else:
             contents = file
 
-        # XXX: webtest relies on mimetypes.guess_type to get mime type of
+        # XXX: WebTest relies on mimetypes.guess_type to get mime type of
         # upload file and doesn't let to set it explicitly, so we are ignoring
         # content_type parameter here. If it is still unacceptable, consider
-        # using mock.object to force mimetypes to return "right" type.
+        # submitting a WebTest bug asking for this.
         self._form[self.name] = webtest.forms.Upload(filename or '', contents)
 
     def clear(self):
