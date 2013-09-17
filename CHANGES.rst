@@ -8,7 +8,7 @@ CHANGES
 - Internal implementation now uses WebTest instead of mechanize. Mechanize
   dependency is completely dropped.
 
-- Dropped the 'WebTest <= 1.3.4' pin.  We require WebTest >= 2.0.6 now.
+- Dropped the 'WebTest <= 1.3.4' pin.  We require WebTest >= 2.0.8 now.
 
 - Removed support for Python 2.5
 
