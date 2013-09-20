@@ -347,7 +347,7 @@ def test_file_upload():
     POST / HTTP/1.1
     ...
     Content-Disposition: form-data; name="foo"; filename="x.txt"
-    Content-Type: text/plain
+    Content-Type: text/foo
     <BLANKLINE>
     sample_data
     ...
