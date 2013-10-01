@@ -914,7 +914,7 @@ def test_links_without_href(self):
     """
     >>> app = TestApp()
     >>> browser = Browser(wsgi_app=app)
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ... <a href="/foo">Foo</a>
     ... <a>Missing href</a>
@@ -932,7 +932,7 @@ def test_controls_without_value(self):
     """
     >>> app = TestApp()
     >>> browser = Browser(wsgi_app=app)
-    >>> app.set_next_response('''\
+    >>> app.set_next_response(b'''\
     ... <html><body>
     ... <form action="." method="post">
     ... <label for="foo-field">Foo Label</label>
