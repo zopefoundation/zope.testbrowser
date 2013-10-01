@@ -36,14 +36,10 @@ applications. It can be imported from ``zope.testbrowser.wsgi``:
 
 .. _`WebTest`: http://pypi.python.org/pypi/WebTest
 
-To use this browser you have to:
-
-  * use the `wsgi` extra of the ``zope.testbrowser`` egg,
-
-You can also use it with zope layers by:
+You can also use it with zope layers if you
 
   * write a subclass of ``zope.testbrowser.wsgi.Layer`` and override the
-    ``make_wsgi_app`` method,
+    ``make_wsgi_app`` method, then
 
   * use an instance of the class as the test layer of your test.
 
@@ -1312,9 +1308,9 @@ disambiguate if no other arguments are provided:
 Submitting a posts body directly
 --------------------------------
 
-In addition to the open method, zope.testbrowser.testing.Browser has a ``post``
+In addition to the open method, Browser has a ``post``
 method that allows a request body to be supplied.  This method is particularly
-helpful when testing Ajax methods.
+helpful when testing AJAX methods.
 
 Let's visit a page that echos some interesting values from it's request:
 

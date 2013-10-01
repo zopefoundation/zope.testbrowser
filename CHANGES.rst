@@ -5,14 +5,80 @@ CHANGES
 5.0.0 (unreleased)
 ------------------
 
-- Internal implementation now uses WebTest instead of mechanize. Mechanize
-  dependency is completely dropped.
+- Internal implementation now uses WebTest instead of mechanize.  The mechanize
+  dependency is completely dropped.  **This is a backwards-incompatible
+  change.**
 
-- Dropped the 'WebTest <= 1.3.4' pin.  We require WebTest >= 2.0.8 now.
+  Removed APIs:
+
+  - zope.testbrowser.testing: Browser (this is a big one).
+
+    Instead of using ``zope.testbrowser.testing.Browser()`` and relying on it to
+    magically pick up the ``zope.app.testing.functional`` singleton application,
+    you now have to define a test layer inheriting from
+    ``zope.testbrowser.wsgi.Layer``, overrride the ``make_wsgi_app`` method to
+    create a WSGI application, and then use ``zope.testbrowser.wsgi.Browser()``
+    in your tests.
+
+    (Or you can set up a WSGI application yourself in whatever way you like and
+    pass it explicitly to ``zope.testbrowser.browser.Browser(wsgi_app=my_app)``.)
+
+    Example: if your test file looked like this ::
+
+        # my/package/tests/test_all.py
+        from zope.app.testing.functional import defineLayer, FunctionalDocFileSuite
+        defineLayer('MyFtestLayer', 'ftesting.zcml', allow_teardown=True)
+
+        def test_suite():
+            suite = FunctionalDocFileSuite('test.txt', ...)
+            suite.layer = MyFtestLayer
+            return suite
+
+    now you'll have to use ::
+
+        # my/package/tests/test_all.py
+        import doctest
+        from zope.app.wsgi.testlayer import BrowserLayer
+        import my.package.tests
+
+        MyFtestLayer = BrowserLayer(my.package.tests, 'ftesting.zcml')
+
+        def test_suite():
+            suite = doctest.DocFileSuite('test.txt', ...)
+            suite.layer = MyFtestLayer
+            return suite
+
+    and then change all your tests from ::
+
+        >>> from zope.testbrowser.testing import Browser
+
+    to ::
+
+        >>> from zope.testbrowser.wsgi import Browser
+
+  Removed internal classes you were not supposed to use anyway:
+
+  - zope.testbrowser.connection: Response, HTTPHandler, MechanizeBrowser and
+    the entire file actually
+  - zope.testbrowser.testing: PublisherResponse, PublisherConnection,
+    PublisherHTTPHandler, PublisherMechanizeBrowser.
+  - zope.testbrowser.wsgi: WSGIConnection, WSGIHTTPHandler,
+    WSGIMechanizeBrowser
+
+  Removed internal attributes you were not supposed to use anyway:
+
+  - Browser._mech_browser
+  - this list is not necessarily complete
+
+  Removed setuptools extras:
+
+  - ``zope.testbrowser[zope-functional-testing]``
+
+- Added support for Python 3.3
 
 - Removed support for Python 2.5
 
-- Added support for Python 3.3
+- Dropped the 'WebTest <= 1.3.4' pin.  We require WebTest >= 2.0.8 now.
 
 - Removed dependency on deprecated zope.app.testing
 
