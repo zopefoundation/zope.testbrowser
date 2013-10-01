@@ -16,6 +16,22 @@
 
 from wsgiref.simple_server import demo_app as wsgiref_demo_app
 
+
+class Browser(object):
+    """zope.testbrowser.testing.Browser is no longer supported.
+
+    Please use zope.testbrowser.wsgi.Browser() in conjuction with
+    zope.app.wsgi.testlayer.BrowserLayer(), or some other custom test layer
+    that inherits from zope.testbrowser.wsgi.Layer.
+
+    Alternatively pin zope.testbrowser version to < 5.0.0 if you don't care
+    for Python 3 support and don't have the time to update your tests now.
+    """
+
+    def __init__(self, *args, **kw):
+        raise NotImplementedError(self.__doc__)
+
+
 def demo_app(environ, start_response):
     """PEP-3333 compatible demo app, that will never return unicode
     """
