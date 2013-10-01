@@ -16,6 +16,9 @@ CHANGES
 
 - Removed dependency on deprecated zope.app.testing
 
+- Bugfix: browser.getLink() could fail if your HTML contained <a> elements with
+  no href attribute (https://github.com/zopefoundation/zope.testbrowser/pull/3).
+
 
 4.0.3 (2013-09-04)
 ------------------
