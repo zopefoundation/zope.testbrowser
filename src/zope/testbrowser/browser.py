@@ -310,7 +310,7 @@ class Browser(SetattrErrorsMixin):
         matching = []
         for elem in links:
             matches = (isMatching(elem.text, text) and
-                       isMatching(elem.get('href'), url))
+                       isMatching(elem.get('href', ''), url))
 
             if matches:
                 matching.append(elem)

@@ -910,6 +910,45 @@ def test_post_encoding_doesnt_leak_between_requests(self):
 """
 
 
+def test_links_without_href(self):
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response('''\
+    ... <html><body>
+    ... <a href="/foo">Foo</a>
+    ... <a>Missing href</a>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> browser.getLink(url='/foo').url
+    'http://localhost/foo'
+    """
+
+
+def test_controls_without_value(self):
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response('''\
+    ... <html><body>
+    ... <form action="." method="post">
+    ... <label for="foo-field">Foo Label</label>
+    ... <input type="text" id="foo-field" value="Foo"/>
+    ... <button type="submit">Submit</button>
+    ... </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> browser.getControl('Foo Label').value
+    'Foo'
+    """
+
+
 def test_suite():
     return doctest.DocTestSuite(
         checker=zope.testbrowser.tests.helper.checker,
