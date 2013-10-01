@@ -16,9 +16,5 @@ import unittest
 class TestZopeAppTesting(unittest.TestCase):
 
     def test_import(self):
-        try:
-            import zope.app.testing
-        except ImportError:
-            return
         from zope.testbrowser.testing import Browser
-        browser = Browser()
+        self.assertRaises(NotImplementedError, Browser)
