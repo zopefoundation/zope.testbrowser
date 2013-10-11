@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-4.0.4 (unreleased)
+4.0.4 (2013-10-11)
 ------------------
 
 - Removed the 'WebTest <= 1.3.4' version pin, fixed tests to work with modern
