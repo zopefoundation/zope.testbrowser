@@ -5,7 +5,9 @@ CHANGES
 4.0.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Removed the 'WebTest <= 1.3.4' version pin, fixed tests to work with modern
+  WebTest versions
+  (https://github.com/zopefoundation/zope.testbrowser/issues/10).
 
 
 4.0.3 (2013-09-04)

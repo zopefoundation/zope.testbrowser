@@ -14,10 +14,25 @@
 
 import unittest
 from urllib import urlencode
-from wsgiref.simple_server import demo_app
 
 import zope.testbrowser.wsgi
 from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
+
+
+def demo_app(environ, start_response):
+    # Based on wsgiref.simple_server.demo_app, except it doesn't
+    # emit unicode in the response stream even if WSGI environ contains
+    # unicode keys.  Fixes GH#10.
+    from StringIO import StringIO
+    stdout = StringIO()
+    print >> stdout, "Hello world!"
+    print >> stdout
+    h = environ.items()
+    h.sort()
+    for k, v in h:
+        print >> stdout, str(k), '=', repr(v)
+    start_response("200 OK", [('Content-Type', 'text/plain')])
+    return [stdout.getvalue()]
 
 
 class SimpleLayer(zope.testbrowser.wsgi.Layer):

@@ -28,7 +28,7 @@ There is also a special version of the ``Browser`` class which uses
 applications. It can be imported from ``zope.testbrowser.wsgi``:
 
     >>> from zope.testbrowser.wsgi import Browser
-    >>> from wsgiref.simple_server import demo_app
+    >>> from zope.testbrowser.tests.test_wsgi import demo_app
     >>> browser = Browser('http://localhost/', wsgi_app=demo_app)
     >>> print browser.contents
     Hello world!
