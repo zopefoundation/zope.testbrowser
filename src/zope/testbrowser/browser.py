@@ -767,8 +767,10 @@ class ListControl(Control):
         v = control.value
         if v:
             control.value = v
-            # Uncheck all the options
-            control.options = [(o, False) for o, checked in control.options]
+            # Uncheck all the options   Carefully: WebTest used to have
+            # 2-tuples here before commit 1031d82e, and 3-tuples since then.
+            control.options = [option[:1] + (False,) + option[2:]
+                               for option in control.options]
 
     @property
     def type(self):
