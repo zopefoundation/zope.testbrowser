@@ -22,8 +22,6 @@ def test_suite():
     flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
 
     suite = doctest.DocFileSuite(
-        'README.txt',
-        'cookies.txt',
         'fixed-bugs.txt',
         optionflags=flags,
         checker=zope.testbrowser.tests.helper.checker,

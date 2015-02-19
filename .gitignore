@@ -12,3 +12,4 @@ coverage
 develop-eggs
 parts
 dist
+docs/_build

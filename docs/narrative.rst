@@ -1,6 +1,5 @@
-======================
-Detailed Documentation
-======================
+Using :mod:`zope.testbrowser`
+=============================
 
 Different Browsers
 ------------------
@@ -10,6 +9,8 @@ HTTP Browser
 
 The ``zope.testbrowser.browser`` module exposes a ``Browser`` class that
 simulates a web browser similar to Mozilla Firefox or IE.
+
+.. doctest::
 
     >>> from zope.testbrowser.browser import Browser
     >>> browser = Browser()
@@ -26,6 +27,8 @@ General usage
 There is also a special version of the ``Browser`` class which uses
 `WebTest`_ and can be used to do functional testing of WSGI
 applications. It can be imported from ``zope.testbrowser.wsgi``:
+
+.. doctest::
 
     >>> from zope.testbrowser.wsgi import Browser
     >>> from zope.testbrowser.testing import demo_app
@@ -45,6 +48,8 @@ You can also use it with zope layers if you
 
 Example:
 
+.. doctest::
+
     >>> import zope.testbrowser.wsgi
     >>> class SimpleLayer(zope.testbrowser.wsgi.Layer):
     ...     def make_wsgi_app(self):
@@ -63,6 +68,8 @@ middleware handles this for you.
 
 Example when using the layer:
 
+.. doctest::
+
     >>> import zope.testbrowser.wsgi
     >>> class ZopeSimpleLayer(zope.testbrowser.wsgi.Layer):
     ...     def make_wsgi_app(self):
@@ -80,10 +87,14 @@ Bowser Usage
 
 We will test this browser against a WSGI test application:
 
+.. doctest::
+
     >>> from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
     >>> wsgi_app = WSGITestApplication()
 
 An initial page to load can be passed to the ``Browser`` constructor:
+
+.. doctest::
 
     >>> browser = Browser('http://localhost/@@/testbrowser/simple.html', wsgi_app=wsgi_app)
     >>> browser.url
@@ -94,10 +105,14 @@ The browser can send arbitrary headers; this is helpful for setting the
 the way you expect in your tests, if you rely on zope.i18n locale-based
 formatting or a similar approach.
 
+.. doctest::
+
     >>> browser.addHeader('Authorization', 'Basic mgr:mgrpw')
     >>> browser.addHeader('Accept-Language', 'en-US')
 
 An existing browser instance can also `open` web pages:
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
@@ -110,6 +125,8 @@ below), except in unusual circumstances.
 The test browser complies with the IBrowser interface; see
 ``zope.testbrowser.interfaces`` for full details on the interface.
 
+.. doctest::
+
     >>> from zope.testbrowser import interfaces
     >>> from zope.interface.verify import verifyObject
     >>> verifyObject(interfaces.IBrowser, browser)
@@ -120,6 +137,9 @@ Page Contents
 -------------
 
 The contents of the current page are available:
+
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
 
     >>> print(browser.contents)
     <html>
@@ -133,10 +153,14 @@ The contents of the current page are available:
 
 Making assertions about page contents is easy.
 
+.. doctest::
+
     >>> '<h1>Simple Page</h1>' in browser.contents
     True
 
 Utilizing the doctest facilities, it also possible to do:
+
+.. doctest::
 
     >>> browser.contents
     '...<h1>Simple Page</h1>...'
@@ -151,11 +175,15 @@ Checking for HTML
 
 Not all URLs return HTML.  Of course our simple page does:
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.isHtml
     True
 
 But if we load an image (or other binary file), we do not get HTML:
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/zope3logo.gif')
     >>> browser.isHtml
@@ -168,17 +196,23 @@ HTML Page Title
 
 Another useful helper property is the title:
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.title
     'Simple Page'
 
 If a page does not provide a title, it is simply ``None``:
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/notitle.html')
     >>> browser.title
 
 However, if the output is not HTML, then an error will occur trying to access
 the title:
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/zope3logo.gif')
     >>> browser.title
@@ -195,21 +229,27 @@ headers.  The headers are accessible via a separate attribute, which is an
 ``httplib.HTTPMessage`` instance (httplib is a part of Python's standard
 library):
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.headers
     <httplib.HTTPMessage instance...>
 
 The headers can be accessed as a string:
 
+.. doctest::
+
     >>> print(browser.headers)
     Status: 200 OK
-    Content-Length: 123
-    Content-Type: text/html;charset=utf-8
+    Content-Length: 109
+    Content-Type: text/html; charset=UTF-8
 
 Or as a mapping:
 
+.. doctest::
+
     >>> browser.headers['content-type']
-    'text/html;charset=utf-8'
+    'text/html; charset=UTF-8'
 
 
 Cookies
@@ -219,6 +259,8 @@ When a Set-Cookie header is available, it can be found in the headers, as seen
 above.  Here, we use a view that will make the server set cookies with the
 values we provide.
 
+.. doctest::
+
     >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
     >>> browser.headers['set-cookie'].replace(';', '')
     'foo=bar'
@@ -227,6 +269,8 @@ It is also available in the browser's ``cookies`` attribute.  This is
 an extended mapping interface that allows getting, setting, and deleting the
 cookies that the browser is remembering *for the current url*.  Here are
 a few examples.
+
+.. doctest::
 
     >>> browser.cookies['foo']
     'bar'
@@ -276,20 +320,25 @@ The simplest way to get a link is via the anchor text.  In other words
 the text you would see in a browser (text and url searches are substring
 searches):
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
     '...<a href="navigate.html?message=By+Link+Text">Link Text</a>...'
     >>> link = browser.getLink('Link Text')
     >>> link
-    <Link text='Link Text'
-      url='http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'>
+    <Link text='Link Text' url='http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'>
 
 Link objects comply with the ILink interface.
+
+.. doctest::
 
     >>> verifyObject(interfaces.ILink, link)
     True
 
 Links expose several attributes for easy access.
+
+.. doctest::
 
     >>> link.text
     'Link Text'
@@ -302,6 +351,8 @@ Links expose several attributes for easy access.
 
 Links can be "clicked" and the browser will navigate to the referenced URL.
 
+.. doctest::
+
     >>> link.click()
     >>> browser.url
     'http://localhost/@@/testbrowser/navigate.html?message=By+Link+Text'
@@ -309,6 +360,8 @@ Links can be "clicked" and the browser will navigate to the referenced URL.
     '...Message: <em>By Link Text</em>...'
 
 When finding a link by its text, whitespace is normalized.
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
@@ -329,6 +382,8 @@ When a link text matches more than one link, by default the first one is
 chosen. You can, however, specify the index of the link and thus retrieve a
 later matching link:
 
+.. doctest::
+
     >>> browser.getLink('Link Text')
     <Link text='Link Text' ...>
 
@@ -338,12 +393,16 @@ later matching link:
 Note that clicking a link object after its browser page has expired will
 generate an error.
 
+.. doctest::
+
     >>> link.click()
     Traceback (most recent call last):
     ...
     ExpiredError
 
 You can also find the link by its URL,
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
@@ -357,10 +416,11 @@ You can also find the link by its URL,
 
 or its id:
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
-    '...<a href="navigate.html?message=By+Id"
-    id="anchorid">By Anchor Id</a>...'
+    '...<a href="navigate.html?message=By+Id" id="anchorid">By Anchor Id</a>...'
 
     >>> browser.getLink(id='anchorid').click()
     >>> browser.url
@@ -371,6 +431,8 @@ or its id:
 You thought we were done here? Not so quickly.  The `getLink` method also
 supports image maps, though not by specifying the coordinates, but using the
 area's id:
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> link = browser.getLink(id='zope3')
@@ -384,6 +446,8 @@ area's id:
 
 Getting a nonexistent link raises an exception.
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.getLink('This does not exist')
     Traceback (most recent call last):
@@ -393,6 +457,8 @@ Getting a nonexistent link raises an exception.
 A convenience method is provided to follow links; this uses the same
 arguments as `getLink`, but clicks on the link instead of returning the
 link object.
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents
@@ -420,6 +486,8 @@ link object.
 Attempting to follow links that don't exist raises the same exception as
 asking for the link object:
 
+.. doctest::
+
     >>> browser.follow('This does not exist')
     Traceback (most recent call last):
     ...
@@ -431,6 +499,8 @@ Other Navigation
 
 Like in any normal browser, you can reload a page:
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.url
     'http://localhost/@@/testbrowser/simple.html'
@@ -439,6 +509,8 @@ Like in any normal browser, you can reload a page:
     'http://localhost/@@/testbrowser/simple.html'
 
 You can also go back:
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/notitle.html')
     >>> browser.url
@@ -455,6 +527,8 @@ One of the most important features of the browser is the ability to inspect
 and fill in values for the controls of input forms.  To do so, let's first open
 a page that has a bunch of controls:
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
 
 
@@ -465,6 +539,8 @@ You look up browser controls with the 'getControl' method.  The default first
 argument is 'label', and looks up the form on the basis of any associated
 label.
 
+.. doctest::
+
     >>> control = browser.getControl('Text Control')
     >>> control
     <Control name='text-value' type='text'>
@@ -472,6 +548,8 @@ label.
     <Control name='text-value' type='text'>
 
 If you request a control that doesn't exist, the code raises a LookupError:
+
+.. doctest::
 
     >>> browser.getControl('Does Not Exist')
     Traceback (most recent call last):
@@ -486,6 +564,8 @@ If you request a control that doesn't exist, the code raises a LookupError:
 If you request a control with an ambiguous lookup, the code raises an
 AmbiguityError.
 
+.. doctest::
+
     >>> browser.getControl('Ambiguous Control')
     Traceback (most recent call last):
     ...
@@ -495,6 +575,8 @@ AmbiguityError.
 
 This is also true if an option in a control is ambiguous in relation to
 the control itself.
+
+.. doctest::
 
     >>> browser.getControl('Sub-control Ambiguity')
     Traceback (most recent call last):
@@ -506,6 +588,8 @@ the control itself.
 Ambiguous controls may be specified using an index value.  We use the control's
 value attribute to show the two controls; this attribute is properly introduced
 below.
+
+.. doctest::
 
     >>> browser.getControl('Ambiguous Control', index=0)
     <Control name='ambiguous-control-name' type='text'>
@@ -531,6 +615,8 @@ The search finds results if the text search finds the whole words of your
 text in a label.  Thus, for instance, a search for 'Add' will match the label
 'Add a Client' but not 'Address'.  Case is honored.
 
+.. doctest::
+
     >>> browser.getControl('Label Needs Whitespace Normalization')
     <Control name='label-needs-normalization' type='text'>
     >>> browser.getControl('label needs whitespace normalization')
@@ -553,6 +639,8 @@ text in a label.  Thus, for instance, a search for 'Add' will match the label
 Multiple labels can refer to the same control (simply because that is possible
 in the HTML 4.0 spec).
 
+.. doctest::
+
     >>> browser.getControl('Multiple labels really')
     <Control name='two-labels' type='text'>
     >>> browser.getControl('really are possible')
@@ -563,12 +651,16 @@ in the HTML 4.0 spec).
 A label can be connected with a control using the 'for' attribute and also by
 containing a control.
 
+.. doctest::
+
     >>> browser.getControl(
     ...     'Labels can be connected by containing their respective fields')
     <Control name='contained-in-label' type='text'>
 
 Get also accepts one other search argument, 'name'.  Only one of 'label' and
 'name' may be used at a time.  The 'name' keyword searches form field names.
+
+.. doctest::
 
     >>> browser.getControl(name='text-value')
     <Control name='text-value' type='text'>
@@ -591,6 +683,8 @@ Get also accepts one other search argument, 'name'.  Only one of 'label' and
 Combining 'label' and 'name' raises a ValueError, as does supplying neither of
 them.
 
+.. doctest::
+
     >>> browser.getControl(label='Ambiguous Control', name='ambiguous-control-name')
     Traceback (most recent call last):
     ...
@@ -606,6 +700,8 @@ checkboxes, but labels may only be used for individual choices within the
 logical collection.  This means that obtaining a radio button by label gets a
 different object than obtaining the radio collection by name.  Select options
 may also be searched by label.
+
+.. doctest::
 
     >>> browser.getControl(name='radio-value')
     <ListControl name='radio-value' type='radio'>
@@ -624,6 +720,8 @@ Control Objects
 
 Controls provide IControl.
 
+.. doctest::
+
     >>> ctrl = browser.getControl('Text Control')
     >>> ctrl
     <Control name='text-value' type='text'>
@@ -632,12 +730,16 @@ Controls provide IControl.
 
 They have several useful attributes:
 
-  - the name as which the control is known to the form:
+- the name as which the control is known to the form:
+
+.. doctest::
 
     >>> ctrl.name
     'text-value'
 
-  - the value of the control, which may also be set:
+- the value of the control, which may also be set:
+
+.. doctest::
 
     >>> ctrl.value
     'Some Text'
@@ -645,23 +747,31 @@ They have several useful attributes:
     >>> ctrl.value
     'More Text'
 
-  - the type of the control:
+- the type of the control:
+
+.. doctest::
 
     >>> ctrl.type
     'text'
 
-  - a flag describing whether the control is disabled:
+- a flag describing whether the control is disabled:
+
+.. doctest::
 
     >>> ctrl.disabled
     False
 
-  - and a flag to tell us whether the control can have multiple values:
+- and a flag to tell us whether the control can have multiple values:
+
+.. doctest::
 
     >>> ctrl.multiple
     False
 
 Additionally, controllers for select, radio, and checkbox provide IListControl.
 These fields have four other attributes and an additional method:
+
+.. doctest::
 
     >>> ctrl = browser.getControl('Multiple Select Control')
     >>> ctrl
@@ -673,20 +783,26 @@ These fields have four other attributes and an additional method:
     >>> verifyObject(interfaces.IListControl, ctrl)
     True
 
-  - 'options' lists all available value options.
+- 'options' lists all available value options.
+
+.. doctest::
 
     >>> ctrl.options
     ['1', '2', '3']
 
-  - 'displayOptions' lists all available options by label.  The 'label'
-    attribute on an option has precedence over its contents, which is why
-    our last option is 'Third' in the display.
+- 'displayOptions' lists all available options by label.  The 'label'
+  attribute on an option has precedence over its contents, which is why
+  our last option is 'Third' in the display.
+
+.. doctest::
 
     >>> ctrl.displayOptions
     ['Un', 'Deux', 'Third']
 
-  - 'displayValue' lets you get and set the displayed values of the control
-    of the select box, rather than the actual values.
+- 'displayValue' lets you get and set the displayed values of the control
+  of the select box, rather than the actual values.
+
+.. doctest::
 
     >>> ctrl.value
     []
@@ -698,15 +814,21 @@ These fields have four other attributes and an additional method:
     >>> ctrl.value
     ['1', '2']
 
-  - 'controls' gives you a list of the subcontrol objects in the control
-    (subcontrols are discussed below).
+- 'controls' gives you a list of the subcontrol objects in the control
+  (subcontrols are discussed below).
+
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
 
     >>> ctrl.controls
     [<ItemControl name='multi-select-value' type='select' optionValue='1' selected=True>,
      <ItemControl name='multi-select-value' type='select' optionValue='2' selected=True>,
      <ItemControl name='multi-select-value' type='select' optionValue='3' selected=False>]
 
-  - The 'getControl' method lets you get subcontrols by their label or their value.
+- The 'getControl' method lets you get subcontrols by their label or their
+  value.
+
+.. doctest::
 
     >>> ctrl.getControl('Un')
     <ItemControl name='multi-select-value' type='select' optionValue='1' selected=True>
@@ -725,11 +847,12 @@ These fields have four other attributes and an additional method:
       <Item name='3' id='multi-checkbox-value-3' __label={'__text': 'Three\n        '} checked='checked' name='multi-checkbox-value' type='checkbox' id='multi-checkbox-value-3' value='3'>
       <Item name='3' id='radio-value-3' __label={'__text': ' Drei'} type='radio' name='radio-value' value='3' id='radio-value-3'>
 
-Finally, submit controls provide ISubmitControl, and image controls provide
-IImageSubmitControl, which extents ISubmitControl.  These both simply add a
-'click' method.  For image submit controls, you may also provide a coordinates
-argument, which is a tuple of (x, y).  These submit the forms, and are
-demonstrated below as we examine each control individually.
+Finally, submit controls provide ``ISubmitControl``, and image controls
+provide ``IImageSubmitControl``, which extents ``ISubmitControl``.  These
+both simply add a 'click' method.  For image submit controls, you may also
+provide a coordinates argument, which is a tuple of (x, y).  These submit
+the forms, and are demonstrated below as we examine each control
+individually.
 
 
 ItemControl Objects
@@ -738,6 +861,8 @@ ItemControl Objects
 As introduced briefly above, using labels to obtain elements of a logical
 radio button or checkbox collection returns item controls, which are parents.
 Manipulating the value of these controls affects the parent control.
+
+.. doctest::
 
     >>> browser.getControl(name='radio-value').value
     ['2']
@@ -761,19 +886,21 @@ Manipulating the value of these controls affects the parent control.
 
 Checkbox collections behave similarly, as shown below.
 
-Controls with subcontrols--
-
 
 Various Controls
 ~~~~~~~~~~~~~~~~
 
 The various types of controls are demonstrated here.
 
-  - Text Control
+Text Control
+~~~~~~~~~~~~
 
-    The text control we already introduced above.
+The text control we already introduced above.
 
-  - Password Control
+Password Control
+~~~~~~~~~~~~~~~~
+
+.. doctest::
 
     >>> ctrl = browser.getControl('Password Control')
     >>> ctrl
@@ -790,7 +917,10 @@ The various types of controls are demonstrated here.
     >>> ctrl.multiple
     False
 
-  - Hidden Control
+Hidden Control
+~~~~~~~~~~~~~~
+
+.. doctest::
 
     >>> ctrl = browser.getControl(name='hidden-value')
     >>> ctrl
@@ -805,7 +935,11 @@ The various types of controls are demonstrated here.
     >>> ctrl.multiple
     False
 
-  - Text Area Control
+Text Area Control
+~~~~~~~~~~~~~~~~~
+
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
 
     >>> ctrl = browser.getControl('Text Area Control')
     >>> ctrl
@@ -820,16 +954,19 @@ The various types of controls are demonstrated here.
     >>> ctrl.multiple
     False
 
-  - File Control
+File Control
+~~~~~~~~~~~~
 
-    File controls are used when a form has a file-upload field.
-    To specify data, call the add_file method, passing:
+File controls are used when a form has a file-upload field.  To specify
+data, call the add_file method, passing:
 
-    - A file-like object
+- A file-like object
 
-    - a content type, and
+- a content type, and
 
-    - a file name
+- a file name
+
+.. doctest::
 
     >>> ctrl = browser.getControl('File Control')
     >>> ctrl
@@ -851,7 +988,10 @@ The various types of controls are demonstrated here.
     >>> ctrl.multiple
     False
 
-  - Selection Control (Single-Valued)
+Selection Control (Single-Valued)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. doctest::
 
     >>> ctrl = browser.getControl('Single Select Control')
     >>> ctrl
@@ -883,11 +1023,15 @@ The various types of controls are demonstrated here.
     >>> ctrl.value
     ['3']
 
-  - Selection Control (Multi-Valued)
+Selection Control (Multi-Valued)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    This was already demonstrated in the introduction to control objects above.
+This was already demonstrated in the introduction to control objects above.
 
-  - Checkbox Control (Single-Valued; Unvalued)
+Checkbox Control (Single-Valued; Unvalued)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. doctest::
 
     >>> ctrl = browser.getControl(name='single-unvalued-checkbox-value')
     >>> ctrl
@@ -929,7 +1073,10 @@ The various types of controls are demonstrated here.
     ...     name='single-disabled-unvalued-checkbox-value').disabled
     True
 
-  - Checkbox Control (Single-Valued, Valued)
+Checkbox Control (Single-Valued, Valued)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. doctest::
 
     >>> ctrl = browser.getControl(name='single-valued-checkbox-value')
     >>> ctrl
@@ -1011,37 +1158,49 @@ The various types of controls are demonstrated here.
     >>> ctrl.value
     []
 
-  - Radio Control
+Radio Control
+~~~~~~~~~~~~~
 
-    This is how you get a radio button based control:
+This is how you get a radio button based control:
+
+.. doctest::
 
     >>> ctrl = browser.getControl(name='radio-value')
 
-    This shows the existing value of the control, as it was in the
-    HTML received from the server:
+This shows the existing value of the control, as it was in the
+HTML received from the server:
+
+.. doctest::
 
     >>> ctrl.value
     ['2']
 
-    We can then unselect it:
+We can then unselect it:
+
+.. doctest::
 
     >>> ctrl.value = []
     >>> ctrl.value
     []
 
-    We can also reselect it:
+We can also reselect it:
+
+.. doctest::
 
     >>> ctrl.value = ['2']
     >>> ctrl.value
     ['2']
 
-    displayValue shows the text the user would see next to the
-    control:
+displayValue shows the text the user would see next to the control:
+
+.. doctest::
 
     >>> ctrl.displayValue
     ['Zwei']
 
-    This is just unit testing:
+This is just unit testing:
+
+.. doctest::
 
     >>> ctrl
     <ListControl name='radio-value' type='radio'>
@@ -1061,9 +1220,12 @@ The various types of controls are demonstrated here.
     >>> ctrl.displayValue
     ['Ein']
 
-    The radio control subcontrols were illustrated above.
+The radio control subcontrols were illustrated above.
 
-  - Image Control
+Image Control
+~~~~~~~~~~~~~
+
+.. doctest::
 
     >>> ctrl = browser.getControl(name='image-value')
     >>> ctrl
@@ -1077,7 +1239,10 @@ The various types of controls are demonstrated here.
     >>> ctrl.multiple
     False
 
-  - Submit Control
+Submit Control
+~~~~~~~~~~~~~~
+
+.. doctest::
 
     >>> ctrl = browser.getControl(name='submit-value')
     >>> ctrl
@@ -1103,6 +1268,9 @@ Using Submitting Controls
 
 Both the submit and image type should be clickable and submit the form:
 
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
+
     >>> browser.getControl('Text Control').value = 'Other Text'
     >>> browser.getControl('Submit').click()
     >>> print(browser.contents)
@@ -1119,6 +1287,8 @@ Both the submit and image type should be clickable and submit the form:
 Note that if you click a submit object after the associated page has expired,
 you will get an error.
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> ctrl = browser.getControl('Submit')
     >>> ctrl.click()
@@ -1128,6 +1298,9 @@ you will get an error.
     ExpiredError
 
 All the above also holds true for the image control:
+
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
 
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> browser.getControl('Text Control').value = 'Other Text'
@@ -1155,6 +1328,9 @@ All the above also holds true for the image control:
 
 But when sending an image, you can also specify the coordinate you clicked:
 
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
+
     >>> browser.open('http://localhost/@@/testbrowser/controls.html')
     >>> browser.getControl(name='image-value').click((50,25))
     >>> print(browser.contents)
@@ -1173,6 +1349,8 @@ Pages Without Controls
 
 What would happen if we tried to look up a control on a page that has none?
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.getControl('anything')
     Traceback (most recent call last):
@@ -1189,32 +1367,44 @@ necessary to access forms by name or id.  The browser's `forms` attribute can
 be used to do so.  The key value is the form's name or id.  If more than one
 form has the same name or id, the first one will be returned.
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/forms.html')
     >>> form = browser.getForm(name='one')
 
 Form instances conform to the IForm interface.
+
+.. doctest::
 
     >>> verifyObject(interfaces.IForm, form)
     True
 
 The form exposes several attributes related to forms:
 
-  - The name of the form:
+- The name of the form:
+
+.. doctest::
 
     >>> form.name
     'one'
 
-  - The id of the form:
+- The id of the form:
+
+.. doctest::
 
     >>> form.id
     '1'
 
-  - The action (target URL) when the form is submitted:
+- The action (target URL) when the form is submitted:
+
+.. doctest::
 
     >>> form.action
     'http://localhost/@@/testbrowser/forms.html'
 
-  - The method (HTTP verb) used to transmit the form data:
+- The method (HTTP verb) used to transmit the form data:
+
+.. doctest::
 
     >>> form.method
     'GET'
@@ -1222,10 +1412,15 @@ The form exposes several attributes related to forms:
 Besides those attributes, you have also a couple of methods.  Like for the
 browser, you can get control objects, but limited to the current form...
 
+.. doctest::
+
     >>> form.getControl(name='text-value')
     <Control name='text-value' type='text'>
 
 ...and submit the form.
+
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
 
     >>> form.submit('Submit')
     >>> print(browser.contents)
@@ -1242,6 +1437,8 @@ discussed above.
 Now let me show you briefly that looking up forms is sometimes important.  In
 the `forms.html` template, we have four forms all having a text control named
 `text-value`.  Now, if I use the browser's `get` method,
+
+.. doctest::
 
     >>> browser.getControl(name='text-value')
     Traceback (most recent call last):
@@ -1262,6 +1459,8 @@ I'll always get an ambiguous form field.  I can use the index argument, or
 with the `getForm` method I can disambiguate by searching only within a given
 form:
 
+.. doctest::
+
     >>> form = browser.getForm('2')
     >>> form.getControl(name='text-value').value
     'Second Text'
@@ -1279,12 +1478,16 @@ The last form on the page does not have a name, an id, or a submit button.
 Working with it is still easy, thanks to a index attribute that guarantees
 order.  (Forms without submit buttons are sometimes useful for JavaScript.)
 
+.. doctest::
+
     >>> form = browser.getForm(index=3)
     >>> form.submit()
     >>> browser.contents
     '...<em>Fourth Text</em>...<em>Submitted without the submit button.</em>...'
 
 If a form is requested that does not exists, an exception will be raised.
+
+.. doctest::
 
     >>> form = browser.getForm('does-not-exist')
     Traceback (most recent call last):
@@ -1293,12 +1496,16 @@ If a form is requested that does not exists, an exception will be raised.
 If the HTML page contains only one form, no arguments to `getForm` are
 needed:
 
+.. doctest::
+
     >>> oneform = Browser(wsgi_app=wsgi_app)
     >>> oneform.open('http://localhost/@@/testbrowser/oneform.html')
     >>> form = oneform.getForm()
 
 If the HTML page contains more than one form, `index` is needed to
 disambiguate if no other arguments are provided:
+
+.. doctest::
 
     >>> browser.getForm()
     Traceback (most recent call last):
@@ -1314,6 +1521,8 @@ helpful when testing AJAX methods.
 
 Let's visit a page that echos some interesting values from it's request:
 
+.. doctest::
+
     >>> browser.open('http://localhost/echo.html')
     >>> print(browser.contents)
     HTTP_ACCEPT_LANGUAGE: en-US
@@ -1327,6 +1536,8 @@ Let's visit a page that echos some interesting values from it's request:
 Now, we'll try a post.  The post method takes a URL, a data string,
 and an optional content type.  If we just pass a string, then
 a URL-encoded query string is assumed:
+
+.. doctest::
 
     >>> browser.post('http://localhost/echo.html', 'x=1&y=2')
     >>> print(browser.contents)
@@ -1345,6 +1556,8 @@ a URL-encoded query string is assumed:
 The body is empty because it is consumed to get form data.
 
 We can pass a content-type explicitly:
+
+.. doctest::
 
     >>> browser.post('http://localhost/echo.html',
     ...              '{"x":1,"y":2}', 'application/x-javascript')
@@ -1370,6 +1583,8 @@ used to ensure a particular request's performance is within a tolerable range.
 Be very careful using raw seconds, cross-machine differences can be huge,
 pystones is usually a better choice.
 
+.. doctest::
+
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.lastRequestSeconds < 10 # really big number for safety
     True
@@ -1382,6 +1597,8 @@ Handling Errors
 
 Often WSGI middleware or the application itself gracefully handle application
 errors, such as invalid URLs:
+
+.. doctest::
 
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
@@ -1399,19 +1616,25 @@ original exception caused by the application.  In those cases you can set the
 
 So when we tell the application not to handle the errors,
 
+.. doctest::
+
     >>> browser.handleErrors = False
 
 we get a different, internal error from the application:
+
+.. doctest::
 
     >>> browser.open('http://localhost/invalid')
     Traceback (most recent call last):
     ...
     NotFound: /invalid
 
-NB: Setting the handleErrors attribute to False will only change anything if
-    the WSGI application obeys the wsgi.handleErrors or paste.throw_errors
-    WSGI environment variables. i.e. it does not catch and handle the original
-    exception when these are set appropriately.
+.. note::
+
+   Setting the ``handleErrors`` attribute to False will only change
+   anything if the WSGI application obeys the ``wsgi.handleErrors`` or
+   ``paste.throw_errors`` WSGI environment variables. i.e. it does not
+   catch and handle the original exception when these are set appropriately.
 
 When the testbrowser is raising HttpErrors, the errors still hit the test.
 Sometimes we don't want that to happen, in situations where there are edge
@@ -1420,20 +1643,28 @@ Time is a primary cause of this.
 
 To get around this, one can set the raiseHttpErrors to False.
 
+.. doctest::
+
     >>> browser.handleErrors = True
     >>> browser.raiseHttpErrors = False
 
 This will cause HttpErrors not to propagate.
 
+.. doctest::
+
     >>> browser.open('http://localhost/invalid')
 
 The headers are still there, though.
+
+.. doctest::
 
     >>> '404 Not Found' in str(browser.headers)
     True
 
 If we don't handle the errors, and allow internal ones to propagate, however,
 this flag doesn't affect things.
+
+.. doctest::
 
     >>> browser.handleErrors = False
     >>> browser.open('http://localhost/invalid')
@@ -1449,6 +1680,8 @@ Hand-Holding
 
 Instances of the various objects ensure that users don't set incorrect
 instance attributes accidentally.
+
+.. doctest::
 
     >>> browser.nonexistant = None
     Traceback (most recent call last):
@@ -1477,6 +1710,8 @@ HTTPS support
 Depending on the scheme of the request the variable wsgi.url_scheme will be set
 correctly on the request:
 
+.. doctest::
+
     >>> browser.open('http://localhost/echo_one.html?var=wsgi.url_scheme')
     >>> print(browser.contents)
     'http'
@@ -1486,3 +1721,4 @@ correctly on the request:
     'https'
 
 see http://www.python.org/dev/peps/pep-3333/ for details.
+

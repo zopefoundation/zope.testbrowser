@@ -16,14 +16,13 @@
 import os
 from setuptools import setup, find_packages
 
-long_description = (
-    '.. contents::\n\n'
-    + open('README.rst').read()
-    + '\n\n'
-    + open(os.path.join('src', 'zope', 'testbrowser', 'README.txt')).read()
-    + '\n\n'
-    + open('CHANGES.rst').read()
-)
+with open('README.rst') as f:
+    README = f.read()
+
+with open('CHANGES.rst') as f:
+    CHANGES = f.read()
+
+long_description = (README + '\n\n' + CHANGES)
 
 tests_require = ['zope.testing']
 

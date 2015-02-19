@@ -1,13 +1,14 @@
-=======
-Cookies
-=======
+Working with Cookies
+====================
 
 Getting started
-===============
+---------------
 
 The cookies mapping has an extended mapping interface that allows getting,
 setting, and deleting the cookies that the browser is remembering for the
 current url, or for an explicitly provided URL.
+
+.. doctest::
 
     >>> from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
     >>> from zope.testbrowser.wsgi import Browser
@@ -16,6 +17,8 @@ current url, or for an explicitly provided URL.
     >>> browser = Browser(wsgi_app=wsgi_app)
 
 Initially the browser does not point to a URL, and the cookies cannot be used.
+
+.. doctest::
 
     >>> len(browser.cookies)
     Traceback (most recent call last):
@@ -27,6 +30,8 @@ Initially the browser does not point to a URL, and the cookies cannot be used.
     RuntimeError: no request found
 
 Once you send the browser to a URL, the cookies attribute can be used.
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> len(browser.cookies)
@@ -45,6 +50,8 @@ Once you send the browser to a URL, the cookies attribute can be used.
 Alternatively, you can use the ``forURL`` method to get another instance of
 the cookies mapping for the given URL.
 
+.. doctest::
+
     >>> len(browser.cookies.forURL('http://www.example.com'))
     0
     >>> browser.cookies.forURL('http://www.example.com').keys()
@@ -59,16 +66,20 @@ the cookies mapping for the given URL.
 Here, we use a view that will make the server set cookies with the
 values we provide.
 
+.. doctest::
+
     >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
     >>> browser.headers['set-cookie'].replace(';', '')
     'foo=bar'
 
 
 Basic Mapping Interface
-=======================
+-----------------------
 
 Now the cookies for localhost have a value.  These are examples of just the
 basic accessor operators and methods.
+
+.. doctest::
 
     >>> browser.cookies['foo']
     'bar'
@@ -92,6 +103,8 @@ that have already been set in a previous request.  To demonstrate this, we use
 another view that does not set cookies but reports on the cookies it receives
 from the browser.
 
+.. doctest::
+
     >>> browser.open('http://localhost/get_cookie.html')
     >>> print(browser.headers.get('set-cookie'))
     None
@@ -102,6 +115,8 @@ from the browser.
 
 The standard mapping mutation methods and operators are also available, as
 seen here.
+
+.. doctest::
 
     >>> browser.cookies['sha'] = 'zam'
     >>> len(browser.cookies)
@@ -135,10 +150,12 @@ seen here.
 
 
 Headers
-=======
+~~~~~~~
 
 You can see the Cookies header that will be sent to the browser in the
 ``header`` attribute and the repr and str.
+
+.. doctest::
 
     >>> browser.cookies.header
     'sha=zam; va=voom'
@@ -150,38 +167,21 @@ You can see the Cookies header that will be sent to the browser in the
 
 
 Extended Mapping Interface
-==========================
+--------------------------
 
-------------------------------------------
 Read Methods: ``getinfo`` and ``iterinfo``
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``getinfo``
------------
+###########
 
 The ``cookies`` mapping also has an extended interface to get and set extra
-information about each cookie.  ``getinfo`` returns a dictionary.  Here is the
-interface description.
-
-::
-
-    def getinfo(name):
-       """returns dict of settings for the given cookie name.
-
-       This includes only the following cookie values:
-
-       - name (str)
-       - value (str),
-       - port (int or None),
-       - domain (str),
-       - path (str or None),
-       - secure (bool), and
-       - expires (datetime.datetime with pytz.UTC timezone or None),
-       - comment (str or None),
-       - commenturl (str or None).
-       """
+information about each cookie.
+:meth:`zope.testbrowser.interfaces.ICookie.getinfo` returns a dictionary.
 
 Here are some examples.
+
+.. doctest::
 
     >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
     >>> pprint.pprint(browser.cookies.getinfo('foo'))
@@ -205,7 +205,7 @@ Here are some examples.
      'secure': False,
      'value': 'zam'}
     >>> import datetime
-    >>> expires = datetime.datetime(2030, 1, 1).strftime(
+    >>> expires = datetime.datetime(2030, 1, 1, 12, 22, 33).strftime(
     ...     '%a, %d %b %Y %H:%M:%S GMT')
     >>> browser.open(
     ...     'http://localhost/set_cookie.html?name=wow&value=wee&'
@@ -215,7 +215,7 @@ Here are some examples.
     {'comment': None,
      'commenturl': None,
      'domain': 'localhost.local',
-     'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),
+     'expires': datetime.datetime(2030, 1, 1, 12, 22, ...tzinfo=<UTC>),
      'name': 'wow',
      'path': '/',
      'port': None,
@@ -223,6 +223,8 @@ Here are some examples.
      'value': 'wee'}
 
 Max-age is converted to an "expires" value.
+
+.. doctest::
 
     >>> browser.open(
     ...     'http://localhost/set_cookie.html?name=max&value=min&'
@@ -240,10 +242,12 @@ Max-age is converted to an "expires" value.
 
 
 ``iterinfo``
-------------
+############
 
 You can iterate over all of the information about the cookies for the current
 page using the ``iterinfo`` method.
+
+.. doctest::
 
     >>> pprint.pprint(sorted(browser.cookies.iterinfo(),
     ...                      key=lambda info: info['name']))
@@ -287,7 +291,7 @@ page using the ``iterinfo`` method.
      {'comment': None,
       'commenturl': None,
       'domain': 'localhost.local',
-      'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),
+      'expires': datetime.datetime(2030, 1, 1, 12, 22, ...tzinfo=<UTC>),
       'name': 'wow',
       'path': '/',
       'port': None,
@@ -296,11 +300,13 @@ page using the ``iterinfo`` method.
 
 
 Extended Examples
------------------
+#################
 
 If you want to look at the cookies for another page, you can either navigate to
 the other page in the browser, or, as already mentioned, you can use the
 ``forURL`` method, which returns an ICookies instance for the new URL.
+
+.. doctest::
 
     >>> sorted(browser.cookies.forURL(
     ...     'http://localhost/inner/set_cookie.html').keys())
@@ -342,6 +348,8 @@ the other page in the browser, or, as already mentioned, you can use the
 Here's an example of the server setting a cookie that is only available on an
 inner page.
 
+.. doctest::
+
     >>> browser.open(
     ...     'http://localhost/inner/path/set_cookie.html?name=big&value=kahuna'
     ...     )
@@ -357,9 +365,8 @@ inner page.
     None
 
 
-----------------------------------------
 Write Methods: ``create`` and ``change``
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The basic mapping API only allows setting values.  If a cookie already exists
 for the given name, it's value will be changed; or else a new cookie will be
@@ -369,6 +376,8 @@ only this browser session (a "session" cookie).
 To create or change cookies with different additional information, use the
 ``create`` and ``change`` methods, respectively.  Here is an example of
 ``create``.
+
+.. doctest::
 
     >>> from pytz import UTC
     >>> browser.cookies.create(
@@ -388,6 +397,8 @@ To create or change cookies with different additional information, use the
 
 In these further examples of ``create``, note that the testbrowser sends all
 domains to Zope, and both http and https.
+
+.. doctest::
 
     >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
     >>> browser.cookies.keys() # a different domain
@@ -448,7 +459,7 @@ domains to Zope, and both http and https.
 
 
 Masking by Path
----------------
+###############
 
 The API allows creation of cookies that mask existing cookies, but it does not
 allow creating a cookie that will be immediately masked upon creation. Having
@@ -469,6 +480,8 @@ This is an example of making one cookie that masks another because of path.
 First, unless you pass an explicit path, you will be modifying the existing
 cookie.
 
+.. doctest::
+
     >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
     >>> print(browser.contents)
     boo: yah
@@ -482,6 +495,8 @@ cookie.
     True
 
 Now we mask the cookie, using the path.
+
+.. doctest::
 
     >>> browser.cookies.create('boo', 'boo', path='/inner/path')
     >>> browser.cookies['boo']
@@ -497,6 +512,8 @@ Now we mask the cookie, using the path.
 
 To identify the additional cookies, you can change the URL...
 
+.. doctest::
+
     >>> extra_cookies = browser.cookies.forURL(
     ...     'https://dev.example.com/inner/get_cookie.html')
     >>> extra_cookies['boo']
@@ -507,6 +524,8 @@ To identify the additional cookies, you can change the URL...
     True
 
 ...or use ``iterinfo`` and pass in a name.
+
+.. doctest::
 
     >>> pprint.pprint(list(browser.cookies.iterinfo('boo')))
     [{'comment': None,
@@ -531,6 +550,8 @@ To identify the additional cookies, you can change the URL...
 An odd situation in this case is that deleting a cookie can sometimes reveal
 another one.
 
+.. doctest::
+
     >>> browser.open('https://dev.example.com/inner/path/get_cookie.html')
     >>> browser.cookies['boo']
     'boo'
@@ -540,6 +561,8 @@ another one.
 
 Creating a cookie that will be immediately masked within the current url is not
 allowed.
+
+.. doctest::
 
     >>> browser.cookies.getinfo('tweedle')['path']
     '/inner/path'
@@ -554,7 +577,7 @@ allowed.
 
 
 Masking by Domain
------------------
+#################
 
 All of the same behavior is also true for domains.  The only difference is a
 theoretical one: while the behavior of masking cookies via paths is defined by
@@ -562,6 +585,8 @@ the relevant IRCs, it is not defined for domains.  Here, we simply follow a
 "best match" policy.
 
 We initialize by setting some cookies for example.org.
+
+.. doctest::
 
     >>> browser.open('https://dev.example.org/get_cookie.html')
     >>> browser.cookies.keys() # a different domain
@@ -573,18 +598,21 @@ We initialize by setting some cookies for example.org.
 Before we look at the examples, note that the default behavior of the cookies
 is to be liberal in the matching of domains.  
 
+.. doctest::
+
     >>> browser.cookies.strict_domain_policy
     False
 
 According to the RFCs, a domain of 'example.com' can only be set implicitly
-from the server, and implies an exact match, so example.com URLs will get the
-cookie, but not *.example.com (i.e., dev.example.com).  Real browsers vary in
-their behavior in this regard.  The cookies collection, by default, has a
-looser interpretation of this, such that domains are always interpreted as
-effectively beginning with a ".", so dev.example.com will include a cookie from
-the "example.com" domain filter as if it were a ".example.com" filter.
+from the server, and implies an exact match, so example.com URLs will get
+the cookie, but not ``*.example.com`` (i.e., ``dev.example.com``).  Real
+browsers vary in their behavior in this regard.  The cookies collection, by
+default, has a looser interpretation of this, such that domains are always
+interpreted as effectively beginning with a ".", so ``dev.example.com`` will
+include a cookie from the ``example.com`` domain filter as if it were a
+``.example.com`` filter.
 
-Here's an example.  If we go to dev.example.org, we should only see the
+Here's an example.  If we go to ``dev.example.org``, we should only see the
 "tweedle" cookie if we are using strict rules.  But right now we are using
 loose rules, so 'boo' is around too.
 
@@ -595,7 +623,9 @@ loose rules, so 'boo' is around too.
     boo: yah
     tweedle: dee
 
-If we set strict_domain_policy to True, then only tweedle is included.
+If we set ``strict_domain_policy`` to True, then only tweedle is included.
+
+.. doctest::
 
     >>> browser.cookies.strict_domain_policy = True
     >>> sorted(browser.cookies)
@@ -604,9 +634,11 @@ If we set strict_domain_policy to True, then only tweedle is included.
     >>> print(browser.contents)
     tweedle: dee
 
-If we set the "boo" domain to ".example.org" (as it would be set under the more
-recent Cookie RFC if a server sent the value) then maybe we get the "boo" value
-again.
+If we set the "boo" domain to ``.example.org`` (as it would be set under
+the more recent Cookie RFC if a server sent the value) then maybe we get
+the "boo" value again.
+
+.. doctest::
 
     >>> browser.cookies.forURL('https://example.org').change(
     ...     'boo', domain=".example.org")
@@ -622,6 +654,8 @@ example.org itself.
 
 OK, we'll create a new cookie then.
 
+.. doctest::
+
     >>> browser.cookies.forURL('https://snoo.example.org').create(
     ...     'snoo', 'kums', domain=".example.org")
 
@@ -633,6 +667,8 @@ OK, we'll create a new cookie then.
     tweedle: dee
 
 Let's set things back to the way they were.
+
+.. doctest::
 
     >>> del browser.cookies['snoo']
     >>> browser.cookies.strict_domain_policy = False
@@ -646,6 +682,8 @@ Let's set things back to the way they were.
 Now back to the the examples of masking by domain.  First, unless you pass an
 explicit domain, you will be modifying the existing cookie.
 
+.. doctest::
+
     >>> browser.cookies.getinfo('boo')['domain']
     'example.org'
     >>> browser.cookies['boo'] = 'hoo'
@@ -655,6 +693,8 @@ explicit domain, you will be modifying the existing cookie.
     True
 
 Now we mask the cookie, using the domain.
+
+.. doctest::
 
     >>> browser.cookies.create('boo', 'boo', domain='dev.example.org')
     >>> browser.cookies['boo']
@@ -670,6 +710,8 @@ Now we mask the cookie, using the domain.
 
 To identify the additional cookies, you can change the URL...
 
+.. doctest::
+
     >>> extra_cookies = browser.cookies.forURL(
     ...     'https://example.org/get_cookie.html')
     >>> extra_cookies['boo']
@@ -680,6 +722,8 @@ To identify the additional cookies, you can change the URL...
     True
 
 ...or use ``iterinfo`` and pass in a name.
+
+.. doctest::
 
     >>> pprint.pprint(list(browser.cookies.iterinfo('boo'))) # doctest: +REPORT_NDIFF
     [{'comment': None,
@@ -704,6 +748,8 @@ To identify the additional cookies, you can change the URL...
 An odd situation in this case is that deleting a cookie can sometimes reveal
 another one.
 
+.. doctest::
+
     >>> browser.open('https://dev.example.org/get_cookie.html')
     >>> browser.cookies['boo']
     'boo'
@@ -714,6 +760,8 @@ another one.
 Setting a cookie with a foreign domain from the current URL is not allowed (use
 forURL to get around this).
 
+.. doctest::
+
     >>> browser.cookies.create('tweedle', 'dum', domain='locahost.local')
     Traceback (most recent call last):
     ...
@@ -723,6 +771,8 @@ forURL to get around this).
 
 Setting a cookie that will be immediately masked within the current url is also
 not allowed.
+
+.. doctest::
 
     >>> browser.cookies.getinfo('tweedle')['domain']
     'dev.example.org'
@@ -737,11 +787,13 @@ not allowed.
 
 
 ``change``
-----------
+##########
 
 So far all of our examples in this section have centered on ``create``.
 ``change`` allows making changes to existing cookies.  Changing expiration
 is a good example.
+
+.. doctest::
 
     >>> browser.open("http://localhost/@@/testbrowser/cookies.html")
     >>> browser.cookies['foo'] = 'bar'
@@ -750,6 +802,8 @@ is a good example.
     datetime.datetime(2021, 1, 1, 0, 0, tzinfo=<UTC>)
 
 That's the main story.  Now here are some edge cases.
+
+.. doctest::
 
     >>> browser.cookies.change(
     ...     'foo',
@@ -774,6 +828,8 @@ That's the main story.  Now here are some edge cases.
 While we are at it, it is worth noting that trying to create a cookie that has
 already expired raises an error.
 
+.. doctest::
+
     >>> browser.cookies.create('foo', 'bar',
     ...                        expires=datetime.datetime(1999, 1, 1))
     Traceback (most recent call last):
@@ -782,11 +838,13 @@ already expired raises an error.
 
 
 Clearing cookies
-----------------
+~~~~~~~~~~~~~~~~
 
 clear, clearAll, clearAllSession allow various clears of the cookies.
 
 The ``clear`` method clears all of the cookies for the current page.
+
+.. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/cookies.html')
     >>> len(browser.cookies)
@@ -798,11 +856,15 @@ The ``clear`` method clears all of the cookies for the current page.
 The ``clearAllSession`` method clears *all* session cookies (for all domains
 and paths, not just the current URL), as if the browser had been restarted.
 
+.. doctest::
+
     >>> browser.cookies.clearAllSession()
     >>> len(browser.cookies)
     0
 
 The ``clearAll`` removes all cookies for the browser.
+
+.. doctest::
 
     >>> browser.cookies.clearAll()
     >>> len(browser.cookies)
