@@ -5,28 +5,30 @@ CHANGES
 5.0.0 (unreleased)
 ------------------
 
-- Internal implementation now uses WebTest instead of mechanize.  The mechanize
-  dependency is completely dropped.  **This is a backwards-incompatible
-  change.**
+- Internal implementation now uses WebTest instead of ``mechanize``.
+  The ``mechanize`` dependency is completely dropped.
+  **This is a backwards-incompatible change.**
 
-  Removed APIs:
+- Remove APIs:
 
-  - zope.testbrowser.testing: Browser (this is a big one).
+  - ``zope.testbrowser.testing.Browser`` (this is a big one).
 
-    Instead of using ``zope.testbrowser.testing.Browser()`` and relying on it to
-    magically pick up the ``zope.app.testing.functional`` singleton application,
-    you now have to define a test layer inheriting from
-    ``zope.testbrowser.wsgi.Layer``, overrride the ``make_wsgi_app`` method to
-    create a WSGI application, and then use ``zope.testbrowser.wsgi.Browser()``
-    in your tests.
+    Instead of using ``zope.testbrowser.testing.Browser()`` and relying on
+    it to magically pick up the ``zope.app.testing.functional`` singleton
+    application, you now have to define a test layer inheriting from
+    ``zope.testbrowser.wsgi.Layer``, overrride the ``make_wsgi_app`` method
+    to create a WSGI application, and then use
+    ``zope.testbrowser.wsgi.Browser()`` in your tests.
 
-    (Or you can set up a WSGI application yourself in whatever way you like and
-    pass it explicitly to ``zope.testbrowser.browser.Browser(wsgi_app=my_app)``.)
+    (Or you can set up a WSGI application yourself in whatever way you like
+    and pass it explicitly to
+    ``zope.testbrowser.browser.Browser(wsgi_app=my_app)``.)
 
     Example: if your test file looked like this ::
 
         # my/package/tests/test_all.py
-        from zope.app.testing.functional import defineLayer, FunctionalDocFileSuite
+        from zope.app.testing.functional import defineLayer
+        from zope.app.testing.functional import FunctionalDocFileSuite
         defineLayer('MyFtestLayer', 'ftesting.zcml', allow_teardown=True)
 
         def test_suite():
@@ -56,34 +58,40 @@ CHANGES
 
         >>> from zope.testbrowser.wsgi import Browser
 
-  Removed internal classes you were not supposed to use anyway:
+- Remove modules:
 
-  - zope.testbrowser.connection: Response, HTTPHandler, MechanizeBrowser and
-    the entire file actually
-  - zope.testbrowser.testing: PublisherResponse, PublisherConnection,
-    PublisherHTTPHandler, PublisherMechanizeBrowser.
-  - zope.testbrowser.wsgi: WSGIConnection, WSGIHTTPHandler,
-    WSGIMechanizeBrowser
+  - ``zope.testbrowser.connection``
 
-  Removed internal attributes you were not supposed to use anyway:
+- Remove internal classes you were not supposed to use anyway:
 
-  - Browser._mech_browser
-  - this list is not necessarily complete
+  - ``zope.testbrowser.testing.PublisherResponse``
+  - ``zope.testbrowser.testing.PublisherConnection``
+  - ``zope.testbrowser.testing.PublisherHTTPHandler``
+  - ``zope.testbrowser.testing.PublisherMechanizeBrowser``
+  - ``zope.testbrowser.wsgi.WSGIConnection``
+  - ``zope.testbrowser.wsgi.WSGIHTTPHandler``
+  - ``zope.testbrowser.wsgi.WSGIMechanizeBrowser``
 
-  Removed setuptools extras:
+- Remove internal attributes you were not supposed to use anyway (this
+  list is not necessarily complete):
+
+  - ``Browser._mech_browser``
+
+- Remove setuptools extras:
 
   - ``zope.testbrowser[zope-functional-testing]``
 
-- Added support for Python 3.3 and 3.4.
+- Add support for Python 3.3 and 3.4.
 
-- Removed support for Python 2.5
+- Drop support for Python 2.5.
 
-- Dropped the 'WebTest <= 1.3.4' pin.  We require WebTest >= 2.0.8 now.
+- Drop the ``WebTest <= 1.3.4`` pin.  We require ``WebTest >= 2.0.8`` now.
 
-- Removed dependency on deprecated zope.app.testing
+- Remove dependency on deprecated ``zope.app.testing``.
 
-- Bugfix: browser.getLink() could fail if your HTML contained <a> elements with
-  no href attribute (https://github.com/zopefoundation/zope.testbrowser/pull/3).
+- Bugfix: ``browser.getLink()`` could fail if your HTML contained ``<a>``
+  elements with no href attribute
+  (https://github.com/zopefoundation/zope.testbrowser/pull/3).
 
 
 4.0.3 (2013-09-04)
@@ -102,7 +110,7 @@ CHANGES
   environment by setting it to ``None`` when ``Browser.handleErrors`` is
   ``True``.  This makes it easier to test error pages.
 
-- Made Browser.submit() handle ``raiseHttpErrors``
+- Make Browser.submit() handle ``raiseHttpErrors``
   (https://github.com/zopefoundation/zope.testbrowser/pull/4).
 
 - More friendly error messages from getControl() et al:
@@ -122,7 +130,7 @@ CHANGES
 4.0.1 (2011-05-04)
 ------------------
 
-- Added a hint in documentation how to use ``zope.testbrowser.wsgi.Browser``
+- Add a hint in documentation how to use ``zope.testbrowser.wsgi.Browser``
   to test a Zope 2/Zope 3/Bluebream WSGI application.
 
 4.0.0 (2011-03-14)
@@ -151,7 +159,7 @@ CHANGES
 3.11.0 (2011-01-24)
 -------------------
 
-- Added `wsgi_intercept` support (came from ``zope.app.wsgi.testlayer``).
+- Add `wsgi_intercept` support (came from ``zope.app.wsgi.testlayer``).
 
 
 3.10.4 (2011-01-14)
@@ -191,8 +199,8 @@ CHANGES
 3.10.0 (2010-09-14)
 -------------------
 
-- LP #98437: use mechanize's built-in ``submit()`` to submit forms, allowing
-  mechanize to set the "Referer:" (sic) header appropriately.
+- LP #98437: use ``mechanize``'s built-in ``submit()`` to submit forms,
+  allowing ``mechanize`` to set the "Referer:" (sic) header appropriately.
 
 - Fixed tests to run with ``zope.app.testing`` 3.8 and above.
 
@@ -214,64 +222,64 @@ CHANGES
 3.8.1 (2010-04-19)
 ------------------
 
-- Pinned dependency on mechanize to prevent use of the upcoming
+- Pin dependency on ``mechanize`` to prevent use of the upcoming
   0.2.0 release before we have time to adjust to its API changes.
 
-- LP #98396: testbrowser resolves relative URLs incorrectly.
+- Fix LP #98396: testbrowser resolves relative URLs incorrectly.
 
 
 3.8.0 (2010-03-05)
 ------------------
 
-- Added ``follow`` convenience method which gets and follows a link.
+- Add ``follow`` convenience method which gets and follows a link.
 
 
 3.7.0 (2009-12-17)
 ------------------
 
-- Moved zope.app.testing dependency into the scope of the PublisherConnection
-  class. Zope2 specifies its own PublisherConnection which isn't dependent on
-  zope.app.testing.
+- Move ``zope.app.testing`` dependency into the scope of the
+  ``PublisherConnection`` class. Zope2 specifies its own version of
+  ``PublisherConnection`` which isn't dependent on ``zope.app.testing``.
 
-- Fixed LP #419119: return None when the browser has no contents instead of
-  raising an exception.
+- Fix LP #419119: return ``None`` when the browser has no contents instead
+  of raising an exception.
 
 
 3.7.0a1 (2009-08-29)
 --------------------
 
-- Remove dependency on zope.app.publisher in favor of zope.browserpage,
-  zope.browserresource and zope.ptresource.
+- Update dependency from ``zope.app.publisher`` to 
+  ``zope.browserpage``, ``zope.browserresource`` and ``zope.ptresource``.
 
-- Remove dependencies on zope.app.principalannotation and zope.securitypolicy
-  by using the simple PermissiveSecurityPolicy. We aren't testing security
-  in our tests.
+- Remove dependencies on ``zope.app.principalannotation`` and
+  ``zope.securitypolicy`` by using the simple ``PermissiveSecurityPolicy``.
 
-- Replaced the testing dependency on zope.app.zcmlfiles with explicit
+- Replace the testing dependency on ``zope.app.zcmlfiles`` with explicit
   dependencies of a minimal set of packages.
 
-- Remove unneeded zope.app.authentication from ftesting.zcml.
+- Remove unneeded ``zope.app.authentication`` from ftesting.zcml.
 
-- Test dependency on zope.securitypolicy instead of its app variant.
+- Update dependency from ``zope.app.securitypolicy`` to
+  ``zope.securitypolicy``.
 
 
 3.6.0a2 (2009-01-31)
 --------------------
 
-- Test dependency on zope.site.folder instead of zope.app.folder.
+- Update dependency from ``zope.app.folder`` to ``zope.site.folder``.
 
-- Remove useless test dependency in zope.app.component.
+- Remove unnecessary test dependency in ``zope.app.component``.
 
 
 3.6.0a1 (2009-01-08)
 --------------------
 
-- Author e-mail to zope-dev rather than zope3-dev.
+- Update author e-mail to ``zope-dev`` rather than ``zope3-dev``.
 
-- New lines are no longer stripped in XML and HTML code contained in a
-  textarea; fix requires ClientForm >= 0.2.10 (LP #268139).
+- No longer strip newlines in XML and HTML code contained in a
+  ``<textarea>``; fix requires ClientForm >= 0.2.10 (LP #268139).
 
-- Added ``cookies`` attribute to browser for easy manipulation of browser
+- Add ``cookies`` attribute to browser for easy manipulation of browser
   cookies.  See brief example in main documentation, plus new ``cookies.txt``
   documentation.
 
@@ -279,41 +287,41 @@ CHANGES
 3.5.1 (2008-10-10)
 ------------------
 
-- Provide a work around for a mechanize/urllib2 bug on Python 2.6
-  missing 'timeout' attribute on 'Request' base class.
+- Work around for a ``mechanize``/``urllib2`` bug on Python 2.6 missing
+  ``timeout`` attribute on ``Request`` base class.
 
-- Provide a work around for a mechanize/urllib2 bug in creating request
-  objects that won't handle fragment URLs correctly.
+- Work around for a ``mechanize``/``urllib2`` bug in creating request objects
+  that won't handle fragment URLs correctly.
 
 
 3.5.0 (2008-03-30)
 ------------------
 
-- Added a zope.testbrowser.testing.Browser.post method that allows
+- Add a ``zope.testbrowser.testing.Browser.post`` method that allows
   tests to supply a body and a content type.  This is handy for
   testing Ajax requests with non-form input (e.g. JSON).
 
-- Remove vendor import of mechanize.
+- Remove vendor import of ``mechanize``.
 
 - Fix bug that caused HTTP exception tracebacks to differ between version 3.4.0
   and 3.4.1.
 
-- Workaround for bug in Python Cookie.SimpleCookie when handling unicode
+- Work around a bug in Python ``Cookie.SimpleCookie`` when handling unicode
   strings.
 
 - Fix bug introduced in 3.4.1 that created incompatible tracebacks in doctests.
-  This necessitated adding a patched mechanize to the source tree; patches have
-  been sent to the mechanize project.
+  This necessitated adding a patched ``mechanize`` to the source tree; patches
+  have been sent to the ``mechanize`` project.
 
-- Fix https://bugs.launchpad.net/bugs/149517 by adding zope.interface and
-  zope.schema as real dependencies
+- Fix https://bugs.launchpad.net/bugs/149517 by adding ``zope.interface`` and
+  ``zope.schema`` as real dependencies
 
-- Fix browser.getLink documentation that was not updated since the last API
-  modification.
+- Fix ``browser.getLink`` documentation that was not updated since the last
+  API modification.
 
 - Move tests for fixed bugs to a separate file.
 
-- Removed non-functional and undocumented code intended to help test servers
+- Remove non-functional and undocumented code intended to help test servers
   using virtual hosting.
 
 
@@ -326,19 +334,18 @@ CHANGES
 3.4.1 (2007-09-01)
 ------------------
 
-* Updated to mechanize 0.1.7b and ClientForm 0.2.7.  These are now
-  pulled in via egg dependencies.
+* Update dependencies to ``mechanize 0.1.7b`` and ``ClientForm 0.2.7``.
 
-* ``zope.testbrowser`` now works on Python 2.5.
+* Add support for Python 2.5.
 
 
 3.4.0 (2007-06-04)
 ------------------
 
-* Added the ability to suppress raising exceptions on HTTP errors
+* Add the ability to suppress raising exceptions on HTTP errors
   (``raiseHttpErrors`` attribute).
 
-* Made the tests more resilient to HTTP header formatting changes with
+* Make the tests more resilient to HTTP header formatting changes with
   the REnormalizer.
 
 
