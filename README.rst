@@ -11,7 +11,6 @@
 .. image:: https://readthedocs.org/projects/zopetestbrowser/badge/?version=latest
         :target: http://zopetestbrowser.readthedocs.org/en/latest/
         :alt: Documentation Status
-|buildstatus|_
 
 ``zope.testbrowser`` provides an easy-to-use programmable web browser
 with special focus on testing.  It is used in Zope, but it's not Zope
