@@ -5,6 +5,9 @@ CHANGES
 5.0.0 (unreleased)
 ------------------
 
+- Converted most doctests to Sphinx documentation, and published to
+  http://zopetestbrowser.rtfd.org/ .
+
 - Internal implementation now uses WebTest instead of ``mechanize``.
   The ``mechanize`` dependency is completely dropped.
   **This is a backwards-incompatible change.**
