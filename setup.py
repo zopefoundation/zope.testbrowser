@@ -59,6 +59,7 @@ setup(
         'zope.cachedescriptors',
         'pytz > dev',
         'WebTest >= 2.0.9',
+        'beautifulsoup4 == 4.4.1',
         'WSGIProxy2',
         'six',
     ],
