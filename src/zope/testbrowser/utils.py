@@ -29,15 +29,18 @@ days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 months_lower = []
-for month in months: months_lower.append(month.lower())
+for month in months:
+    months_lower.append(month.lower())
 wkday_re = re.compile(
     r"^(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)[a-z]*,?\s*", re.I)
 
 EPOCH = 1970
+
+
 def my_timegm(tt):
     year, month, mday, hour, min, sec = tt[:6]
     if ((year >= EPOCH) and (1 <= month <= 12) and (1 <= mday <= 31) and
-        (0 <= hour <= 24) and (0 <= min <= 59) and (0 <= sec <= 61)):
+            (0 <= hour <= 24) and (0 <= min <= 59) and (0 <= sec <= 61)):
         return timegm(tt)
     else:
         return None
@@ -58,6 +61,7 @@ loose_http_re = re.compile(
        \s*
     (?:\(\w+\))?       # ASCII representation of timezone in parens.
        \s*$""", re.X)
+
 
 def http2time(text):
     """Returns time in seconds since epoch of time represented by a string.
@@ -120,9 +124,11 @@ def http2time(text):
 UTC_ZONES = {"GMT": None, "UTC": None, "UT": None, "Z": None}
 
 timezone_re = re.compile(r"^([-+])?(\d\d?):?(\d\d)?$")
+
+
 def offset_from_tz_string(tz):
     offset = None
-    if UTC_ZONES.has_key(tz):
+    if tz in UTC_ZONES:
         offset = 0
     else:
         m = timezone_re.search(tz)
@@ -133,6 +139,7 @@ def offset_from_tz_string(tz):
             if m.group(1) == '-':
                 offset = -offset
     return offset
+
 
 def _str2time(day, mon, yr, hr, min, sec, tz):
     # translate month name to number
@@ -151,9 +158,12 @@ def _str2time(day, mon, yr, hr, min, sec, tz):
             return None
 
     # make sure clock elements are defined
-    if hr is None: hr = 0
-    if min is None: min = 0
-    if sec is None: sec = 0
+    if hr is None:
+        hr = 0
+    if min is None:
+        min = 0
+    if sec is None:
+        sec = 0
 
     yr = int(yr)
     day = int(day)
@@ -169,8 +179,10 @@ def _str2time(day, mon, yr, hr, min, sec, tz):
         yr = yr + cur_yr - m
         m = m - tmp
         if abs(m) > 50:
-            if m > 0: yr = yr + 100
-            else: yr = yr - 100
+            if m > 0:
+                yr = yr + 100
+            else:
+                yr = yr - 100
 
     # convert UTC time tuple to seconds since epoch (not timezone-adjusted)
     t = my_timegm((yr, mon, day, hr, min, sec, tz))
@@ -190,6 +202,8 @@ def _str2time(day, mon, yr, hr, min, sec, tz):
 
 cut_port_re = re.compile(r":\d+$")
 IPV4_RE = re.compile(r"\.\d+$")
+
+
 def request_host(request):
     """Return request-host, as defined by RFC 2965.
 
@@ -203,6 +217,7 @@ def request_host(request):
         host = request.get_header("Host", "")
     # remove port, if present
     return cut_port_re.sub("", host, 1)
+
 
 def effective_request_host(request):
     """Return a tuple (request-host, effective request-host name)."""

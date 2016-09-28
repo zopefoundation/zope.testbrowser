@@ -18,16 +18,18 @@ import re
 
 import zope.testbrowser.browser
 
-from zope.testbrowser.browser import HostNotAllowed # BBB
+from zope.testbrowser.browser import HostNotAllowed  # noqa BBB
 from zope.testbrowser._compat import base64_encodebytes
+
 
 class Browser(zope.testbrowser.browser.Browser):
     def __init__(self, url=None, wsgi_app=None):
-         if wsgi_app is None:
-             wsgi_app = Layer.get_app()
-         if wsgi_app is None:
-             raise AssertionError("wsgi_app not provided or zope.testbrowser.wsgi.Layer not setup")
-         super(Browser, self).__init__(url, wsgi_app)
+        if wsgi_app is None:
+            wsgi_app = Layer.get_app()
+        if wsgi_app is None:
+            raise AssertionError("wsgi_app not provided or "
+                                 "zope.testbrowser.wsgi.Layer not setup")
+        super(Browser, self).__init__(url, wsgi_app)
 
 basicre = re.compile('Basic (.+)?:(.+)?$')
 
@@ -82,7 +84,8 @@ class AuthorizationMiddleware(object):
             yield entry
 
 
-_APP_UNDER_TEST = None # setup and torn down by the Layer class
+_APP_UNDER_TEST = None  # setup and torn down by the Layer class
+
 
 class Layer(object):
     """Test layer which sets up WSGI application for use with

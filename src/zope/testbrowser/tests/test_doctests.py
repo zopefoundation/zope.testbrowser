@@ -30,9 +30,10 @@ def test_suite():
     if sys.version_info[:2] != (2, 6):
         # Under python-2.6, python's html parser cannot parse html from google,
         # so we skip this test
-        wire = doctest.DocFileSuite('over_the_wire.txt', optionflags=flags,
-                                    checker=zope.testbrowser.tests.helper.checker,
-                                    package='zope.testbrowser')
+        wire = doctest.DocFileSuite(
+            'over_the_wire.txt', optionflags=flags,
+            checker=zope.testbrowser.tests.helper.checker,
+            package='zope.testbrowser')
         wire.level = 2
         suite.addTests(wire)
 
