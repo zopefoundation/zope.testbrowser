@@ -1,7 +1,10 @@
 *.pyc
 *.so
 *.dll
+.Python
 __pycache__
+include/
+lib/
 src/*.egg-info
 
 .installed.cfg
