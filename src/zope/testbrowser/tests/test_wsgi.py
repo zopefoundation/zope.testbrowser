@@ -229,6 +229,7 @@ class TestLayer(unittest.TestCase):
         # available
         self.assertRaises(AssertionError, another_layer.setUp)
 
+
 class TestWSGILayer(unittest.TestCase):
 
     def test_layer(self):
