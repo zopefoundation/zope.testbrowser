@@ -31,7 +31,7 @@ class SimpleLayer(zope.testbrowser.wsgi.Layer):
 SIMPLE_LAYER = SimpleLayer()
 
 
-class WSGILayer(object):
+class AppLayer(object):
 
     def make_wsgi_app(self):
         return demo_app
@@ -43,11 +43,11 @@ class WSGILayer(object):
         pass
 
 
-class SimpleWSGILayer(zope.testbrowser.wsgi.TestBrowserLayer, WSGILayer):
+class TestBrowserLayer(zope.testbrowser.wsgi.TestBrowserLayer, AppLayer):
 
     pass
 
-SIMPLE_WSGI_LAYER = SimpleWSGILayer()
+TEST_BROWSER_LAYER = TestBrowserLayer()
 
 
 class TestBrowser(unittest.TestCase):
@@ -235,9 +235,9 @@ class TestTestBrowserLayer(unittest.TestCase):
 
     @contextlib.contextmanager
     def wsgi_layer(self):
-        SIMPLE_WSGI_LAYER.testSetUp()
+        TEST_BROWSER_LAYER.testSetUp()
         yield
-        SIMPLE_WSGI_LAYER.testTearDown()
+        TEST_BROWSER_LAYER.testTearDown()
 
     def test_layer(self):
         """When the layer is setup, the wsgi_app argument is unnecessary"""
@@ -248,17 +248,17 @@ class TestTestBrowserLayer(unittest.TestCase):
 
     def test_there_can_only_be_one(self):
         with self.wsgi_layer():
-            another_layer = SimpleWSGILayer()
+            another_layer = TestBrowserLayer()
             self.assertRaises(AssertionError, another_layer.testSetUp)
 
     def test_supports_multiple_inheritance(self):
         with mock.patch('zope.testbrowser.tests.test_wsgi'
-                        '.WSGILayer.testSetUp') as testSetUp:
-            SIMPLE_WSGI_LAYER.testSetUp()
+                        '.AppLayer.testSetUp') as testSetUp:
+            TEST_BROWSER_LAYER.testSetUp()
             self.assertEqual(1, testSetUp.call_count)
         with mock.patch('zope.testbrowser.tests.test_wsgi'
-                        '.WSGILayer.testTearDown') as testTearDown:
-            SIMPLE_WSGI_LAYER.testTearDown()
+                        '.AppLayer.testTearDown') as testTearDown:
+            TEST_BROWSER_LAYER.testTearDown()
             self.assertEqual(1, testTearDown.call_count)
 
     def test_raise_error_when_make_wsgi_app_is_not_implemented(self):
@@ -267,10 +267,10 @@ class TestTestBrowserLayer(unittest.TestCase):
 
     def test_do_not_raise_error_when_make_wsgi_app_returns_None(self):
         with mock.patch('zope.testbrowser.tests.test_wsgi'
-                        '.WSGILayer.make_wsgi_app') as make_wsgi_app:
+                        '.AppLayer.make_wsgi_app') as make_wsgi_app:
             make_wsgi_app.return_value = None
-            SIMPLE_WSGI_LAYER.testSetUp()
-            SIMPLE_WSGI_LAYER.testTearDown()
+            TEST_BROWSER_LAYER.testSetUp()
+            TEST_BROWSER_LAYER.testTearDown()
 
 
 class TestAuthorizationMiddleware(unittest.TestCase):
