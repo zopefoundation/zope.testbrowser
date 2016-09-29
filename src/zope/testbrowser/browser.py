@@ -424,7 +424,7 @@ class Browser(SetattrErrorsMixin):
         # form.html after parsing. But we need them (at least to locate labels
         # for radio buttons). So we are forced to reparse part of html, to
         # extract elements.
-        html = BeautifulSoup(form.text)
+        html = BeautifulSoup(form.text, 'html.parser')
         tags = ('input', 'select', 'textarea', 'button')
         return html.find_all(tags)
 
