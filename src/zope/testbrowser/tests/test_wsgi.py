@@ -15,6 +15,7 @@
 
 import unittest
 
+import mock
 import zope.testbrowser.wsgi
 from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
 from zope.testbrowser.testing import demo_app
@@ -27,6 +28,25 @@ class SimpleLayer(zope.testbrowser.wsgi.Layer):
         return demo_app
 
 SIMPLE_LAYER = SimpleLayer()
+
+
+class WSGILayer(object):
+
+    def make_wsgi_app(self):
+        return demo_app
+
+    def testSetUp(self):
+        pass
+
+    def testTearDown(self):
+        pass
+
+
+class SimpleWSGILayer(zope.testbrowser.wsgi.WSGILayer, WSGILayer):
+
+    pass
+
+SIMPLE_WSGI_LAYER = SimpleWSGILayer()
 
 
 class TestBrowser(unittest.TestCase):
@@ -182,7 +202,7 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(browser.headers['content-type'], 'image/gif')
 
 
-class TestWSGILayer(unittest.TestCase):
+class TestLayer(unittest.TestCase):
 
     def setUp(self):
         # test the layer without depending on zope.testrunner
@@ -208,6 +228,31 @@ class TestWSGILayer(unittest.TestCase):
         # The layer has a .app property where the application under test is
         # available
         self.assertRaises(AssertionError, another_layer.setUp)
+
+class TestWSGILayer(unittest.TestCase):
+
+    def test_layer(self):
+        """When the layer is setup, the wsgi_app argument is unnecessary"""
+        SIMPLE_WSGI_LAYER.testSetUp()
+        browser = zope.testbrowser.wsgi.Browser()
+        browser.open('http://localhost')
+        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        SIMPLE_WSGI_LAYER.testTearDown()
+
+    def test_there_can_only_be_one(self):
+        another_layer = SimpleWSGILayer()
+        SIMPLE_WSGI_LAYER.testSetUp()
+        self.assertRaises(AssertionError, another_layer.testSetUp)
+
+    def test_supports_multiple_inheritance(self):
+        with mock.patch('zope.testbrowser.tests.test_wsgi'
+                        '.WSGILayer.testSetUp') as testSetUp:
+            SIMPLE_WSGI_LAYER.testSetUp()
+            self.assertEqual(1, testSetUp.call_count)
+        with mock.patch('zope.testbrowser.tests.test_wsgi'
+                        '.WSGILayer.testTearDown') as testTearDown:
+            SIMPLE_WSGI_LAYER.testTearDown()
+            self.assertEqual(1, testTearDown.call_count)
 
 
 class TestAuthorizationMiddleware(unittest.TestCase):

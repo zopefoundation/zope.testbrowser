@@ -88,8 +88,9 @@ _APP_UNDER_TEST = None  # setup and torn down by the Layer class
 
 
 class Layer(object):
-    """Test layer which sets up WSGI application for use with
-    WebTest/testbrowser.
+    """Test layer which sets up WSGI app for use with WebTest/testbrowser.
+
+    Composing multiple layers into one is supported using plone.testing.Layer.
 
     """
 
@@ -122,3 +123,30 @@ class Layer(object):
         global _APP_UNDER_TEST
         _APP_UNDER_TEST = None
         self.cooperative_super('tearDown')
+
+
+class WSGILayer(object):
+    """Test layer which sets up WSGI app for use with WebTest/testbrowser.
+
+    Composing multiple layers into one is supported by inheritance, e.g. to
+    combine zope.app.wsgi.BrowserLayer with this one.
+
+    """
+
+    def cooperative_super(self, method_name):
+        # Calling `super` for multiple inheritance:
+        method = getattr(super(WSGILayer, self), method_name, None)
+        if method is not None:
+            method()
+
+    def testSetUp(self):
+        self.cooperative_super('testSetUp')
+        global _APP_UNDER_TEST
+        if _APP_UNDER_TEST is not None:
+            raise AssertionError("Already Setup")
+        _APP_UNDER_TEST = self.make_wsgi_app()
+
+    def testTearDown(self):
+        global _APP_UNDER_TEST
+        _APP_UNDER_TEST = None
+        self.cooperative_super('testTearDown')
