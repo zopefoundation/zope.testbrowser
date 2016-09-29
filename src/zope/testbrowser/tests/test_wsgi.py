@@ -13,9 +13,10 @@
 #
 ##############################################################################
 
+import contextlib
+import mock
 import unittest
 
-import mock
 import zope.testbrowser.wsgi
 from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
 from zope.testbrowser.testing import demo_app
@@ -232,18 +233,23 @@ class TestLayer(unittest.TestCase):
 
 class TestWSGILayer(unittest.TestCase):
 
-    def test_layer(self):
-        """When the layer is setup, the wsgi_app argument is unnecessary"""
+    @contextlib.contextmanager
+    def wsgi_layer(self):
         SIMPLE_WSGI_LAYER.testSetUp()
-        browser = zope.testbrowser.wsgi.Browser()
-        browser.open('http://localhost')
-        self.assertTrue(browser.contents.startswith('Hello world!\n'))
+        yield
         SIMPLE_WSGI_LAYER.testTearDown()
 
+    def test_layer(self):
+        """When the layer is setup, the wsgi_app argument is unnecessary"""
+        with self.wsgi_layer():
+            browser = zope.testbrowser.wsgi.Browser()
+            browser.open('http://localhost')
+            self.assertTrue(browser.contents.startswith('Hello world!\n'))
+
     def test_there_can_only_be_one(self):
-        another_layer = SimpleWSGILayer()
-        SIMPLE_WSGI_LAYER.testSetUp()
-        self.assertRaises(AssertionError, another_layer.testSetUp)
+        with self.wsgi_layer():
+            another_layer = SimpleWSGILayer()
+            self.assertRaises(AssertionError, another_layer.testSetUp)
 
     def test_supports_multiple_inheritance(self):
         with mock.patch('zope.testbrowser.tests.test_wsgi'
