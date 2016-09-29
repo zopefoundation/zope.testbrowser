@@ -43,7 +43,7 @@ class WSGILayer(object):
         pass
 
 
-class SimpleWSGILayer(zope.testbrowser.wsgi.WSGILayer, WSGILayer):
+class SimpleWSGILayer(zope.testbrowser.wsgi.TestBrowserLayer, WSGILayer):
 
     pass
 
@@ -231,7 +231,7 @@ class TestLayer(unittest.TestCase):
         self.assertRaises(AssertionError, another_layer.setUp)
 
 
-class TestWSGILayer(unittest.TestCase):
+class TestTestBrowserLayer(unittest.TestCase):
 
     @contextlib.contextmanager
     def wsgi_layer(self):
@@ -263,7 +263,7 @@ class TestWSGILayer(unittest.TestCase):
 
     def test_raise_error_when_make_wsgi_app_is_not_implemented(self):
         with self.assertRaises(NotImplementedError):
-            zope.testbrowser.wsgi.WSGILayer().testSetUp()
+            zope.testbrowser.wsgi.TestBrowserLayer().testSetUp()
 
     def test_do_not_raise_error_when_make_wsgi_app_returns_None(self):
         with mock.patch('zope.testbrowser.tests.test_wsgi'

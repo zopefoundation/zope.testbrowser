@@ -127,7 +127,7 @@ class Layer(object):
         self.cooperative_super('tearDown')
 
 
-class WSGILayer(object):
+class TestBrowserLayer(object):
     """Test layer which sets up WSGI app for use with WebTest/testbrowser.
 
     This layer is intended for use cases, where `make_wsgi_app` is implemented
@@ -148,14 +148,14 @@ class WSGILayer(object):
 
     def cooperative_super(self, method_name):
         # Calling `super` for multiple inheritance:
-        method = getattr(super(WSGILayer, self), method_name, None)
+        method = getattr(super(TestBrowserLayer, self), method_name, None)
         if method is not None:
             return method()
 
     def make_wsgi_app(self):
-        if not hasattr(super(WSGILayer, self), 'make_wsgi_app'):
+        if not hasattr(super(TestBrowserLayer, self), 'make_wsgi_app'):
             raise NotImplementedError
-        return super(WSGILayer, self).make_wsgi_app()
+        return super(TestBrowserLayer, self).make_wsgi_app()
 
     def testSetUp(self):
         self.cooperative_super('testSetUp')
