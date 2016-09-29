@@ -84,7 +84,7 @@ CHANGES
 
   - ``zope.testbrowser[zope-functional-testing]``
 
-- Add support for Python 3.3 and 3.4.
+- Add support for Python 3.3, 3.4 and 3.5.
 
 - Drop support for Python 2.5.
 
