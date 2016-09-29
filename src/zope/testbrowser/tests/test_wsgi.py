@@ -261,6 +261,17 @@ class TestWSGILayer(unittest.TestCase):
             SIMPLE_WSGI_LAYER.testTearDown()
             self.assertEqual(1, testTearDown.call_count)
 
+    def test_raise_error_when_make_wsgi_app_is_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            zope.testbrowser.wsgi.WSGILayer().testSetUp()
+
+    def test_do_not_raise_error_when_make_wsgi_app_returns_None(self):
+        with mock.patch('zope.testbrowser.tests.test_wsgi'
+                        '.WSGILayer.make_wsgi_app') as make_wsgi_app:
+            make_wsgi_app.return_value = None
+            SIMPLE_WSGI_LAYER.testSetUp()
+            SIMPLE_WSGI_LAYER.testTearDown()
+
 
 class TestAuthorizationMiddleware(unittest.TestCase):
 

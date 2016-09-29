@@ -137,7 +137,12 @@ class WSGILayer(object):
         # Calling `super` for multiple inheritance:
         method = getattr(super(WSGILayer, self), method_name, None)
         if method is not None:
-            method()
+            return method()
+
+    def make_wsgi_app(self):
+        if not hasattr(super(WSGILayer, self), 'make_wsgi_app'):
+            raise NotImplementedError
+        return super(WSGILayer, self).make_wsgi_app()
 
     def testSetUp(self):
         self.cooperative_super('testSetUp')
