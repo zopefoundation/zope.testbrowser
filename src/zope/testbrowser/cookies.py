@@ -54,13 +54,6 @@ def expiration_string(expires): # this is not protected so usable in tests.
         expires = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
     return expires
 
-if getattr(property, 'setter', None) is None:
-    # hack on Python 2.6 spelling of the only part we use here
-    class property(property):
-        __slots__ = ()
-        def setter(self, f):
-            return property(self.fget, f, self.fdel, self.__doc__)
-
 # end Cookies class helpers
 
 
