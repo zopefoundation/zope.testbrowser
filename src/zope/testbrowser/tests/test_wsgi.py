@@ -37,15 +37,15 @@ class AppLayer(object):
         return demo_app
 
     def testSetUp(self):
-        pass
+        """Stub to mock it in test to check it was called."""
 
     def testTearDown(self):
-        pass
+        """Stub to mock it in test to check it was called."""
 
 
 class TestBrowserLayer(zope.testbrowser.wsgi.TestBrowserLayer, AppLayer):
+    """Prepare `_APP_UNDER_TEST` with `make_wsgi_app` from `AppLayer`."""
 
-    pass
 
 TEST_BROWSER_LAYER = TestBrowserLayer()
 
