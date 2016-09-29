@@ -86,7 +86,7 @@ CHANGES
 
 - Add support for Python 3.3, 3.4 and 3.5.
 
-- Drop support for Python 2.5.
+- Drop support for Python 2.5 and 2.6.
 
 - Drop the ``WebTest <= 1.3.4`` pin.  We require ``WebTest >= 2.0.8`` now.
 
