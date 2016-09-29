@@ -90,6 +90,8 @@ _APP_UNDER_TEST = None  # setup and torn down by the Layer class
 class Layer(object):
     """Test layer which sets up WSGI app for use with WebTest/testbrowser.
 
+    Inherit from this layer and overwrite `make_wsgi_app` for setup.
+
     Composing multiple layers into one is supported using plone.testing.Layer.
 
     """
@@ -128,8 +130,19 @@ class Layer(object):
 class WSGILayer(object):
     """Test layer which sets up WSGI app for use with WebTest/testbrowser.
 
-    Composing multiple layers into one is supported by inheritance, e.g. to
-    combine zope.app.wsgi.BrowserLayer with this one.
+    This layer is intended for use cases, where `make_wsgi_app` is implemented
+    by another class using multiple inheritance.
+
+    We used `testSetUp` and `testTearDown` instead of `setUp` and `tearDown` to
+    cooperate with layers from other zope packages, e.g.
+    `zope.app.wsgi.testlayer.BrowserLayer`, since they re-create the DB
+    connection during `testSetUp`. Therefore we need to re-create the app, too.
+
+    Make sure this layer always comes first in multiple inheritance, because
+    the requirements of other layers should be set up before calling
+    `make_wsgi_app`. In addition, many layers do not make sure to call multiple
+    superclasses using something like `cooperative_super`, thus the methods of
+    this layer may not be called if it comes later.
 
     """
 
