@@ -50,7 +50,8 @@ class TestApp(object):
         print()
         inp = environ['wsgi.input'].input.getvalue()
         print(inp.decode('utf8'))
-        status = '%s %s' % (self.next_response_status, self.next_response_reason)
+        status = '%s %s' % (self.next_response_status,
+                            self.next_response_reason)
         start_response(status, self.next_response_headers)
         return [self.next_response_body]
 
@@ -74,7 +75,8 @@ class YetAnotherTestApp(object):
         self.requests.append(environ)
         next_response = self.responses.pop(0)
         self.last_environ = environ
-        self.last_input = environ['wsgi.input'].input.getvalue().decode('utf-8')
+        self.last_input = environ[
+            'wsgi.input'].input.getvalue().decode('utf-8')
         status = '%s %s' % (next_response['status'], next_response['reason'])
         start_response(status, next_response['headers'])
         return [next_response['body']]
@@ -115,6 +117,7 @@ def test_relative_open_allowed_after_non_html_page(self):
     'https://localhost/baz'
     """
 
+
 def test_accept_language_header_non_us():
     """Regression test for Accept-Language header
 
@@ -128,6 +131,7 @@ def test_accept_language_header_non_us():
     >>> app.last_environ['HTTP_ACCEPT_LANGUAGE']
     'es-ES'
     """
+
 
 def test_reload_after_redirect():
     """
@@ -179,6 +183,7 @@ def test_reload_after_redirect():
     >>> print(app.last_input)
     <BLANKLINE>
     """
+
 
 def test_reload_after_post():
     """
@@ -232,6 +237,7 @@ def test_reload_after_post():
     ...
 
     """
+
 
 def test_button_without_name(self):
     """
@@ -303,7 +309,7 @@ def test_submit_duplicate_name():
     ...      <input type="submit" name="submit_me" value=" BAD " />
     ...   </form></body></html>
     ... ''')
-    >>> browser.open('http://localhost/') # doctest: +ELLIPSIS 
+    >>> browser.open('http://localhost/') # doctest: +ELLIPSIS
     GET / HTTP/1.1
     ...
 
@@ -836,7 +842,8 @@ def test_subcontrols_can_be_selected_by_label_substring():
 
     """
 
-UNICODE_TEST = u'\u4e2d\u6587\u7dad' # unicode in doctests is hard!
+UNICODE_TEST = u'\u4e2d\u6587\u7dad'  # unicode in doctests is hard!
+
 
 def test_non_ascii_in_input_field(self):
     """

@@ -14,7 +14,6 @@
 
 import datetime
 import time
-import urllib
 
 from zope.testbrowser._compat import (httpcookies, urlparse, url_quote,
                                       MutableMapping, urllib_request)
@@ -25,7 +24,10 @@ from zope.testbrowser import interfaces, utils
 
 # Cookies class helpers
 
-class BrowserStateError(Exception): pass
+
+class BrowserStateError(Exception):
+    pass
+
 
 class _StubHTTPMessage(object):
     def __init__(self, cookies):
@@ -47,7 +49,8 @@ class _StubResponse(object):
     def info(self):
         return self.message
 
-def expiration_string(expires): # this is not protected so usable in tests.
+
+def expiration_string(expires):  # this is not protected so usable in tests.
     if isinstance(expires, datetime.datetime):
         if expires.tzinfo is not None:
             expires = expires.astimezone(pytz.UTC)
@@ -83,7 +86,7 @@ class Cookies(MutableMapping):
                  policy.DomainStrictNonDomain)
         policy.strict_ns_domain |= flags
         if not value:
-            policy.strict_ns_domain  ^= flags
+            policy.strict_ns_domain ^= flags
 
     def forURL(self, url):
         return self.__class__(self.testapp, url)
@@ -209,8 +212,7 @@ class Cookies(MutableMapping):
         if (ck is not None and
             (path is None or ck.path == path) and
             (domain is None or ck.domain == domain or
-             ck.domain == domain) and
-            (port is None or ck.port == port)):
+             ck.domain == domain) and (port is None or ck.port == port)):
             # cookie already exists
             raise ValueError('cookie already exists')
         if domain is not None:
@@ -224,9 +226,8 @@ class Cookies(MutableMapping):
         self._setCookie(name, value, domain, expires, path, secure, comment,
                         commenturl, port, now=now)
 
-    def change(self, name, value=None,
-            domain=None, expires=None, path=None, secure=None, comment=None,
-            commenturl=None, port=None):
+    def change(self, name, value=None, domain=None, expires=None, path=None,
+               secure=None, comment=None, commenturl=None, port=None):
         now = int(time.time())
         if expires is not None and self._is_expired(expires, now):
             # shortcut
@@ -267,10 +268,10 @@ class Cookies(MutableMapping):
             tmp_domain = domain[1:]
         self_host = utils.effective_request_host(self._request)
         if (self_host != tmp_domain and
-            not self_host.endswith('.' + tmp_domain)):
+                not self_host.endswith('.' + tmp_domain)):
             raise ValueError('current url must match given domain')
         if (ck is not None and ck.domain != tmp_domain and
-            ck.domain.endswith(tmp_domain)):
+                ck.domain.endswith(tmp_domain)):
             raise ValueError(
                 'cannot set a cookie that will be hidden by another '
                 'cookie for this url (%s)' % (self.url,))
@@ -352,18 +353,17 @@ class Cookies(MutableMapping):
         else:
             self._change(ck, value)
 
-    def _is_expired(self, value, now): # now = int(time.time())
+    def _is_expired(self, value, now):  # now = int(time.time())
         dnow = datetime.datetime.fromtimestamp(now, pytz.UTC)
         if isinstance(value, datetime.datetime):
             if value.tzinfo is None:
-                 if value <= dnow.replace(tzinfo=None):
+                if value <= dnow.replace(tzinfo=None):
                     return True
             elif value <= dnow:
                 return True
         elif isinstance(value, six.string_types):
             if datetime.datetime.fromtimestamp(
-                utils.http2time(value),
-                pytz.UTC) <= dnow:
+                    utils.http2time(value), pytz.UTC) <= dnow:
                 return True
         return False
 

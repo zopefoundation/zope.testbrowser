@@ -14,7 +14,6 @@
 """A minimal WSGI application used as a test fixture."""
 
 import os
-import cgi
 import mimetypes
 from datetime import datetime
 
@@ -22,10 +21,12 @@ from webob import Request, Response
 
 from zope.testbrowser._compat import html_escape
 
+
 class NotFound(Exception):
     pass
 
 _HERE = os.path.dirname(__file__)
+
 
 class WSGITestApplication(object):
 
@@ -64,8 +65,10 @@ class WSGITestApplication(object):
             resp.status = status
         return resp(environ, start_response)
 
+
 def handle_notfound(req):
     raise NotFound(req.path_info)
+
 
 class ParamsWrapper(object):
 
@@ -76,6 +79,7 @@ class ParamsWrapper(object):
         if key in self.params:
             return html_escape(self.params[key])
         return ''
+
 
 def handle_resource(req, extra=None):
     filename = req.path_info.split('/')[-1]
@@ -93,34 +97,40 @@ def handle_resource(req, extra=None):
         contents = contents.encode('latin1')
     return Response(contents, content_type=type)
 
+
 def forms(req):
     extra = {}
     if 'hidden-4' in req.params and 'submit-4' not in req.params:
         extra['no-submit-button'] = 'Submitted without the submit button.'
     return handle_resource(req, extra)
 
+
 def get_cookie(req):
     cookies = ['%s: %s' % i for i in sorted(req.cookies.items())]
     return Response('\n'.join(cookies))
-    
+
+
 def set_cookie(req):
     cookie_parms = {'path': None}
-    cookie_parms.update(dict((str(k), str(v)) for k, v in req.params.items()))
+    cookie_parms.update(dict((str(k), str(v))
+                             for k, v in req.params.items()))
     name = cookie_parms.pop('name')
     value = cookie_parms.pop('value')
     if 'max-age' in cookie_parms:
         cookie_parms['max_age'] = int(cookie_parms.pop('max-age'))
     if 'expires' in cookie_parms:
-        cookie_parms['expires'] = datetime.strptime(cookie_parms.pop('expires'), '%a, %d %b %Y %H:%M:%S GMT')
+        cookie_parms['expires'] = datetime.strptime(
+            cookie_parms.pop('expires'), '%a, %d %b %Y %H:%M:%S GMT')
     resp = Response()
     resp.set_cookie(name, value, **cookie_parms)
     return resp
+
 
 def set_header(req):
     resp = Response()
     body = [u"Set Headers:"]
     for k, v in sorted(req.params.items()):
-        body.extend([k, v]) 
+        body.extend([k, v])
         resp.headers.add(k, v)
     resp.unicode_body = u'\n'.join(body)
     return resp
@@ -134,6 +144,7 @@ _interesting_environ = ('CONTENT_LENGTH',
                         'PATH_INFO',
                         'REQUEST_METHOD')
 
+
 def echo(req):
     items = []
     for k in _interesting_environ:
@@ -142,12 +153,14 @@ def echo(req):
             continue
         items.append('%s: %s' % (k, v))
     items.extend('%s: %s' % x for x in sorted(req.params.items()))
-    if req.method == 'POST' and req.content_type == 'application/x-www-form-urlencoded':
+    if (req.method == 'POST' and
+            req.content_type == 'application/x-www-form-urlencoded'):
         body = b''
     else:
         body = req.body
     items.append("Body: '%s'" % body.decode('utf8'))
     return Response('\n'.join(items))
+
 
 def redirect(req):
     loc = req.params['to']
@@ -156,9 +169,11 @@ def redirect(req):
     resp.status = int(req.params.get('type', 302))
     return resp
 
+
 def echo_one(req):
     resp = repr(req.environ.get(req.params['var']))
     return Response(resp)
+
 
 def set_status(req):
     status = req.params.get('status')

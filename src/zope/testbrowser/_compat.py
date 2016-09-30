@@ -31,15 +31,16 @@ if PYTHON2:
     from urllib import urlencode
     from UserDict import DictMixin
     from base64 import encodestring as base64_encodebytes
+
     class MutableMapping(object, DictMixin):
         pass
 else:
-    import http.cookies as httpcookies
-    import urllib.parse as urlparse
-    from urllib.parse import quote as url_quote
-    import urllib.request as urllib_request
-    from urllib.parse import urlencode
-    import http.client as httpclient
-    from collections import MutableMapping
-    from html import escape as html_escape
-    from base64 import encodebytes as base64_encodebytes
+    import http.cookies as httpcookies  # noqa
+    import urllib.parse as urlparse  # noqa
+    from urllib.parse import quote as url_quote  # noqa
+    import urllib.request as urllib_request  # noqa
+    from urllib.parse import urlencode  # noqa
+    import http.client as httpclient  # noqa
+    from collections import MutableMapping  # noqa
+    from html import escape as html_escape  # noqa
+    from base64 import encodebytes as base64_encodebytes  # noqa

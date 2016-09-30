@@ -13,7 +13,6 @@
 ##############################################################################
 """Webtest-based Functional Doctest interfaces
 """
-__docformat__ = "reStructuredText"
 
 import sys
 import re
@@ -29,26 +28,32 @@ from wsgiproxy.proxies import TransparentProxy
 from bs4 import BeautifulSoup
 
 from zope.testbrowser import interfaces
-from zope.testbrowser._compat import httpclient, PYTHON2, urllib_request, urlparse
+from zope.testbrowser._compat import httpclient, PYTHON2
+from zope.testbrowser._compat import urllib_request, urlparse
 import zope.testbrowser.cookies
 
 import webtest
 
+__docformat__ = "reStructuredText"
+
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
-compressText = lambda text: _compress_re.sub(' ', text.strip())
+
 
 class HostNotAllowed(Exception):
     pass
+
 
 class RobotExclusionError(urllib_request.HTTPError):
     def __init__(self, *args):
         super(RobotExclusionError, self).__init__(*args)
 
-_allowed_2nd_level = set(['example.com', 'example.net', 'example.org']) # RFC 2606
+# RFC 2606
+_allowed_2nd_level = set(['example.com', 'example.net', 'example.org'])
 
 _allowed = set(['localhost', '127.0.0.1'])
 _allowed.update(_allowed_2nd_level)
+
 
 class TestbrowserApp(webtest.TestApp):
     _last_fragment = ""
@@ -103,6 +108,7 @@ class TestbrowserApp(webtest.TestApp):
             return url
         return "%s#%s" % (url, response._last_fragment)
 
+
 class SetattrErrorsMixin(object):
     _enable_setattr_errors = False
 
@@ -113,6 +119,7 @@ class SetattrErrorsMixin(object):
 
         # set the value
         object.__setattr__(self, name, value)
+
 
 @implementer(interfaces.IBrowser)
 class Browser(SetattrErrorsMixin):
@@ -152,7 +159,6 @@ class Browser(SetattrErrorsMixin):
         if self._response is None:
             return None
         return self.testapp.getRequestUrlWithFragment(self._response)
-
 
     @property
     def isHtml(self):
@@ -227,9 +233,8 @@ class Browser(SetattrErrorsMixin):
 
     def addHeader(self, key, value):
         """See zope.testbrowser.interfaces.IBrowser"""
-        if (self.url and
-            key.lower() in ('cookie', 'cookie2') and
-            self.cookies.header):
+        if (self.url and key.lower() in ('cookie', 'cookie2') and
+                self.cookies.header):
             raise ValueError('cookies are already set in `cookies` attribute')
         self._req_headers[key] = value
 
@@ -237,9 +242,11 @@ class Browser(SetattrErrorsMixin):
         """See zope.testbrowser.interfaces.IBrowser"""
         url = self._absoluteUrl(url)
         if data is not None:
-            make_request = lambda args: self.testapp.post(url, data, **args)
+            def make_request(args):
+                return self.testapp.post(url, data, **args)
         else:
-            make_request = lambda args: self.testapp.get(url, **args)
+            def make_request(args):
+                return self.testapp.get(url, **args)
 
         self._processRequest(url, make_request)
 
@@ -252,11 +259,13 @@ class Browser(SetattrErrorsMixin):
         # find index of given control in the form
         url = self._absoluteUrl(form.action)
         if control:
-            index = form.fields[control.name].index(control)
-            make_request = lambda args: self._submit(form, control.name,
-                                                     index, coord=coord, **args)
+            def make_request(args):
+                index = form.fields[control.name].index(control)
+                return self._submit(
+                    form, control.name, index, coord=coord, **args)
         else:
-            make_request = lambda args: self._submit(form, coord=coord, **args)
+            def make_request(args):
+                return self._submit(form, coord=coord, **args)
 
         self._processRequest(url, make_request)
 
@@ -264,7 +273,7 @@ class Browser(SetattrErrorsMixin):
         with self._preparedRequest(url) as reqargs:
             self._history.add(self._response)
             resp = make_request(reqargs)
-            remaining_redirects = 100 # infinite loops protection
+            remaining_redirects = 100  # infinite loops protection
             while 300 <= resp.status_int < 400 and remaining_redirects:
                 remaining_redirects -= 1
                 url = urlparse.urljoin(url, resp.headers['location'])
@@ -294,7 +303,6 @@ class Browser(SetattrErrorsMixin):
             args.setdefault("content_type",  form.enctype)
         return form.response.goto(form.action, method=form.method,
                                   params=fields, **args)
-
 
     def _setResponse(self, response):
         self._response = response
@@ -327,7 +335,6 @@ class Browser(SetattrErrorsMixin):
         """Select a link and follow it."""
         self.getLink(*args, **kw).click()
 
-
     def _getBaseUrl(self):
         # Look for <base href> tag and use it as base, if it exists
         url = self._response.request.url
@@ -349,10 +356,10 @@ class Browser(SetattrErrorsMixin):
         matching_forms = []
         allforms = self._getAllResponseForms()
         for form in allforms:
-            if ((id is not None and form.id == id)
-            or (name is not None and form.html.form.get('name') == name)
-            or (action is not None and re.search(action, form.action))
-            or id == name == action == None):
+            if ((id is not None and form.id == id) or
+                (name is not None and form.html.form.get('name') == name) or
+                (action is not None and re.search(action, form.action)) or
+                    id == name == action is None):
                 matching_forms.append(form)
 
         if index is None and not any([id, name, action]):
@@ -385,7 +392,8 @@ class Browser(SetattrErrorsMixin):
     def _getAllControls(self, label, name, forms, include_subcontrols=False):
         onlyOne([label, name], '"label" and "name"')
 
-        forms = list(forms) # might be an iterator, and we need to iterate twice
+        # might be an iterator, and we need to iterate twice
+        forms = list(forms)
 
         available = None
         if label is not None:
@@ -398,7 +406,6 @@ class Browser(SetattrErrorsMixin):
         if not res:
             available = list(self._findAllControls(forms, include_subcontrols))
         return res, msg, available
-
 
     def _findByLabel(self, label, forms, include_subcontrols=False):
         # forms are iterable of mech_forms
@@ -423,7 +430,6 @@ class Browser(SetattrErrorsMixin):
 
     def _findByName(self, name, forms):
         return [c for c in self._findAllControls(forms) if c.name == name]
-
 
     def _findAllControls(self, forms, include_subcontrols=False):
         res = []
@@ -456,7 +462,6 @@ class Browser(SetattrErrorsMixin):
             res.extend(controls)
 
         return res
-
 
     def _changed(self):
         self._counter += 1
@@ -507,7 +512,8 @@ class Browser(SetattrErrorsMixin):
             return str(url)
 
         if self._response is None:
-            raise BrowserStateError("can't fetch relative reference: not viewing any document")
+            raise BrowserStateError(
+                "can't fetch relative reference: not viewing any document")
 
         return str(urlparse.urljoin(self._getBaseUrl(), url))
 
@@ -530,6 +536,7 @@ class Browser(SetattrErrorsMixin):
             self.__html = self._response.html
         return self.__html
 
+
 def controlFactory(name, wtcontrols, elemindex, browser):
     assert len(wtcontrols) > 0
 
@@ -544,9 +551,11 @@ def controlFactory(name, wtcontrols, elemindex, browser):
     else:
         controls = []
         for wtc in wtcontrols:
-            controls.append(simpleControlFactory(wtc, wtc.form, elemindex, browser))
+            controls.append(simpleControlFactory(
+                wtc, wtc.form, elemindex, browser))
 
     return controls
+
 
 def simpleControlFactory(wtcontrol, form, elemindex, browser):
     if isinstance(wtcontrol, webtest.forms.Radio):
@@ -566,6 +575,7 @@ def simpleControlFactory(wtcontrol, form, elemindex, browser):
             return SubmitControl(wtcontrol, form, elem, browser)
     else:
         return Control(wtcontrol, form, elem, browser)
+
 
 @implementer(interfaces.ILink)
 class Link(SetattrErrorsMixin):
@@ -604,6 +614,7 @@ class Link(SetattrErrorsMixin):
     def __repr__(self):
         return "<%s text='%s' url='%s'>" % (
             self.__class__.__name__, normalizeWhitespace(self.text), self.url)
+
 
 def controlFormTupleRepr(wtcontrol):
     return wtcontrol.mechRepr()
@@ -724,12 +735,14 @@ class Control(SetattrErrorsMixin):
                           'hidden': "HiddenControl"
                           }
             clname = classnames.get(tp, "TextControl")
-            return "<%s(%s=%s)%s>" % (clname, ctrl.name, ctrl.value,
-                                      ' (%s)' % (', '.join(infos)) if infos else '')
+            return "<%s(%s=%s)%s>" % (
+                clname, ctrl.name, ctrl.value,
+                ' (%s)' % (', '.join(infos)) if infos else '')
 
         if isinstance(ctrl, webtest.forms.File):
             return repr(ctrl) + "<-- unknown"
         raise NotImplementedError(str((self, ctrl)))
+
 
 @implementer(interfaces.ISubmitControl)
 class SubmitControl(Control):
@@ -755,6 +768,7 @@ class SubmitControl(Control):
         # if they could be any other way.... *sigh*  Let's take this
         # opportunity and strip that off.
         return "<SubmitControl(%s=%s)%s>" % (name, value, extra)
+
 
 @implementer(interfaces.IListControl)
 class ListControl(Control):
@@ -860,13 +874,15 @@ class ListControl(Control):
         # TODO: figure out what is replacement for "[*, ambiguous])"
         return "<SelectControl(%s=[*, ambiguous])>" % self.name
 
+
 @implementer(interfaces.IListControl)
 class RadioListControl(ListControl):
 
     _elems = None
 
     def __init__(self, control, form, elems, browser):
-        super(RadioListControl, self).__init__(control, form, elems[0], browser)
+        super(RadioListControl, self).__init__(
+            control, form, elems[0], browser)
         self._elems = elems
 
     @property
@@ -977,10 +993,11 @@ class CheckboxListControl(SetattrErrorsMixin):
     def _trValue(self, chbval):
         return True if chbval == 'on' else chbval
 
+
 @implementer(interfaces.IImageSubmitControl)
 class ImageControl(Control):
 
-    def click(self, coord=(1,1)):
+    def click(self, coord=(1, 1)):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
         self.browser._clickSubmit(self._form, self._control, coord)
@@ -1051,8 +1068,9 @@ class ItemControl(SetattrErrorsMixin):
         self.selected = not self.selected
 
     def __repr__(self):
-        return "<ItemControl name='%s' type='select' optionValue=%r selected=%r>" % \
-                (self._parent.name, self.optionValue, self.selected)
+        return (
+            "<ItemControl name='%s' type='select' optionValue=%r selected=%r>"
+        ) % (self._parent.name, self.optionValue, self.selected)
 
     @Lazy
     def labels(self):
@@ -1065,9 +1083,11 @@ class ItemControl(SetattrErrorsMixin):
         id = self._elem.attrs.get('id')
         label = self._elem.attrs.get('label', contents)
         value = self._value
-        name = self._elem.attrs.get('name', value) # XXX wha????
-        return "<Item name='%s' id=%s contents='%s' value='%s' label='%s'>" % \
-                (name, id, contents, value, label)
+        name = self._elem.attrs.get('name', value)  # XXX wha????
+        return (
+            "<Item name='%s' id=%s contents='%s' value='%s' label='%s'>"
+        ) % (name, id, contents, value, label)
+
 
 class RadioItemControl(ItemControl):
     @property
@@ -1080,8 +1100,9 @@ class RadioItemControl(ItemControl):
                 for l in getControlLabels(self._elem, self._form.html)]
 
     def __repr__(self):
-        return "<ItemControl name='%s' type='radio' optionValue=%r selected=%r>" % (
-            self._parent.name, self.optionValue, self.selected)
+        return (
+            "<ItemControl name='%s' type='radio' optionValue=%r selected=%r>"
+        ) % (self._parent.name, self.optionValue, self.selected)
 
     def mechRepr(self):
         toStr = self.browser.toStr
@@ -1091,7 +1112,8 @@ class RadioItemControl(ItemControl):
 
         props = []
         if self._elem.parent.name == 'label':
-            props.append(('__label', {'__text': toStr(self._elem.parent.text)}))
+            props.append((
+                '__label', {'__text': toStr(self._elem.parent.text)}))
         if self.selected:
             props.append(('checked', 'checked'))
         props.append(('type', 'radio'))
@@ -1100,8 +1122,8 @@ class RadioItemControl(ItemControl):
         props.append(('id', id))
 
         propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
-        return "<Item name='%s' id='%s' %s>" % \
-                (value, id, propstr)
+        return "<Item name='%s' id='%s' %s>" % (value, id, propstr)
+
 
 class CheckboxItemControl(ItemControl):
     _control = None
@@ -1131,8 +1153,10 @@ class CheckboxItemControl(ItemControl):
                 for l in getControlLabels(self._elem, self._form.html)]
 
     def __repr__(self):
-        return "<ItemControl name='%s' type='checkbox' optionValue=%r selected=%r>" % (
-            self._control.name, self.optionValue, self.selected)
+        return (
+            "<ItemControl name='%s' type='checkbox' "
+            "optionValue=%r selected=%r>"
+        ) % (self._control.name, self.optionValue, self.selected)
 
     def mechRepr(self):
         id = self.browser.toStr(self._elem.attrs.get('id'))
@@ -1141,7 +1165,8 @@ class CheckboxItemControl(ItemControl):
 
         props = []
         if self._elem.parent.name == 'label':
-            props.append(('__label', {'__text': self.browser.toStr(self._elem.parent.text)}))
+            props.append(('__label', {'__text': self.browser.toStr(
+                self._elem.parent.text)}))
         if self.selected:
             props.append(('checked', 'checked'))
         props.append(('name', name))
@@ -1150,8 +1175,8 @@ class CheckboxItemControl(ItemControl):
         props.append(('value', value))
 
         propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
-        return "<Item name='%s' id='%s' %s>" % \
-                (value, id, propstr)
+        return "<Item name='%s' id='%s' %s>" % (value, id, propstr)
+
 
 @implementer(interfaces.IForm)
 class Form(SetattrErrorsMixin):
@@ -1200,11 +1225,10 @@ class Form(SetattrErrorsMixin):
                 label, name, [form])
             controls = [c for c in controls
                         if isinstance(c, (ImageControl, SubmitControl))]
-            control= disambiguate(controls, msg, index,
-                                  controlFormTupleRepr,
-                                  available)
+            control = disambiguate(
+                controls, msg, index, controlFormTupleRepr, available)
             self.browser._clickSubmit(form, control._control, coord)
-        else: # JavaScript sort of submit
+        else:  # JavaScript sort of submit
             if index is not None or coord is not None:
                 raise ValueError(
                     'May not use index or coord without a control')
@@ -1218,6 +1242,7 @@ class Form(SetattrErrorsMixin):
                         label, name, [self._form], include_subcontrols=True)
         return disambiguate(intermediate, msg, index,
                             controlFormTupleRepr, available)
+
 
 def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
     if intermediate:
@@ -1234,8 +1259,9 @@ def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
             try:
                 return intermediate[index]
             except IndexError:
-                msg = '%s\nIndex %d out of range, available choices are 0...%d' % (
-                            msg, index, len(intermediate) - 1)
+                msg = (
+                    '%s\nIndex %d out of range, available choices are 0...%d'
+                ) % (msg, index, len(intermediate) - 1)
                 if choice_repr:
                     msg += ''.join(['\n  %d: %s' % (n, choice_repr(choice))
                                     for n, choice in enumerate(intermediate)])
@@ -1244,7 +1270,7 @@ def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
             msg += '\navailable items:' + ''.join([
                 '\n  %s' % choice_repr(choice)
                 for choice in available])
-        elif available is not None: # empty list
+        elif available is not None:  # empty list
             msg += '\n(there are no form items in the HTML)'
     raise LookupError(msg)
 
@@ -1255,10 +1281,12 @@ def onlyOne(items, description):
         raise ValueError(
             "Supply one and only one of %s as arguments" % description)
 
+
 def zeroOrOne(items, description):
     if sum([bool(i) for i in items]) > 1:
         raise ValueError(
             "Supply no more than one of %s as arguments" % description)
+
 
 def getControl(controls, label=None, value=None, index=None):
     onlyOne([label, value], '"label" and "value"')
@@ -1291,8 +1319,10 @@ def getControlLabels(celem, html):
 
     return [l for l in labels if l is not None]
 
+
 def normalizeWhitespace(string):
     return ' '.join(string.split())
+
 
 def isMatching(string, expr):
     """Determine whether ``expr`` matches to ``string``
@@ -1325,7 +1355,7 @@ class PystoneTimer(object):
         # deferred import as workaround for Zope 2 testrunner issue:
         # http://www.zope.org/Collectors/Zope/2268
         from test import pystone
-        if self._pystones_per_second == None:
+        if self._pystones_per_second is None:
             self._pystones_per_second = pystone.pystones(pystone.LOOPS//10)[1]
         return self._pystones_per_second
 
@@ -1367,12 +1397,12 @@ class PystoneTimer(object):
         """
         return self.elapsedSeconds * self.pystonesPerSecond
 
-
     def __enter__(self):
         self.start()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
+
 
 class History:
     """
@@ -1399,11 +1429,14 @@ class History:
     def clear(self):
         del self._history[:]
 
+
 class AmbiguityError(ValueError):
     pass
 
+
 class BrowserStateError(Exception):
     pass
+
 
 class LinkNotFoundError(IndexError):
     pass

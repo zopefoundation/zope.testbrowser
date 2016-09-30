@@ -13,11 +13,13 @@
 ##############################################################################
 """Browser-like functional doctest interfaces
 """
-__docformat__ = "reStructuredText"
 
 import zope.interface
 import zope.schema
 import zope.interface.common.mapping
+
+
+__docformat__ = "reStructuredText"
 
 
 class AlreadyExpiredError(ValueError):
@@ -26,7 +28,7 @@ class AlreadyExpiredError(ValueError):
 
 class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
                zope.interface.common.mapping.IExtendedWriteMapping,
-               zope.interface.common.mapping.IMapping): # NOT copy
+               zope.interface.common.mapping.IMapping):  # NOT copy
     """A mapping of cookies for a given url"""
 
     url = zope.schema.URI(
@@ -44,9 +46,9 @@ class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
 
     def getinfo(name):
         """returns dict of settings for the given cookie name.
- 
-        This includes only the following cookie values: 
- 
+
+        This includes only the following cookie values:
+
         - name (str)
         - value (str),
         - port (int or None),
@@ -56,7 +58,7 @@ class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
         - expires (datetime.datetime with pytz.UTC timezone or None),
         - comment (str or None),
         - commenturl (str or None).
-        
+
         (Method name is not camelCase because it is intended to feel like an
         extension to the mapping interface, which uses all lower case, e.g.
         iterkeys.)
@@ -64,11 +66,11 @@ class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
 
     def iterinfo(name=None):
         """iterate over the information about all the cookies for the URL.
-        
+
         Each result is a dictionary as described for ``getinfo``.
-        
+
         If name is given, iterates over all cookies for given name.
-       
+
         (Method name is not camelCase because it is intended to feel like an
         extension to the mapping interface, which uses all lower case, e.g.
         iterkeys.)
@@ -78,23 +80,22 @@ class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
                domain=None, expires=None, path=None, secure=None, comment=None,
                commenturl=None, port=None):
         """Create a new cookie with the given values.
-        
+
         If cookie of the same name, domain, and path exists, raises a
         ValueError.
-        
+
         Expires is a string or a datetime.datetime.  timezone-naive datetimes
         are interpreted as in UTC.  If expires is before now, raises
         AlreadyExpiredError.
-        
+
         If the domain or path do not generally match the current URL, raises
         ValueError.
         """
 
-    def change(name, value=None,
-            domain=None, expires=None, path=None, secure=None, comment=None,
-            commenturl=None, port=None):
+    def change(name, value=None, domain=None, expires=None, path=None,
+               secure=None, comment=None, commenturl=None, port=None):
         """Change an attribute of an existing cookie.
-        
+
         If cookie does not exist, raises a KeyError."""
 
     def clearAll():
@@ -203,7 +204,7 @@ class IBrowser(zope.interface.Interface):
     lastRequestSeconds = zope.schema.Field(
         title=u"Seconds to Process Last Request",
         description=(
-        u"""Return how many seconds (or fractions) the last request took.
+            u"""Return how many seconds (or fractions) the last request took.
 
         The values returned have the same resolution as the results from
         ``time.clock``.
@@ -212,10 +213,9 @@ class IBrowser(zope.interface.Interface):
         readonly=True)
 
     lastRequestPystones = zope.schema.Field(
-        title=
-            u"Approximate System-Independent Effort of Last Request (Pystones)",
-        description=(
-        u"""Return how many pystones the last request took.
+        title=u"Approximate System-Independent Effort of Last Request "
+              u"(Pystones)",
+        description=(u"""Return how many pystones the last request took.
 
         This number is found by multiplying the number of pystones/second at
         which this system benchmarks and the result of ``lastRequestSeconds``.
@@ -292,7 +292,8 @@ class IControl(zope.interface.Interface):
 
     multiple = zope.schema.Bool(
         title=u"Multiple",
-        description=u"Describes whether this control can hold multiple values.",
+        description=(
+            u"Describes whether this control can hold multiple values."),
         default=False,
         required=False)
 
@@ -343,7 +344,7 @@ class ISubmitControl(IControl):
 
 class IImageSubmitControl(ISubmitControl):
 
-    def click(coord=(1,1,)):
+    def click(coord=(1, 1)):
         "click the submit button with optional coordinates"
 
 
@@ -452,7 +453,7 @@ class IForm(zope.interface.Interface):
         index does not exist, the code raises a LookupError.
         """
 
-    def submit(label=None, name=None, index=None, coord=(1,1)):
+    def submit(label=None, name=None, index=None, coord=(1, 1)):
         """Submit this form.
 
         The `label`, `name`, and `index` arguments select the submit button to
@@ -467,5 +468,3 @@ class IForm(zope.interface.Interface):
         The control code works identically to 'get' except that searches are
         filtered to find only submit and image controls.
         """
-
-
