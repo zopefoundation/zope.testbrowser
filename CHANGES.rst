@@ -47,6 +47,7 @@ CHANGES
         from unittest import TestSuite
         import doctest
         import zope.app.wsgi.testlayer
+        import zope.testbrowser.wsgi
 
         class Layer(zope.testbrowser.wsgi.TestBrowserLayer,
                     zope.app.wsgi.testlayer.BrowserLayer):
