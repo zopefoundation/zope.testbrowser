@@ -15,10 +15,10 @@
 """
 from __future__ import print_function
 
-import io  # noqa (used in doctests)
+import io
 import doctest
 
-from zope.testbrowser.browser import Browser  # noqa (used in doctests)
+from zope.testbrowser.browser import Browser
 import zope.testbrowser.tests.helper
 
 
