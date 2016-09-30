@@ -75,9 +75,23 @@ Example when using the layer:
     ...     def make_wsgi_app(self):
     ...         return zope.testbrowser.wsgi.AuthorizationMiddleware(simple_app)
 
-There is also a BrowserLayer in `zope.app.wsgi.testlayer`_ which does this
+There is also a ``BrowserLayer`` in `zope.app.wsgi.testlayer`_ which does this
 for you and includes a ``TransactionMiddleware``, too, which could be handy
 when testing a ZODB based application.
+
+However, since the ``BrowserLayer`` in `zope.app.wsgi.testlayer`_ re-creates
+the ZODB in ``testSetUp``, we need to re-create the WSGI App during
+``testSetUp``, too. Therefore use ``TestBrowserLayer`` of
+``zope.testbrowser.wsgi`` instead of the simpler ``Layer`` to combine it with
+the ``BrowserLayer`` in `zope.app.wsgi.testlayer`_:
+
+.. doctest::
+
+    >>> import zope.testbrowser.wsgi
+    >>> import zope.app.wsgi.testlayer
+    >>> class Layer(zope.testbrowser.wsgi.TestBrowserLayer,
+    ...             zope.app.wsgi.testlayer.BrowserLayer):
+    ...     pass
 
 .. _`zope.app.wsgi.testlayer` : http://pypi.python.org/pypi/zope.app.wsgi
 

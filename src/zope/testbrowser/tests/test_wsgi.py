@@ -13,6 +13,8 @@
 #
 ##############################################################################
 
+import contextlib
+import mock
 import unittest
 
 import zope.testbrowser.wsgi
@@ -27,6 +29,25 @@ class SimpleLayer(zope.testbrowser.wsgi.Layer):
         return demo_app
 
 SIMPLE_LAYER = SimpleLayer()
+
+
+class AppLayer(object):
+
+    def make_wsgi_app(self):
+        return demo_app
+
+    def testSetUp(self):
+        """Stub to mock it in test to check it was called."""
+
+    def testTearDown(self):
+        """Stub to mock it in test to check it was called."""
+
+
+class TestBrowserLayer(zope.testbrowser.wsgi.TestBrowserLayer, AppLayer):
+    """Prepare `_APP_UNDER_TEST` with `make_wsgi_app` from `AppLayer`."""
+
+
+TEST_BROWSER_LAYER = TestBrowserLayer()
 
 
 class TestBrowser(unittest.TestCase):
@@ -182,7 +203,7 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(browser.headers['content-type'], 'image/gif')
 
 
-class TestWSGILayer(unittest.TestCase):
+class TestLayer(unittest.TestCase):
 
     def setUp(self):
         # test the layer without depending on zope.testrunner
@@ -208,6 +229,48 @@ class TestWSGILayer(unittest.TestCase):
         # The layer has a .app property where the application under test is
         # available
         self.assertRaises(AssertionError, another_layer.setUp)
+
+
+class TestTestBrowserLayer(unittest.TestCase):
+
+    @contextlib.contextmanager
+    def wsgi_layer(self):
+        TEST_BROWSER_LAYER.testSetUp()
+        yield
+        TEST_BROWSER_LAYER.testTearDown()
+
+    def test_layer(self):
+        """When the layer is setup, the wsgi_app argument is unnecessary"""
+        with self.wsgi_layer():
+            browser = zope.testbrowser.wsgi.Browser()
+            browser.open('http://localhost')
+            self.assertTrue(browser.contents.startswith('Hello world!\n'))
+
+    def test_there_can_only_be_one(self):
+        with self.wsgi_layer():
+            another_layer = TestBrowserLayer()
+            self.assertRaises(AssertionError, another_layer.testSetUp)
+
+    def test_supports_multiple_inheritance(self):
+        with mock.patch('zope.testbrowser.tests.test_wsgi'
+                        '.AppLayer.testSetUp') as testSetUp:
+            TEST_BROWSER_LAYER.testSetUp()
+            self.assertEqual(1, testSetUp.call_count)
+        with mock.patch('zope.testbrowser.tests.test_wsgi'
+                        '.AppLayer.testTearDown') as testTearDown:
+            TEST_BROWSER_LAYER.testTearDown()
+            self.assertEqual(1, testTearDown.call_count)
+
+    def test_raise_error_when_make_wsgi_app_is_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            zope.testbrowser.wsgi.TestBrowserLayer().testSetUp()
+
+    def test_do_not_raise_error_when_make_wsgi_app_returns_None(self):
+        with mock.patch('zope.testbrowser.tests.test_wsgi'
+                        '.AppLayer.make_wsgi_app') as make_wsgi_app:
+            make_wsgi_app.return_value = None
+            TEST_BROWSER_LAYER.testSetUp()
+            TEST_BROWSER_LAYER.testTearDown()
 
 
 class TestAuthorizationMiddleware(unittest.TestCase):

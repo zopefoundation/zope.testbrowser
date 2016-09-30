@@ -29,7 +29,7 @@ CHANGES
 
     Example: if your test file looked like this ::
 
-        # my/package/tests/test_all.py
+        # my/package/tests.py
         from zope.app.testing.functional import defineLayer
         from zope.app.testing.functional import FunctionalDocFileSuite
         defineLayer('MyFtestLayer', 'ftesting.zcml', allow_teardown=True)
@@ -41,17 +41,22 @@ CHANGES
 
     now you'll have to use ::
 
-        # my/package/tests/test_all.py
+        # my/package/tests.py
+        from unittest import TestSuite
         import doctest
-        from zope.app.wsgi.testlayer import BrowserLayer
-        import my.package.tests
+        import zope.app.wsgi.testlayer
+        import zope.testbrowser.wsgi
 
-        MyFtestLayer = BrowserLayer(my.package.tests, 'ftesting.zcml')
+        class Layer(zope.testbrowser.wsgi.TestBrowserLayer,
+                    zope.app.wsgi.testlayer.BrowserLayer):
+            """Layer to prepare zope.testbrowser using the WSGI app."""
+
+        layer = Layer(my.package)
 
         def test_suite():
             suite = doctest.DocFileSuite('test.txt', ...)
-            suite.layer = MyFtestLayer
-            return suite
+            suite.layer = layer
+            return TestSuite((suite,))
 
     and then change all your tests from ::
 
@@ -251,7 +256,7 @@ CHANGES
 3.7.0a1 (2009-08-29)
 --------------------
 
-- Update dependency from ``zope.app.publisher`` to 
+- Update dependency from ``zope.app.publisher`` to
   ``zope.browserpage``, ``zope.browserresource`` and ``zope.ptresource``.
 
 - Remove dependencies on ``zope.app.principalannotation`` and

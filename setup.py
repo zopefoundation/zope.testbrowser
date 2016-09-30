@@ -23,7 +23,7 @@ with open('CHANGES.rst') as f:
 
 long_description = (README + '\n\n' + CHANGES)
 
-tests_require = ['zope.testing']
+tests_require = ['zope.testing', 'mock']
 
 setup(
     name='zope.testbrowser',
