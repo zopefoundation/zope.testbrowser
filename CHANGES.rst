@@ -30,16 +30,14 @@ CHANGES
     Example: if your test file looked like this ::
 
         # my/package/tests.py
-        from unittest import TestSuite
-        import doctest
-        import zope.app.wsgi.testlayer
-
-        layer = zope.app.wsgi.testlayer.BrowserLayer(my.package)
+        from zope.app.testing.functional import defineLayer
+        from zope.app.testing.functional import FunctionalDocFileSuite
+        defineLayer('MyFtestLayer', 'ftesting.zcml', allow_teardown=True)
 
         def test_suite():
-            suite = doctest.DocFileSuite('test.txt', ...)
-            suite.layer = layer
-            return TestSuite((suite,))
+            suite = FunctionalDocFileSuite('test.txt', ...)
+            suite.layer = MyFtestLayer
+            return suite
 
     now you'll have to use ::
 
