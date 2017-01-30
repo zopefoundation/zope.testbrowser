@@ -95,6 +95,12 @@ CHANGES
 
   - ``zope.testbrowser[zope-functional-testing]``
 
+- Changed behavior:
+
+  - The testbrowser no longer follows HTML redirects aka
+    ``<meta http-equiv="refresh" ... />``. This was a `mechanize` feature which
+    does not seem to be provided by `WebTest`.
+
 - Add support for Python 3.3, 3.4 and 3.5.
 
 - Drop support for Python 2.5 and 2.6.
