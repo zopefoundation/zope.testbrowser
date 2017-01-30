@@ -185,7 +185,8 @@ class TestBrowser(unittest.TestCase):
 
     def test_non_ascii_urls(self):
         teststr = u'~ひらがな'
-        url = "http://localhost/%s" % url_quote(teststr.encode('utf-8'))
+        url = "http://localhost/%s" % url_quote(
+            teststr.encode('utf-8'), safe='/~')
         app = WSGITestApplication()
         browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
         browser.raiseHttpErrors = False
