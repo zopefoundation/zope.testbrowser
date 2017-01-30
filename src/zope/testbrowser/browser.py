@@ -36,6 +36,7 @@ import webtest
 
 __docformat__ = "reStructuredText"
 
+HTTPError = urllib_request.HTTPError
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
 
@@ -44,7 +45,7 @@ class HostNotAllowed(Exception):
     pass
 
 
-class RobotExclusionError(urllib_request.HTTPError):
+class RobotExclusionError(HTTPError):
     def __init__(self, *args):
         super(RobotExclusionError, self).__init__(*args)
 
@@ -281,6 +282,7 @@ class Browser(SetattrErrorsMixin):
                     resp = self.testapp.get(url, **reqargs)
             assert remaining_redirects > 0, "redirects chain looks infinite"
             self._setResponse(resp)
+            HTTPError = urllib_request.HTTPError
             self._checkStatus()
 
     def _checkStatus(self):
@@ -289,7 +291,7 @@ class Browser(SetattrErrorsMixin):
             code, msg = self.headers['Status'].split(' ', 1)
             code = int(code)
             if self.raiseHttpErrors and code >= 400:
-                raise urllib_request.HTTPError(self.url, code, msg, [], None)
+                raise HTTPError(self.url, code, msg, [], None)
 
     def _submit(self, form, name=None, index=None, coord=None, **args):
         # A reimplementation of webtest.forms.Form.submit() to allow to insert
