@@ -90,7 +90,7 @@ class TestBrowser(unittest.TestCase):
 
         # we're also automatically redirected on submit
         browser.open('http://localhost/@@/testbrowser/forms.html')
-        self.assertEquals(browser.headers.get('status'), '200 OK')
+        self.assertEqual(browser.headers.get('status'), '200 OK')
         form = browser.getForm(name='redirect')
         form.submit()
         self.assertEquals(browser.headers.get('status'), '200 OK')
