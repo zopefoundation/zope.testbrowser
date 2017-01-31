@@ -2,10 +2,11 @@
 CHANGES
 =======
 
-5.0.1 (unreleased)
-------------------
+5.1 (unreleased)
+----------------
 
-- Nothing changed yet.
+- Alias ``.browser.urllib_request.HTTPError`` to ``.browser.HTTPError`` to have
+  a better API.
 
 
 5.0.0 (2016-09-30)
