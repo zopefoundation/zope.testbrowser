@@ -282,7 +282,6 @@ class Browser(SetattrErrorsMixin):
                     resp = self.testapp.get(url, **reqargs)
             assert remaining_redirects > 0, "redirects chain looks infinite"
             self._setResponse(resp)
-            HTTPError = urllib_request.HTTPError
             self._checkStatus()
 
     def _checkStatus(self):
