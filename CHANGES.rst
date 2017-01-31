@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.1 (unreleased)
+5.1 (2017-01-31)
 ----------------
 
 - Alias ``.browser.urllib_request.HTTPError`` to ``.browser.HTTPError`` to have
