@@ -55,6 +55,8 @@ _allowed_2nd_level = set(['example.com', 'example.net', 'example.org'])
 _allowed = set(['localhost', '127.0.0.1'])
 _allowed.update(_allowed_2nd_level)
 
+REDIRECTS = (301, 302, 303, 307)
+
 
 class TestbrowserApp(webtest.TestApp):
     _last_fragment = ""
@@ -275,7 +277,7 @@ class Browser(SetattrErrorsMixin):
             self._history.add(self._response)
             resp = make_request(reqargs)
             remaining_redirects = 100  # infinite loops protection
-            while 300 <= resp.status_int < 400 and remaining_redirects:
+            while resp.status_int in REDIRECTS and remaining_redirects:
                 remaining_redirects -= 1
                 url = urlparse.urljoin(url, resp.headers['location'])
                 with self._preparedRequest(url) as reqargs:

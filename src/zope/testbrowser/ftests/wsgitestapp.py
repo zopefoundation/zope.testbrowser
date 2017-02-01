@@ -177,8 +177,7 @@ def echo_one(req):
 
 def set_status(req):
     status = req.params.get('status')
+    body = req.params.get('body', 'Just set a status of %s' % status)
     if status:
-        resp = Response('Just set a status of %s' % status)
-        resp.status = int(status)
-        return resp
+        return Response(body, status=int(status))
     return Response('Everything fine')
