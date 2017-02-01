@@ -96,6 +96,30 @@ class TestBrowser(unittest.TestCase):
         self.assertEquals(browser.headers.get('status'), '200 OK')
         self.assertEquals(browser.url, 'http://localhost/set_status.html')
 
+    def test_non_redirecting_30x_status(self):
+        app = WSGITestApplication()
+        browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
+
+        # These statuses should redirect
+        for status in (301, 302, 303, 307):
+            browser.open('http://localhost/redirect.html?%s' % urlencode({
+                'to': 'http://localhost/set_status.html',
+                'type': status,
+            }))
+            self.assertEqual(browser.url, 'http://localhost/set_status.html')
+            self.assertEqual(browser.headers['status'], '200 OK')
+
+        # These should not
+        for status in (300, 304, 305, 306):
+            url = 'http://localhost/set_status.html?%s' % urlencode({
+                'status': status,
+                'body': '',
+            })
+            browser.open(url)
+            self.assertEqual(url, browser.url)
+            status_code = browser.headers['status'].split()[0]
+            self.assertEqual(status_code, str(status))
+
 # See https://github.com/zopefoundation/zope.testbrowser/pull/4#issuecomment-24302778  # noqa
 #
 #  def test_no_redirect(self):
