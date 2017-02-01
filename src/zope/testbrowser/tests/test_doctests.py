@@ -34,5 +34,6 @@ def test_suite():
 
     return suite
 
+
 # additional_tests is for setuptools "setup.py test" support
 additional_tests = test_suite

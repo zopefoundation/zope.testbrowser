@@ -25,6 +25,7 @@ from zope.testbrowser._compat import html_escape
 class NotFound(Exception):
     pass
 
+
 _HERE = os.path.dirname(__file__)
 
 
@@ -134,6 +135,7 @@ def set_header(req):
         resp.headers.add(k, v)
     resp.unicode_body = u'\n'.join(body)
     return resp
+
 
 _interesting_environ = ('CONTENT_LENGTH',
                         'CONTENT_TYPE',
