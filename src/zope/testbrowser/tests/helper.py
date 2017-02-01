@@ -19,6 +19,7 @@ class win32CRLFtransformer(object):
     def sub(self, replacement, text):
         return text.replace(r'\r', '')
 
+
 checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'^--\S+\.\S+\.\S+', re.M), '-' * 30),
     (re.compile(r'boundary=\S+\.\S+\.\S+'), 'boundary=' + '-' * 30),

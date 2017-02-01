@@ -44,6 +44,8 @@ def my_timegm(tt):
         return timegm(tt)
     else:
         return None
+
+
 loose_http_re = re.compile(
     r"""^
     (\d\d?)            # day

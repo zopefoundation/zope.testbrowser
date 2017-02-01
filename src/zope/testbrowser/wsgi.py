@@ -31,6 +31,7 @@ class Browser(zope.testbrowser.browser.Browser):
                                  "zope.testbrowser.wsgi.Layer not setup")
         super(Browser, self).__init__(url, wsgi_app)
 
+
 basicre = re.compile('Basic (.+)?:(.+)?$')
 
 

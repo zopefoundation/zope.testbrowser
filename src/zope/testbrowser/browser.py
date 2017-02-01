@@ -49,6 +49,7 @@ class RobotExclusionError(HTTPError):
     def __init__(self, *args):
         super(RobotExclusionError, self).__init__(*args)
 
+
 # RFC 2606
 _allowed_2nd_level = set(['example.com', 'example.net', 'example.org'])
 

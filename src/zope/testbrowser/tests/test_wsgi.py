@@ -28,6 +28,7 @@ class SimpleLayer(zope.testbrowser.wsgi.Layer):
     def make_wsgi_app(self):
         return demo_app
 
+
 SIMPLE_LAYER = SimpleLayer()
 
 
