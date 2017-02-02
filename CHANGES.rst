@@ -8,6 +8,8 @@ CHANGES
 - Fixed browser to only follow redirects for HTTP statuses
   301, 302, 303, and 307; not other 30x statuses such as 304.
 
+- Fix passing a real file to ``add_file``.
+
 
 5.1 (2017-01-31)
 ----------------

@@ -698,7 +698,7 @@ class Control(SetattrErrorsMixin):
             raise TypeError("Can't call add_file on %s controls"
                             % self.mech_control.type)
 
-        if isinstance(file, io.IOBase):
+        if hasattr(file, 'read'):
             contents = file.read()
         else:
             contents = file
