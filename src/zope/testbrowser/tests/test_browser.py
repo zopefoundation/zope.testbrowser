@@ -957,6 +957,24 @@ def test_controls_without_value(self):
     """
 
 
+def test_multiple_classes(self):
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ... <a href="" class="one two">A link</a>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> from pprint import pprint
+    >>> pprint(browser.getLink('A link').attrs)
+    {'class': ['one', 'two'], 'href': ''}
+    """
+
+
 def test_suite():
     return doctest.DocTestSuite(
         checker=zope.testbrowser.tests.helper.checker,

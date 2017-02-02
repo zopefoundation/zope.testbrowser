@@ -528,6 +528,12 @@ class Browser(SetattrErrorsMixin):
             return s
         if s is None:
             return None
+        # Might be an iterable, especially the 'class' attribute.
+        if isinstance(s, (list, tuple)):
+            subs = [self.toStr(sub) for sub in s]
+            if isinstance(s, tuple):
+                return tuple(subs)
+            return subs
         if PYTHON2 and not isinstance(s, bytes):
             return s.encode(self._response.charset)
         if not PYTHON2 and isinstance(s, bytes):
