@@ -698,11 +698,7 @@ class Control(SetattrErrorsMixin):
             raise TypeError("Can't call add_file on %s controls"
                             % self.mech_control.type)
 
-        if isinstance(file, io.IOBase):
-            contents = file.read()
-        else:
-            contents = file
-
+        contents = file.read()
         self._form[self.name] = webtest.forms.Upload(filename or '', contents,
                                                      content_type)
 
