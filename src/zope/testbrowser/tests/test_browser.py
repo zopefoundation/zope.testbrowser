@@ -696,6 +696,10 @@ def test_subcontrols_can_be_selected_by_value():
     GET /foo HTTP/1.1
     ...
 
+    >>> form_controls = browser.getForm(index=0).controls
+    >>> len(form_controls)
+    12
+
     >>> checkboxes = browser.getControl(name='foo')
     >>> checkboxes
     <ListControl name='foo' type='checkbox'>
