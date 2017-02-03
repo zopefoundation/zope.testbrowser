@@ -347,8 +347,11 @@ def test_file_upload():
 
     Fill in the form value using add_file:
 
-    >>> browser.getControl(name='foo').add_file(
-    ...     io.BytesIO(b'sample_data'), 'text/foo', 'x.txt')
+    >>> import tempfile
+    >>> data = tempfile.NamedTemporaryFile()
+    >>> num_bytes = data.write(b'sample_data')
+    >>> position = data.seek(0)
+    >>> browser.getControl(name='foo').add_file(data, 'text/foo', 'x.txt')
     >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
     POST / HTTP/1.1
     ...
@@ -357,6 +360,7 @@ def test_file_upload():
     <BLANKLINE>
     sample_data
     ...
+    >>> del data
 
     You can pass a string to add_file:
 
@@ -369,6 +373,19 @@ def test_file_upload():
     Content-type: text/csv
     <BLANKLINE>
     blah blah blah
+    ...
+
+    or a BytesIO object:
+
+    >>> browser.getControl(name='foo').add_file(
+    ...     io.BytesIO(b'sample_data'), 'text/foo', 'x.txt')
+    >>> browser.getControl('OK').click() # doctest: +REPORT_NDIFF +ELLIPSIS
+    POST / HTTP/1.1
+    ...
+    Content-Disposition: form-data; name="foo"; filename="x.txt"
+    Content-Type: text/foo
+    <BLANKLINE>
+    sample_data
     ...
 
     You can assign a value
