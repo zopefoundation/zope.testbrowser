@@ -5,6 +5,9 @@ CHANGES
 5.2 (unreleased)
 ----------------
 
+- Fixed ``toStr`` to handle lists, for example a list of class names.
+  [maurits]
+
 - Fixed browser to only follow redirects for HTTP statuses
   301, 302, 303, and 307; not other 30x statuses such as 304.
 
