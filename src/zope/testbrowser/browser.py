@@ -1253,6 +1253,11 @@ class Form(SetattrErrorsMixin):
         return disambiguate(intermediate, msg, index,
                             controlFormTupleRepr, available)
 
+    @property
+    def controls(self):
+        return list(self.browser._findAllControls(
+            [self._form], include_subcontrols=True))
+
 
 def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
     if intermediate:

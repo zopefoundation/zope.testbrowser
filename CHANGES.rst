@@ -13,6 +13,8 @@ CHANGES
 
 - Fix passing a real file to ``add_file``.
 
+- Add `controls` property to Form class to list all form controls.
+
 
 5.1 (2017-01-31)
 ----------------
