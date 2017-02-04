@@ -5,10 +5,22 @@ python:
     - 3.3
     - 3.4
     - 3.5
+    - 3.6
+    - pypy2-5.6.0
+    - pypy3.3-5.2-alpha1
+env:
+    - ENVIRON=py
+    - ENVIRON=flake8,docs
+matrix:
+    exclude:
+        - env: ENVIRON=flake8,docs
+    include:
+        - python: "3.6"
+          env: ENVIRON=flake8,docs
 install:
     - pip install tox
 script:
-    - tox -e py${TRAVIS_PYTHON_VERSION//[.]/}
+    - tox -e $ENVIRON
 # Alternative: use buildout instead of tox
 #install:
 #    - python bootstrap.py
