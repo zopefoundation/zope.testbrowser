@@ -15,6 +15,10 @@ CHANGES
 
 - Add `controls` property to Form class to list all form controls.
 
+- Restore the ability to use parts of the actually displayed select box titles.
+
+- Fix setting empty values on a select control.
+
 
 5.1 (2017-01-31)
 ----------------
