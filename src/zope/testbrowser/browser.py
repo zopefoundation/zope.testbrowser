@@ -847,7 +847,9 @@ class ListControl(Control):
 
         values = []
         for key, titles in self._getOptions():
-            if any(t in value for t in titles):
+            if any(v in t
+                   for t in titles
+                   for v in value):
                 values.append(key)
         self.value = values
 
