@@ -924,7 +924,6 @@ class RadioListControl(ListControl):
         self._control.selectedIndex = None
 
 
-
 @implementer(interfaces.IListControl)
 class CheckboxListControl(SetattrErrorsMixin):
     def __init__(self, name, ctrlelems, browser):
