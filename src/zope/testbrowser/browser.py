@@ -814,14 +814,14 @@ class ListControl(Control):
     @value.setter
     def value(self, value):
         if not value:
-            # HACK: Force unsetting selected value, by avoiding validity check.
-            # Note, that force_value will not work for webtest.forms.Radio
-            # controls.
-            self._control.selectedIndex = None
+            self._set_falsy_value(value)
         else:
             if not self.multiple and isinstance(value, (list, tuple)):
                 value = value[0]
             self._control.value = value
+
+    def _set_falsy_value(self, value):
+        self._control.force_value(value)
 
     @property
     def displayValue(self):
@@ -914,6 +914,13 @@ class RadioListControl(ListControl):
     def labels(self):
         # Parent radio button control has no labels. Children are labeled.
         return []
+
+    def _set_falsy_value(self, value):
+        # HACK: Force unsetting selected value, by avoiding validity check.
+        # Note, that force_value will not work for webtest.forms.Radio
+        # controls.
+        self._control.selectedIndex = None
+
 
 
 @implementer(interfaces.IListControl)
