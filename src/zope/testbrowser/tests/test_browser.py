@@ -116,6 +116,11 @@ class TestDisplayValue(unittest.TestCase):
         self.control.displayValue = 'erna'
         self.assertEqual(self.control.displayValue, ['Alternative'])
 
+    def test_displayValue_set_empty_value(self):
+        self.assertEqual(self.control.displayValue, ['Turn'])
+        self.control.displayValue = []
+        self.assertEqual(self.control.displayValue, [])
+
 
 def test_relative_redirect(self):
     """
