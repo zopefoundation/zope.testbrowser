@@ -21,6 +21,7 @@ import io
 from contextlib import contextmanager
 
 from six.moves import urllib_robotparser
+from six import string_types
 
 from zope.interface import implementer
 from zope.cachedescriptors.property import Lazy
@@ -845,6 +846,8 @@ class ListControl(Control):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
 
+        if isinstance(value, string_types):
+            value = [value]
         values = []
         for key, titles in self._getOptions():
             if any(v in t

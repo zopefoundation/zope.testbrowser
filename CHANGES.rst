@@ -17,6 +17,8 @@ CHANGES
 
 - Restore the ability to use parts of the actually displayed select box titles.
 
+- Allow to set a string value instead of a list on `Browser.displayValue`.
+
 - Fix setting empty values on a select control.
 
 

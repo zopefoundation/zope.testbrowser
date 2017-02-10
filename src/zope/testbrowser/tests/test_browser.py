@@ -111,6 +111,11 @@ class TestDisplayValue(unittest.TestCase):
         self.control.displayValue = ['erna']
         self.assertEqual(self.control.displayValue, ['Alternative'])
 
+    def test_displayValue_handles_set_of_string(self):
+        self.assertEqual(self.control.displayValue, ['Turn'])
+        self.control.displayValue = 'erna'
+        self.assertEqual(self.control.displayValue, ['Alternative'])
+
 
 def test_relative_redirect(self):
     """
