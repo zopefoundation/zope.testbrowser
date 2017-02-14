@@ -15,6 +15,8 @@ CHANGES
 
 - Add `controls` property to Form class to list all form controls.
 
+- Support Python 3.6, PyPy2.7 an PyPy3.3.
+
 
 5.1 (2017-01-31)
 ----------------
