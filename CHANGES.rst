@@ -21,6 +21,8 @@ CHANGES
 
 - Fix setting empty values on a select control.
 
+- Support Python 3.6, PyPy2.7 an PyPy3.3.
+
 
 5.1 (2017-01-31)
 ----------------

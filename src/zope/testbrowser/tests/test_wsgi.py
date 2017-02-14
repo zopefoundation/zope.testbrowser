@@ -94,8 +94,8 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(browser.headers.get('status'), '200 OK')
         form = browser.getForm(name='redirect')
         form.submit()
-        self.assertEquals(browser.headers.get('status'), '200 OK')
-        self.assertEquals(browser.url, 'http://localhost/set_status.html')
+        self.assertEqual(browser.headers.get('status'), '200 OK')
+        self.assertEqual(browser.url, 'http://localhost/set_status.html')
 
     def test_non_redirecting_30x_status(self):
         app = WSGITestApplication()
