@@ -15,6 +15,12 @@ CHANGES
 
 - Add `controls` property to Form class to list all form controls.
 
+- Restore the ability to use parts of the actually displayed select box titles.
+
+- Allow to set a string value instead of a list on `Browser.displayValue`.
+
+- Fix setting empty values on a select control.
+
 - Support Python 3.6, PyPy2.7 an PyPy3.3.
 
 

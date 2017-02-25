@@ -17,6 +17,7 @@ from __future__ import print_function
 
 import io
 import doctest
+import unittest
 
 from zope.testbrowser.browser import Browser
 import zope.testbrowser.tests.helper
@@ -80,6 +81,44 @@ class YetAnotherTestApp(object):
         status = '%s %s' % (next_response['status'], next_response['reason'])
         start_response(status, next_response['headers'])
         return [next_response['body']]
+
+
+class TestDisplayValue(unittest.TestCase):
+    """Testing ..browser.Browser.displayValue."""
+
+    def setUp(self):
+        super(TestDisplayValue, self).setUp()
+        app = TestApp()
+        app.set_next_response(b'''\
+            <html>
+              <body>
+                <form>
+                  <select name="sel1">
+                    <option value="op">Turn</option>
+                    <option value="alt">Alternative</option>
+                  </select>
+                </form>
+              </body>
+            </html>''')
+        browser = Browser(wsgi_app=app)
+        browser.open('https://localhost')
+        self.control = browser.getControl(name='sel1')
+
+    def test_displayValue_partial_title(self):
+        """It matches parts of the display title."""
+        self.assertEqual(self.control.displayValue, ['Turn'])
+        self.control.displayValue = ['erna']
+        self.assertEqual(self.control.displayValue, ['Alternative'])
+
+    def test_displayValue_handles_set_of_string(self):
+        self.assertEqual(self.control.displayValue, ['Turn'])
+        self.control.displayValue = 'erna'
+        self.assertEqual(self.control.displayValue, ['Alternative'])
+
+    def test_displayValue_set_empty_value(self):
+        self.assertEqual(self.control.displayValue, ['Turn'])
+        self.control.displayValue = []
+        self.assertEqual(self.control.displayValue, [])
 
 
 def test_relative_redirect(self):

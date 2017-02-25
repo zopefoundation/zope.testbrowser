@@ -21,6 +21,7 @@ import io
 from contextlib import contextmanager
 
 from six.moves import urllib_robotparser
+from six import string_types
 
 from zope.interface import implementer
 from zope.cachedescriptors.property import Lazy
@@ -814,14 +815,14 @@ class ListControl(Control):
     @value.setter
     def value(self, value):
         if not value:
-            # HACK: Force unsetting selected value, by avoiding validity check.
-            # Note, that force_value will not work for webtest.forms.Radio
-            # controls.
-            self._control.selectedIndex = None
+            self._set_falsy_value(value)
         else:
             if not self.multiple and isinstance(value, (list, tuple)):
                 value = value[0]
             self._control.value = value
+
+    def _set_falsy_value(self, value):
+        self._control.force_value(value)
 
     @property
     def displayValue(self):
@@ -845,9 +846,13 @@ class ListControl(Control):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
 
+        if isinstance(value, string_types):
+            value = [value]
         values = []
         for key, titles in self._getOptions():
-            if any(t in value for t in titles):
+            if any(v in t
+                   for t in titles
+                   for v in value):
                 values.append(key)
         self.value = values
 
@@ -914,6 +919,12 @@ class RadioListControl(ListControl):
     def labels(self):
         # Parent radio button control has no labels. Children are labeled.
         return []
+
+    def _set_falsy_value(self, value):
+        # HACK: Force unsetting selected value, by avoiding validity check.
+        # Note, that force_value will not work for webtest.forms.Radio
+        # controls.
+        self._control.selectedIndex = None
 
 
 @implementer(interfaces.IListControl)
