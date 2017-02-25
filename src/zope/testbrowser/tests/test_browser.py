@@ -90,17 +90,16 @@ class TestDisplayValue(unittest.TestCase):
         super(TestDisplayValue, self).setUp()
         app = TestApp()
         app.set_next_response(b'''\
-<html>
-  <body>
-    <form>
-      <select name="sel1">
-        <option value="op">Turn</option>
-        <option value="alt">Alternative</option>
-      </select>
-    </form>
-  </body>
-</html>
-''')
+            <html>
+              <body>
+                <form>
+                  <select name="sel1">
+                    <option value="op">Turn</option>
+                    <option value="alt">Alternative</option>
+                  </select>
+                </form>
+              </body>
+            </html>''')
         browser = Browser(wsgi_app=app)
         browser.open('https://localhost')
         self.control = browser.getControl(name='sel1')
