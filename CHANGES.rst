@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.2 (unreleased)
+5.2 (2017-02-25)
 ----------------
 
 - Fixed ``toStr`` to handle lists, for example a list of class names.
