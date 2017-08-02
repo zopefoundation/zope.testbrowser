@@ -5,7 +5,8 @@ CHANGES
 5.3 (unreleased)
 ----------------
 
-- Pin to `WebTest < 2.0.27` as newer versions break some tests.
+- Exclude version 2.0.27 of `WebTest` from allowed versions as it breaks some
+  tests.
 
 
 5.2 (2017-02-25)
