@@ -771,6 +771,49 @@ def test_subcontrols_can_be_selected_by_value():
     """
 
 
+def test_subcontrols_with_same_value_can_be_distinguished():
+    """Regression test for GH #31.
+
+    https://github.com/zopefoundation/zope.testbrowser/issues/31
+
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <input id="bar1" type='radio' name='bar' value="a">
+    ...         <label for="bar1">First</label>
+    ...         <input id="bar2" type='radio' name='bar' value="a">
+    ...         <label for="bar2">Second</label>
+    ...         <br>
+    ...         <select name="baz">
+    ...             <option value="b">uno</option>
+    ...             <option value="b">duos</option>
+    ...         </select>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+
+    >>> radiobuttons = browser.getControl(name='bar')
+    >>> radiobuttons.getControl(value='a', index=1).selected = True
+    >>> radiobuttons.getControl(value='a', index=0)
+    <ItemControl name='bar' type='radio' optionValue='a' selected=False>
+    >>> radiobuttons.getControl(value='a', index=1)
+    <ItemControl name='bar' type='radio' optionValue='a' selected=True>
+
+    >>> listcontrol = browser.getControl(name='baz')
+    >>> listcontrol.getControl(value='b', index=1).selected = True
+    >>> listcontrol.getControl(value='b', index=0)
+    <ItemControl name='baz' type='select' optionValue='b' selected=False>
+    >>> listcontrol.getControl(value='b', index=1)
+    <ItemControl name='baz' type='select' optionValue='b' selected=True>
+
+    """
+
+
 def test_option_with_explicit_value_and_first_value_an_empty_string():
     """
     >>> app = YetAnotherTestApp()

@@ -821,6 +821,15 @@ class ListControl(Control):
                 value = value[0]
             self._control.value = value
 
+    @property
+    def _selectedIndex(self):
+        return self._control.selectedIndex
+
+    @_selectedIndex.setter
+    def _selectedIndex(self, index):
+        self._control.force_value(webtest.forms.NoValue)
+        self._control.selectedIndex = index
+
     def _set_falsy_value(self, value):
         self._control.force_value(value)
 
@@ -877,8 +886,9 @@ class ListControl(Control):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
         ctrls = []
-        for elem in self._elem.select('option'):
-            ctrls.append(ItemControl(self, elem, self._form, self.browser))
+        for idx, elem in enumerate(self._elem.select('option')):
+            ctrls.append(ItemControl(self, elem, self._form, self.browser,
+                                     idx))
 
         return ctrls
 
@@ -912,8 +922,8 @@ class RadioListControl(ListControl):
     def controls(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        for opt in self._elems:
-            yield RadioItemControl(self, opt, self._form, self.browser)
+        for idx, opt in enumerate(self._elems):
+            yield RadioItemControl(self, opt, self._form, self.browser, idx)
 
     @Lazy
     def labels(self):
@@ -992,8 +1002,8 @@ class CheckboxListControl(SetattrErrorsMixin):
 
     @property
     def controls(self):
-        return [CheckboxItemControl(self, c, e, c.form, self.browser)
-                for c, e in self._ctrlelems]
+        return [CheckboxItemControl(self, c, e, c.form, self.browser, i)
+                for i, (c, e) in enumerate(self._ctrlelems)]
 
     def clear(self):
         if self._browser_counter != self.browser._counter:
@@ -1030,9 +1040,10 @@ class ImageControl(Control):
 @implementer(interfaces.IItemControl)
 class ItemControl(SetattrErrorsMixin):
 
-    def __init__(self, parent, elem, form, browser):
+    def __init__(self, parent, elem, form, browser, index):
         self._parent = parent
         self._elem = elem
+        self._index = index
         self._form = form
         self.browser = browser
         self._browser_counter = self.browser._counter
@@ -1055,7 +1066,10 @@ class ItemControl(SetattrErrorsMixin):
     @property
     def selected(self):
         """See zope.testbrowser.interfaces.IControl"""
-        return self._value in self._parent.value
+        if self._parent.multiple:
+            return self._value in self._parent.value
+        else:
+            return self._parent._selectedIndex == self._index
 
     @selected.setter
     def selected(self, value):
@@ -1070,7 +1084,7 @@ class ItemControl(SetattrErrorsMixin):
             self._parent.value = values
         else:
             if value:
-                self._parent.value = self._value
+                self._parent._selectedIndex = self._index
             else:
                 self._parent.value = None
 
@@ -1149,8 +1163,9 @@ class RadioItemControl(ItemControl):
 class CheckboxItemControl(ItemControl):
     _control = None
 
-    def __init__(self, parent, wtcontrol, elem, form, browser):
-        super(CheckboxItemControl, self).__init__(parent, elem, form, browser)
+    def __init__(self, parent, wtcontrol, elem, form, browser, index):
+        super(CheckboxItemControl, self).__init__(parent, elem, form, browser,
+                                                  index)
         self._control = wtcontrol
 
     @property
