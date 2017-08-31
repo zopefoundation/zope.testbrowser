@@ -726,6 +726,21 @@ may also be searched by label.
     >>> browser.getControl('Tres')
     <ItemControl name='single-select-value' type='select' optionValue='3' selected=False>
 
+Radio fields can even have the same name and value and only be distinguished
+by the id.
+
+    >>> browser.getControl(name='radio-value-a')
+    <ListControl name='radio-value-a' type='radio'>
+    >>> browser.getControl(name='radio-value-a').getControl(value='true', index=0)
+    <ItemControl name='radio-value-a' type='radio' optionValue='true' selected=False>
+    >>> browser.getControl(name='radio-value-a').getControl(value='true', index=1)
+    <ItemControl name='radio-value-a' type='radio' optionValue='true' selected=False>
+    >>> browser.getControl(name='radio-value-a').getControl(value='true', index=1).selected = True
+    >>> browser.getControl(name='radio-value-a').getControl(value='true', index=0)
+    <ItemControl name='radio-value-a' type='radio' optionValue='true' selected=False>
+    >>> browser.getControl(name='radio-value-a').getControl(value='true', index=1)
+    <ItemControl name='radio-value-a' type='radio' optionValue='true' selected=True>
+
 Characteristics of controls and subcontrols are discussed below.
 
 
