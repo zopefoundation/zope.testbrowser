@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-5.3 (unreleased)
-----------------
+5.2.1 (2017-09-01)
+------------------
 
 - Exclude version 2.0.27 of `WebTest` from allowed versions as it breaks some
   tests.
@@ -105,7 +105,7 @@ CHANGES
 
         >>> from zope.testbrowser.wsgi import Browser
 
-    Maybe the blog post `Getting rid of zope.app.testing`_ could help you adapting to this new version, too.
+ Â   Maybe the blog post `Getting rid of zope.app.testing`_ could help you adapting to this new version, too.
 
 - Remove modules:
 
