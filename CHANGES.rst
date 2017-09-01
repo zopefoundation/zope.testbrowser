@@ -7,6 +7,9 @@ CHANGES
 
 - Exclude version 2.0.27 of `WebTest` from allowed versions as it breaks some
   tests.
+  
+- Adapt tests to version 2.0.28 of `WebTest` but keeping compatibility to older
+  versions.
 
 
 5.2 (2017-02-25)
