@@ -149,7 +149,7 @@ CHANGES
   (https://github.com/zopefoundation/zope.testbrowser/pull/3).
 
 
-.. `Getting rid of zope.app.testing`_ : https://icemac15.wordpress.com/2010/07/10/appswordpressicemac20100710get-rid-of-zope-app-testing-dependency/
+.. _`Getting rid of zope.app.testing` : https://icemac15.wordpress.com/2010/07/10/appswordpressicemac20100710get-rid-of-zope-app-testing-dependency/
 
 
 4.0.3 (2013-09-04)
