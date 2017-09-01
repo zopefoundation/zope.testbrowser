@@ -48,7 +48,7 @@ setup(
         'Topic :: Software Development :: Testing',
         'Topic :: Internet :: WWW/HTTP',
     ],
-
+    keywords='headless browser functional tests WSGI HTTP HTML form',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     namespace_packages=['zope'],
