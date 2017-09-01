@@ -131,6 +131,10 @@ def set_header(req):
     resp = Response()
     body = [u"Set Headers:"]
     for k, v in sorted(req.params.items()):
+        if not isinstance(k, str):
+            k = k.encode('latin1')
+        if not isinstance(v, str):
+            v = v.encode('latin1')
         body.extend([k, v])
         resp.headers.add(k, v)
     resp.unicode_body = u'\n'.join(body)
