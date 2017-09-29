@@ -2,10 +2,11 @@
 CHANGES
 =======
 
-5.3 (unreleased)
-----------------
+5.2.2 (unreleased)
+------------------
 
-- Nothing changed yet.
+- Fix selecting radio and select control options by index
+  (https://github.com/zopefoundation/zope.testbrowser/issues/31).
 
 
 5.2.1 (2017-09-01)
@@ -29,11 +30,11 @@ CHANGES
 
 - Fix passing a real file to ``add_file``.
 
-- Add `controls` property to Form class to list all form controls.
+- Add ``controls`` property to Form class to list all form controls.
 
 - Restore the ability to use parts of the actually displayed select box titles.
 
-- Allow to set a string value instead of a list on `Browser.displayValue`.
+- Allow to set a string value instead of a list on ``Browser.displayValue``.
 
 - Fix setting empty values on a select control.
 
@@ -51,7 +52,7 @@ CHANGES
 ------------------
 
 - Converted most doctests to Sphinx documentation, and published to
-  http://zopetestbrowser.rtfd.org/ .
+  https://zopetestbrowser.readthedocs.io/ .
 
 - Internal implementation now uses WebTest instead of ``mechanize``.
   The ``mechanize`` dependency is completely dropped.
@@ -111,7 +112,7 @@ CHANGES
 
         >>> from zope.testbrowser.wsgi import Browser
 
- Â   Maybe the blog post `Getting rid of zope.app.testing`_ could help you adapting to this new version, too.
+    Maybe the blog post `Getting rid of zope.app.testing`_ could help you adapting to this new version, too.
 
 - Remove modules:
 
@@ -223,7 +224,7 @@ CHANGES
 3.11.0 (2011-01-24)
 -------------------
 
-- Add `wsgi_intercept` support (came from ``zope.app.wsgi.testlayer``).
+- Add ``wsgi_intercept`` support (came from ``zope.app.wsgi.testlayer``).
 
 
 3.10.4 (2011-01-14)
