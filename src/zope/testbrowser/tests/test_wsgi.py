@@ -179,7 +179,7 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(browser.contents.startswith('Hello world!\n'))
 
     def test_handle_errors(self):
-        # http://wsgi.org/wsgi/Specifications/throw_errors
+        # http://wsgi.readthedocs.io/en/latest/specifications/throw_errors.html
         app = WSGITestApplication()
         browser = zope.testbrowser.wsgi.Browser(wsgi_app=app)
         browser.open('http://localhost/echo_one.html'
