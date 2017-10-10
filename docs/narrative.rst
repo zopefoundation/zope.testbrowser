@@ -964,6 +964,27 @@ Hidden Control
     >>> ctrl.multiple
     False
 
+Read Only Control
+~~~~~~~~~~~~~~~~~
+
+.. doctest::
+
+    >>> ctrl = browser.getControl(name='readonly-value')
+    >>> ctrl
+    <Control name='readonly-value' type='text'>
+    >>> verifyObject(interfaces.IControl, ctrl)
+    True
+    >>> ctrl.value
+    'Read Only Text'
+    >>> ctrl.value = 'Overwrite'
+    Traceback (most recent call last):
+    ...
+    AttributeError: Trying to set value of readonly control
+    >>> ctrl.readonly
+    True
+    >>> ctrl.multiple
+    False
+
 Text Area Control
 ~~~~~~~~~~~~~~~~~
 

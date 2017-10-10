@@ -651,6 +651,10 @@ class Control(SetattrErrorsMixin):
         return 'disabled' in self._control.attrs
 
     @property
+    def readonly(self):
+        return 'readonly' in self._control.attrs
+
+    @property
     def type(self):
         typeattr = self._control.attrs.get('type', None)
         if typeattr is None:
@@ -695,6 +699,8 @@ class Control(SetattrErrorsMixin):
     def value(self, value):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
+        if self.readonly:
+            raise AttributeError("Trying to set value of readonly control")
         if self.type == 'file':
             self.add_file(value, content_type=None, filename=None)
         else:
