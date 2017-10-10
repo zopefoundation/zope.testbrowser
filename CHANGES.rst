@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.2.2 (unreleased)
+5.2.2 (2017-10-10)
 ------------------
 
 - Restore raising of AttributeError when trying to set value of a
