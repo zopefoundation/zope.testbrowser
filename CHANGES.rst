@@ -5,7 +5,8 @@ CHANGES
 5.2.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix ``mechRepr`` on controls to always return a native str
+  (https://github.com/zopefoundation/zope.testbrowser/issues/38).
 
 
 5.2.2 (2017-10-10)
