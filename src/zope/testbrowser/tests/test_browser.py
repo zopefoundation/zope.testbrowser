@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2004 Zope Foundation and Contributors.
@@ -119,6 +120,47 @@ class TestDisplayValue(unittest.TestCase):
         self.assertEqual(self.control.displayValue, ['Turn'])
         self.control.displayValue = []
         self.assertEqual(self.control.displayValue, [])
+
+
+class TestMechRepr(unittest.TestCase):
+    """Testing ..browser.*.mechRepr()."""
+
+    def setUp(self):
+        super(TestMechRepr, self).setUp()
+        app = TestApp()
+        app.set_next_response(u'''\
+            <html>
+              <body>
+                <form>
+                  <input name="inp1" type="text" value="Täkst" />
+                  <select name="sel1">
+                    <option value="op">Türn</option>
+                  </select>
+                  <input name="sub1" type="submit" value="Yës" />
+                </form>
+              </body>
+            </html>'''.encode('utf-8'))
+        self.browser = Browser(wsgi_app=app)
+        self.browser.open('https://localhost')
+
+    def test_TextControl_has_str_mechRepr(self):
+        mech_repr = self.browser.getControl(name='inp1').mechRepr()
+        self.assertIsInstance(mech_repr, str)
+        self.assertEqual(mech_repr, '<TextControl(inp1=Täkst)>')
+
+    def test_ItemControl_has_str_mechRepr(self):
+        option = self.browser.getControl(name='sel1').getControl(value="op")
+        mech_repr = option.mechRepr()
+        self.assertIsInstance(mech_repr, str)
+        self.assertEqual(
+            mech_repr,
+            "<Item name='op' id=None contents='Türn' value='op'"
+            " label='Türn'>")
+
+    def test_SubmitControl_has_str_mechRepr(self):
+        mech_repr = self.browser.getControl(name='sub1').mechRepr()
+        self.assertIsInstance(mech_repr, str)
+        self.assertEqual(mech_repr, '<SubmitControl(sub1=Yës)>')
 
 
 def test_relative_redirect(self):
@@ -1079,9 +1121,14 @@ def test_multiple_classes(self):
 
 
 def test_suite():
-    return doctest.DocTestSuite(
-        checker=zope.testbrowser.tests.helper.checker,
-        optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS)
+    suite = unittest.TestSuite()
+    suite.addTests([
+        unittest.defaultTestLoader.loadTestsFromName(__name__),
+        doctest.DocTestSuite(
+            checker=zope.testbrowser.tests.helper.checker,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS),
+    ])
+    return suite
 
 
 # additional_tests is for setuptools "setup.py test" support

@@ -739,6 +739,7 @@ class Control(SetattrErrorsMixin):
 
     def mechRepr(self):
         # emulate mechanize control representation
+        toStr = self.browser.toStr
         ctrl = self._control
         if isinstance(ctrl, webtest.forms.Text):
             tp = ctrl.attrs.get('type')
@@ -753,7 +754,7 @@ class Control(SetattrErrorsMixin):
                           }
             clname = classnames.get(tp, "TextControl")
             return "<%s(%s=%s)%s>" % (
-                clname, ctrl.name, ctrl.value,
+                clname, toStr(ctrl.name), toStr(ctrl.value),
                 ' (%s)' % (', '.join(infos)) if infos else '')
 
         if isinstance(ctrl, webtest.forms.File):
@@ -1120,11 +1121,12 @@ class ItemControl(SetattrErrorsMixin):
                 for lbl in labels if lbl]
 
     def mechRepr(self):
-        contents = normalizeWhitespace(self._elem.text)
-        id = self._elem.attrs.get('id')
-        label = self._elem.attrs.get('label', contents)
-        value = self._value
-        name = self._elem.attrs.get('name', value)  # XXX wha????
+        toStr = self.browser.toStr
+        contents = toStr(normalizeWhitespace(self._elem.text))
+        id = toStr(self._elem.attrs.get('id'))
+        label = toStr(self._elem.attrs.get('label', contents))
+        value = toStr(self._value)
+        name = toStr(self._elem.attrs.get('name', value))  # XXX wha????
         return (
             "<Item name='%s' id=%s contents='%s' value='%s' label='%s'>"
         ) % (name, id, contents, value, label)
