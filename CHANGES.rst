@@ -5,6 +5,9 @@ CHANGES
 5.2.2 (unreleased)
 ------------------
 
+- Restore raising of AttributeError when trying to set value of a
+  read only control.
+
 - Fix selecting radio and select control options by index
   (https://github.com/zopefoundation/zope.testbrowser/issues/31).
 
