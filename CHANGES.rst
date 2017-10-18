@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.2.3 (unreleased)
+5.2.3 (2017-10-18)
 ------------------
 
 - Fix ``mechRepr`` on controls to always return a native str
