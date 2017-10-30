@@ -304,9 +304,13 @@ class Browser(SetattrErrorsMixin):
             fields.extend([('%s.x' % name, coord[0]),
                            ('%s.y' % name, coord[1])])
 
+        url = self._absoluteUrl(form.action)
         if form.method.upper() != "GET":
-            args.setdefault("content_type",  form.enctype)
-        return form.response.goto(form.action, method=form.method,
+            args.setdefault("content_type", form.enctype)
+        else:
+            parsed = urlparse.urlparse(url)._replace(query='', fragment='')
+            url = urlparse.urlunparse(parsed)
+        return form.response.goto(url, method=form.method,
                                   params=fields, **args)
 
     def _setResponse(self, response):

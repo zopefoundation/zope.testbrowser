@@ -1120,6 +1120,28 @@ def test_multiple_classes(self):
     """
 
 
+def test_form_get_method_with_querystring_in_action(self):
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ... <form action="/?bar=1" method="get">
+    ... <input type="text" name="foo" />
+    ... <input type="submit" />
+    ... </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/?bar=1')
+    GET /?bar=1 HTTP/1.1
+    ...
+    >>> browser.getControl(name="foo").value = "bar"
+    >>> browser.getForm().submit()
+    GET /?foo=bar HTTP/1.1
+    ...
+    """
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTests([
