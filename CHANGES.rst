@@ -7,6 +7,8 @@ CHANGES
 
 - Fix form submit with GET method if the form action contains a query string.
 
+- Restore ignoring hidden elements when searching by label.
+
 
 5.2.3 (2017-10-18)
 ------------------

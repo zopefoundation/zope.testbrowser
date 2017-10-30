@@ -1142,6 +1142,28 @@ def test_form_get_method_with_querystring_in_action(self):
     """
 
 
+def test_additional_hidden_element_with_by_label_search():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''
+    ...   <html><body>
+    ...   <form>
+    ...     <label>Label with additional hidden element
+    ...       <input type="text" name="text-next-to-hidden" />
+    ...       <input type="hidden" name="hidden-next-to-text" />
+    ...     </label>
+    ...   </form></body></html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> c = browser.getControl("Label with additional")
+    >>> c.name
+    'text-next-to-hidden'
+    """
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTests([
