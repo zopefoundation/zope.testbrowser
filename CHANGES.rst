@@ -2,12 +2,14 @@
 CHANGES
 =======
 
-5.2.4 (unreleased)
+5.2.4 (2017-11-24)
 ------------------
 
-- Fix form submit with GET method if the form action contains a query string.
+- Fix form submit with GET method if the form action contains a query string
+  (https://github.com/zopefoundation/zope.testbrowser/pull/42).
 
-- Restore ignoring hidden elements when searching by label.
+- Restore ignoring hidden elements when searching by label
+  (https://github.com/zopefoundation/zope.testbrowser/pull/41).
 
 
 5.2.3 (2017-10-18)
