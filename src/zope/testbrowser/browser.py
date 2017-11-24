@@ -422,6 +422,9 @@ class Browser(SetattrErrorsMixin):
                              % re.escape(normalizeWhitespace(label))).search
         found = []
         for wtcontrol in self._findAllControls(forms, include_subcontrols):
+            control = getattr(wtcontrol, 'control', wtcontrol)
+            if control.type == 'hidden':
+                continue
             for l in wtcontrol.labels:
                 if matches(l):
                     found.append(wtcontrol)
