@@ -5,7 +5,7 @@ CHANGES
 5.2.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix form submit with GET method if the form action contains a query string.
 
 
 5.2.3 (2017-10-18)
