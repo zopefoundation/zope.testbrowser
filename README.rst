@@ -1,8 +1,8 @@
 ``zope.testbrowser`` README
 ===========================
 
-.. image:: https://pypip.in/version/zope.testbrowser/badge.svg?style=flat
-        :target: https://pypi.python.org/pypi/zope.testbrowser/
+.. image:: https://img.shields.io/pypi/v/zope.testbrowser.svg
+        :target: https://pypi.org/project/zope.testbrowser/
         :alt: Latest Version
 
 .. image:: https://travis-ci.org/zopefoundation/zope.testbrowser.svg?branch=master
