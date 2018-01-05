@@ -16,3 +16,5 @@
 with special focus on testing.  It is used in Zope, but it's not Zope
 specific at all.  For instance, it can be used to test or otherwise
 interact with any web site.
+
+Documentation is available at: https://zopetestbrowser.readthedocs.org
