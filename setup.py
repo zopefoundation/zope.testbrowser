@@ -27,7 +27,7 @@ tests_require = ['zope.testing', 'mock']
 
 setup(
     name='zope.testbrowser',
-    version='5.2.5.dev0',
+    version='5.3.dev0',
     url='https://github.com/zopefoundation/zope.testbrowser',
     license='ZPL 2.1',
     description='Programmable browser for functional black-box tests',
@@ -39,8 +39,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Zope Public License',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
