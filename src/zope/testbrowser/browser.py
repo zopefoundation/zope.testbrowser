@@ -1025,7 +1025,8 @@ class CheckboxListControl(SetattrErrorsMixin):
         self.value = []
 
     def mechRepr(self):
-        return "<SelectControl(%s=[*, ambiguous])>" % self.name
+        return "<SelectControl(%s=[*, ambiguous])>" % self.browser.toStr(
+            self.name)
 
     @Lazy
     def labels(self):

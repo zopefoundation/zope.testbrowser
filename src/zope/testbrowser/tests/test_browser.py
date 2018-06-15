@@ -136,6 +136,7 @@ class TestMechRepr(unittest.TestCase):
                   <select name="sel1">
                     <option value="op">Türn</option>
                   </select>
+                  <input name="check1" type="checkbox" value="šêlėçtèd" />
                   <input name="sub1" type="submit" value="Yës" />
                 </form>
               </body>
@@ -156,6 +157,14 @@ class TestMechRepr(unittest.TestCase):
             mech_repr,
             "<Item name='op' id=None contents='Türn' value='op'"
             " label='Türn'>")
+
+    def test_CheckboxListControl_has_str_mechRepr(self):
+        from ..browser import CheckboxListControl
+        ctrl = self.browser.getControl(name='check1')
+        self.assertIsInstance(ctrl, CheckboxListControl)
+        mech_repr = ctrl.mechRepr()
+        self.assertIsInstance(mech_repr, str)
+        self.assertEqual(mech_repr, '<SelectControl(check1=[*, ambiguous])>')
 
     def test_SubmitControl_has_str_mechRepr(self):
         mech_repr = self.browser.getControl(name='sub1').mechRepr()
