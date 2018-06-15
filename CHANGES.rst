@@ -7,6 +7,9 @@ CHANGES
 
 - Drop support for Python 3.3 and 3.4.
 
+- Fix ``mechRepr`` of CheckboxListControl to always return a native str.
+  (https://github.com/zopefoundation/zope.testbrowser/pull/46).
+
 
 5.2.4 (2017-11-24)
 ------------------
