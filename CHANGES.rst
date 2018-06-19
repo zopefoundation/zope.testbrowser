@@ -10,6 +10,9 @@ CHANGES
 - Fix ``mechRepr`` of CheckboxListControl to always return a native str.
   (https://github.com/zopefoundation/zope.testbrowser/pull/46).
 
+- Add ``mechRepr`` to input fields having the type ``email``.
+  (https://github.com/zopefoundation/zope.testbrowser/pull/47).
+
 
 5.2.4 (2017-11-24)
 ------------------
