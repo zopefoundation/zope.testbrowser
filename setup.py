@@ -60,7 +60,7 @@ setup(
         'zope.schema',
         'zope.cachedescriptors',
         'pytz > dev',
-        'WebTest > 2.0.29',
+        'WebTest >= 2.0.30',
         'WSGIProxy2',
         'six',
     ],
