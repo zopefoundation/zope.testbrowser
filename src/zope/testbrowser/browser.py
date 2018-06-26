@@ -748,7 +748,7 @@ class Control(SetattrErrorsMixin):
         # emulate mechanize control representation
         toStr = self.browser.toStr
         ctrl = self._control
-        if isinstance(ctrl, webtest.forms.Text):
+        if isinstance(ctrl, (webtest.forms.Text, webtest.forms.Email)):
             tp = ctrl.attrs.get('type')
             infos = []
             if 'readonly' in ctrl.attrs or tp == 'hidden':
@@ -757,7 +757,8 @@ class Control(SetattrErrorsMixin):
                 infos.append('disabled')
 
             classnames = {'password': "PasswordControl",
-                          'hidden': "HiddenControl"
+                          'hidden': "HiddenControl",
+                          'email': "EMailControl",
                           }
             clname = classnames.get(tp, "TextControl")
             return "<%s(%s=%s)%s>" % (

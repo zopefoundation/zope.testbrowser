@@ -137,6 +137,7 @@ class TestMechRepr(unittest.TestCase):
                     <option value="op">Türn</option>
                   </select>
                   <input name="check1" type="checkbox" value="šêlėçtèd" />
+                  <input name="mail1" type="email" value="i@me.com" />
                   <input name="sub1" type="submit" value="Yës" />
                 </form>
               </body>
@@ -165,6 +166,12 @@ class TestMechRepr(unittest.TestCase):
         mech_repr = ctrl.mechRepr()
         self.assertIsInstance(mech_repr, str)
         self.assertEqual(mech_repr, '<SelectControl(check1=[*, ambiguous])>')
+
+    def test_Control_for_type_email_has_mechRepr(self):
+        option = self.browser.getControl(name='mail1')
+        mech_repr = option.mechRepr()
+        self.assertIsInstance(mech_repr, str)
+        self.assertEqual(mech_repr, "<EMailControl(mail1=i@me.com)>")
 
     def test_SubmitControl_has_str_mechRepr(self):
         mech_repr = self.browser.getControl(name='sub1').mechRepr()
