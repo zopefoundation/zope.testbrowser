@@ -5,6 +5,8 @@ CHANGES
 5.3 (unreleased)
 ----------------
 
+- Add support for Python 3.7.
+
 - Drop support for Python 3.3 and 3.4.
 
 - Fix ``mechRepr`` of CheckboxListControl to always return a native str.

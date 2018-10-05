@@ -10,15 +10,16 @@ matrix:
     include:
         - python: "2.7"
           env: TOXENV=flake8,docs
+        - python: "3.7"
+          dist: xenial
+          sudo: true
 install:
-    - pip install tox tox-travis
+    - pip install coveralls coverage
+    - pip install zope.testrunner
+    - pip install -U -e .[test]
 script:
-    - tox
-# Alternative: use buildout instead of tox
-#install:
-#    - python bootstrap.py
-#    - bin/buildout
-#script:
-#    - bin/test -v1
+    - coverage run zope.testrunner --test-path=src -v
+after_success:
+    - coveralls
 notifications:
     email: false

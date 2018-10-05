@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = src/zope/testbrowser
+
+[report]
+precision = 2
