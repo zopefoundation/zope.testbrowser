@@ -240,20 +240,22 @@ Headers
 
 As you can see, the `contents` of the browser does not return any HTTP
 headers.  The headers are accessible via a separate attribute, which is an
-``httplib.HTTPMessage`` instance (httplib is a part of Python's standard
+``http.client.HTTPMessage`` instance (from the Python's standard
 library):
 
 .. doctest::
 
+    >>> from six.moves import http_client
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
-    >>> browser.headers
-    <httplib.HTTPMessage instance...>
+    >>> isinstance(browser.headers, http_client.HTTPMessage)
+    True
 
 The headers can be accessed as a string:
 
 .. doctest::
 
     >>> print(browser.headers)
+    ... # doctest: +NORMALIZE_WHITESPACE
     Status: 200 OK
     Content-Length: 109
     Content-Type: text/html; charset=UTF-8
