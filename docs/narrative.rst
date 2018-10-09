@@ -1632,15 +1632,12 @@ Performance Testing
 
 Browser objects keep up with how much time each request takes.  This can be
 used to ensure a particular request's performance is within a tolerable range.
-Be very careful using raw seconds, cross-machine differences can be huge,
-pystones is usually a better choice.
+Be very careful using raw seconds, cross-machine differences can be huge.
 
 .. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
     >>> browser.lastRequestSeconds < 10 # really big number for safety
-    True
-    >>> browser.lastRequestPystones < 10000 # really big number for safety
     True
 
 

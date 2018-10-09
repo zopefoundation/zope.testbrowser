@@ -9,6 +9,10 @@ CHANGES
 
 - Drop support for Python 3.3 and 3.4.
 
+- Drop support for pystone as Python 3.7 dropped pystone. So
+  ``Browser.lastRequestPystones`` no longer exists. Rename
+  ``.browser.PystoneTimer`` to ``.browser.Timer``.
+
 - Fix ``mechRepr`` of CheckboxListControl to always return a native str.
   (https://github.com/zopefoundation/zope.testbrowser/pull/46).
 

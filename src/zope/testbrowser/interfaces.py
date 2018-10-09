@@ -212,17 +212,6 @@ class IBrowser(zope.interface.Interface):
         required=True,
         readonly=True)
 
-    lastRequestPystones = zope.schema.Field(
-        title=u"Approximate System-Independent Effort of Last Request "
-              u"(Pystones)",
-        description=(u"""Return how many pystones the last request took.
-
-        This number is found by multiplying the number of pystones/second at
-        which this system benchmarks and the result of ``lastRequestSeconds``.
-        """),
-        required=True,
-        readonly=True)
-
     def getControl(label=None, name=None, index=None):
         """Get a control from the page.
 
