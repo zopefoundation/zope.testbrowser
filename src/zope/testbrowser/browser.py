@@ -140,7 +140,7 @@ class Browser(SetattrErrorsMixin):
     __html = None
 
     def __init__(self, url=None, wsgi_app=None):
-        self.timer = PystoneTimer()
+        self.timer = Timer()
         self.raiseHttpErrors = True
         self.handleErrors = True
 
@@ -169,11 +169,6 @@ class Browser(SetattrErrorsMixin):
     def isHtml(self):
         """See zope.testbrowser.interfaces.IBrowser"""
         return self._response and 'html' in self._response.content_type
-
-    @property
-    def lastRequestPystones(self):
-        """See zope.testbrowser.interfaces.IBrowser"""
-        return self.timer.elapsedPystones
 
     @property
     def lastRequestSeconds(self):
@@ -1401,21 +1396,9 @@ def isMatching(string, expr):
         return normalizeWhitespace(expr) in normalizeWhitespace(string)
 
 
-class PystoneTimer(object):
+class Timer(object):
     start_time = 0
     end_time = 0
-    _pystones_per_second = None
-
-    @property
-    def pystonesPerSecond(self):
-        """How many pystones are equivalent to one second on this machine"""
-
-        # deferred import as workaround for Zope 2 testrunner issue:
-        # http://www.zope.org/Collectors/Zope/2268
-        from test import pystone
-        if self._pystones_per_second is None:
-            self._pystones_per_second = pystone.pystones(pystone.LOOPS//10)[1]
-        return self._pystones_per_second
 
     def _getTime(self):
         if sys.platform.startswith('win'):
@@ -1446,14 +1429,6 @@ class PystoneTimer(object):
         else:
             end_time = self.end_time
         return end_time - self.start_time
-
-    @property
-    def elapsedPystones(self):
-        """Elapsed pystones in timing period
-
-        See elapsed_seconds for definition of timing period.
-        """
-        return self.elapsedSeconds * self.pystonesPerSecond
 
     def __enter__(self):
         self.start()
