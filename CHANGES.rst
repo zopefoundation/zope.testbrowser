@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.3 (unreleased)
+5.3 (2018-10-10)
 ----------------
 
 - Add support for Python 3.7.
