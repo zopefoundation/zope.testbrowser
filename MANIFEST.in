@@ -2,10 +2,11 @@ include *.py
 include *.rst
 include *.txt
 
+include .coveragerc
 include .travis.yml
-include tox.ini
 include bootstrap.py
 include buildout.cfg
+include tox.ini
 
 exclude MANITEST.in
 
