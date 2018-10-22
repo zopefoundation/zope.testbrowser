@@ -2,14 +2,15 @@
 CHANGES
 =======
 
-5.4 (unreleased)
-----------------
+5.3.1 (unreleased)
+------------------
 
-- Nothing changed yet.
+- Fix a ``DeprecationWarning`` on Python 3. See `issue 51
+  <https://github.com/zopefoundation/zope.testbrowser/issues/51>`_.
 
 
-5.3 (2018-10-10)
-----------------
+5.3.0 (2018-10-10)
+------------------
 
 - Add support for Python 3.7.
 
