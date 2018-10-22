@@ -41,6 +41,6 @@ else:
     from base64 import encodebytes as base64_encodebytes  # noqa
 
 try:
-    from collections.abc import MutableMapping
+    from collections.abc import MutableMapping # noqa
 except ImportError:
-    from collections import MutableMapping
+    from collections import MutableMapping # noqa
