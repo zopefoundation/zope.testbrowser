@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.3.1 (unreleased)
+5.3.1 (2018-10-23)
 ------------------
 
 - Fix a ``DeprecationWarning`` on Python 3. See `issue 51
