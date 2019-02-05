@@ -1367,7 +1367,7 @@ def getControlLabels(celem, html):
     # find all labels, connected by 'for' attribute
     controlid = celem.attrs.get('id')
     if controlid:
-        forlbls = html.select('label[for=%s]' % controlid)
+        forlbls = html.select('label[for="%s"]' % controlid)
         labels.extend([normalizeWhitespace(l.text) for l in forlbls])
 
     return [l for l in labels if l is not None]

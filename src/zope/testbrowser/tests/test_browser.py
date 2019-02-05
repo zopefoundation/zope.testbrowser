@@ -1118,6 +1118,26 @@ def test_controls_without_value(self):
     """
 
 
+def test_controls_with_slightly_invalid_ids(self):
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ... <form action="." method="post">
+    ... <label for="foo.field">Foo Label</label>
+    ... <input type="text" id="foo.field" value="Foo"/>
+    ... </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> browser.getControl('Foo Label').value
+    'Foo'
+    """
+
+
 def test_multiple_classes(self):
     """
     >>> app = TestApp()
