@@ -50,11 +50,24 @@ class _StubResponse(object):
         return self.message
 
 
+DAY_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+MONTH = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]
+
+
 def expiration_string(expires):  # this is not protected so usable in tests.
     if isinstance(expires, datetime.datetime):
         if expires.tzinfo is not None:
             expires = expires.astimezone(pytz.UTC)
-        expires = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        expires = expires.strftime(
+            '{dow}, %d {mon} %Y %H:%M:%S GMT'.format(
+                dow=DAY_OF_WEEK[expires.weekday()],
+                mon=MONTH[expires.month - 1],
+            )
+        )
     return expires
 
 # end Cookies class helpers
