@@ -382,13 +382,13 @@ To create or change cookies with different additional information, use the
     >>> from pytz import UTC
     >>> browser.cookies.create(
     ...     'bling', value='blang', path='/inner',
-    ...     expires=datetime.datetime(2020, 1, 1, tzinfo=UTC),
+    ...     expires=datetime.datetime(2030, 1, 1, tzinfo=UTC),
     ...     comment='follow swallow')
     >>> pprint.pprint(browser.cookies.getinfo('bling'))
     {'comment': 'follow%20swallow',
      'commenturl': None,
      'domain': 'localhost.local',
-     'expires': datetime.datetime(2020, 1, 1, 0, 0, tzinfo=<UTC>),
+     'expires': datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>),
      'name': 'bling',
      'path': '/inner',
      'port': None,
@@ -797,9 +797,9 @@ is a good example.
 
     >>> browser.open("http://localhost/@@/testbrowser/cookies.html")
     >>> browser.cookies['foo'] = 'bar'
-    >>> browser.cookies.change('foo', expires=datetime.datetime(2021, 1, 1))
+    >>> browser.cookies.change('foo', expires=datetime.datetime(2031, 1, 1))
     >>> browser.cookies.getinfo('foo')['expires']
-    datetime.datetime(2021, 1, 1, 0, 0, tzinfo=<UTC>)
+    datetime.datetime(2031, 1, 1, 0, 0, tzinfo=<UTC>)
 
 That's the main story.  Now here are some edge cases.
 
@@ -808,17 +808,17 @@ That's the main story.  Now here are some edge cases.
     >>> browser.cookies.change(
     ...     'foo',
     ...     expires=zope.testbrowser.cookies.expiration_string(
-    ...         datetime.datetime(2020, 1, 1)))
+    ...         datetime.datetime(2030, 1, 1)))
     >>> browser.cookies.getinfo('foo')['expires']
-    datetime.datetime(2020, 1, 1, 0, 0, tzinfo=<UTC>)
+    datetime.datetime(2030, 1, 1, 0, 0, tzinfo=<UTC>)
 
     >>> browser.cookies.forURL(
     ...   'http://localhost/@@/testbrowser/cookies.html').change(
     ...     'foo',
     ...     expires=zope.testbrowser.cookies.expiration_string(
-    ...         datetime.datetime(2019, 1, 1)))
+    ...         datetime.datetime(2029, 1, 1)))
     >>> browser.cookies.getinfo('foo')['expires']
-    datetime.datetime(2019, 1, 1, 0, 0, tzinfo=<UTC>)
+    datetime.datetime(2029, 1, 1, 0, 0, tzinfo=<UTC>)
     >>> browser.cookies['foo']
     'bar'
     >>> browser.cookies.change('foo', expires=datetime.datetime(1999, 1, 1))
