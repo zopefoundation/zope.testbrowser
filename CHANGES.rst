@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.3.2 (unreleased)
+5.3.2 (2019-02-06)
 ------------------
 
 - Fix an incompatibility with BeautifulSoup4 >= 4.7 that could result
