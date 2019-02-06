@@ -5,7 +5,17 @@ CHANGES
 5.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix an incompatibility with BeautifulSoup4 >= 4.7 that could result
+  in a SyntaxError from browser.getControl().  See `issue 61
+  <https://github.com/zopefoundation/zope.testbrowser/issues/61>`_.
+
+- Fix a bug where you couldn't set a cookie expiration date when your locale
+  was not English.  See `issue 65
+  <https://github.com/zopefoundation/zope.testbrowser/issues/65>`_.
+
+- Fix narrative doctests that started failing on January 1st, 2019 due to a
+  hardcoded "future" date.  See `issue 62
+  <https://github.com/zopefoundation/zope.testbrowser/issues/62>`_.
 
 
 5.3.1 (2018-10-23)
