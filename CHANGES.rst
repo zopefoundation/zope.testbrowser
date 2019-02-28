@@ -164,12 +164,12 @@ CHANGES
                     zope.app.wsgi.testlayer.BrowserLayer):
             """Layer to prepare zope.testbrowser using the WSGI app."""
 
-        layer = Layer(my.package)
+        layer = Layer(my.package, 'ftesting.zcml', allowTearDown=True)
 
         def test_suite():
             suite = doctest.DocFileSuite('test.txt', ...)
             suite.layer = layer
-            return TestSuite((suite,))
+            return suite
 
     and then change all your tests from ::
 
