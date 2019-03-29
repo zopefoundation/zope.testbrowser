@@ -30,6 +30,9 @@ setup(
     version='5.3.3.dev0',
     url='https://github.com/zopefoundation/zope.testbrowser',
     license='ZPL 2.1',
+    project_urls={
+        'Documentation': 'https://zopetestbrowser.readthedocs.io/',
+    },
     description='Programmable browser for functional black-box tests',
     author='Zope Corporation and Contributors',
     author_email='zope-dev@zope.org',
