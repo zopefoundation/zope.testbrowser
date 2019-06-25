@@ -1151,6 +1151,12 @@ class RadioItemControl(ItemControl):
             "<ItemControl name='%s' type='radio' optionValue=%r selected=%r>"
         ) % (self._parent.name, self.optionValue, self.selected)
 
+    def click(self):
+        # Radio buttons cannot be unselected by clicking on them, see
+        # https://github.com/zopefoundation/zope.testbrowser/issues/68
+        if not self.selected:
+            super(RadioItemControl, self).click()
+
     def mechRepr(self):
         toStr = self.browser.toStr
         id = toStr(self._elem.attrs.get('id'))
