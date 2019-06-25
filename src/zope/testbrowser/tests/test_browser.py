@@ -30,6 +30,8 @@ class TestApp(object):
     next_response_status = '200'
     next_response_reason = 'OK'
 
+    verbose = True
+
     def set_next_response(self, body, headers=None, status='200', reason='OK'):
         if headers is None:
             headers = [('Content-Type', 'text/html; charset="UTF-8"'),
@@ -39,23 +41,31 @@ class TestApp(object):
         self.next_response_status = status
         self.next_response_reason = reason
 
+    def print(self, *args, **kw):
+        if self.verbose:
+            print(*args, **kw)
+
     def __call__(self, environ, start_response):
         qs = environ.get('QUERY_STRING')
-        print("%s %s%s HTTP/1.1" % (environ['REQUEST_METHOD'],
-                                    environ['PATH_INFO'],
-                                    '?'+qs if qs else ""
-                                    ))
+        self.print("%s %s%s HTTP/1.1" % (environ['REQUEST_METHOD'],
+                                         environ['PATH_INFO'],
+                                         ('?' + qs) if qs else ""
+                                         ))
         # print all the headers
         for ek, ev in sorted(environ.items()):
             if ek.startswith('HTTP_'):
-                print("%s: %s" % (ek[5:].title(), ev))
-        print()
+                self.print("%s: %s" % (ek[5:].title(), ev))
+        self.print()
         inp = environ['wsgi.input'].input.getvalue()
-        print(inp.decode('utf8'))
+        self.print(inp.decode('utf8'))
         status = '%s %s' % (self.next_response_status,
                             self.next_response_reason)
         start_response(status, self.next_response_headers)
         return [self.next_response_body]
+
+
+class QuietTestApp(TestApp):
+    verbose = False
 
 
 class YetAnotherTestApp(object):
@@ -89,7 +99,7 @@ class TestDisplayValue(unittest.TestCase):
 
     def setUp(self):
         super(TestDisplayValue, self).setUp()
-        app = TestApp()
+        app = QuietTestApp()
         app.set_next_response(b'''\
             <html>
               <body>
@@ -127,7 +137,7 @@ class TestMechRepr(unittest.TestCase):
 
     def setUp(self):
         super(TestMechRepr, self).setUp()
-        app = TestApp()
+        app = QuietTestApp()
         app.set_next_response(u'''\
             <html>
               <body>
