@@ -1138,6 +1138,23 @@ def test_links_without_href(self):
     """
 
 
+def test_links_with_complicated_id(self):
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html><body>
+    ... <a href="/foo" id="form.foo">Foo</a>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> browser.getLink(id='form.foo').url
+    'http://localhost/foo'
+    """
+
+
 def test_controls_without_value(self):
     """
     >>> app = TestApp()
