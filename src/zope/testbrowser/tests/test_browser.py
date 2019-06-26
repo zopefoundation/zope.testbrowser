@@ -1014,6 +1014,37 @@ def test_subcontrols_can_be_selected_by_label_substring():
     """
 
 
+def test_radio_buttons_cannot_be_unselected():
+    """
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''
+    ... <html><body>
+    ...     <form method='get' action='action'>
+    ...         <input type="radio" name="foo" id="foo1" value="v1" checked>
+    ...         <label for="foo1">label 1</label>
+    ...         <input type="radio" name="foo" id="foo2" value="v2">
+    ...         <label for="foo2">label 2</label>
+    ...     </form>
+    ... </body></html>
+    ... ''')
+    >>> browser.open('http://localhost/foo') # doctest: +ELLIPSIS
+    GET /foo HTTP/1.1
+    ...
+    >>> browser.getControl(name='foo').value
+    ['v1']
+
+    >>> browser.getControl('label 1').click()
+    >>> browser.getControl(name='foo').value
+    ['v1']
+
+    >>> browser.getControl('label 2').click()
+    >>> browser.getControl(name='foo').value
+    ['v2']
+
+    """
+
+
 UNICODE_TEST = u'\u4e2d\u6587\u7dad'  # unicode in doctests is hard!
 
 
