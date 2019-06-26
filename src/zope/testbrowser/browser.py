@@ -27,6 +27,7 @@ from zope.interface import implementer
 from zope.cachedescriptors.property import Lazy
 from wsgiproxy.proxies import TransparentProxy
 from bs4 import BeautifulSoup
+from soupsieve import escape as css_escape
 
 from zope.testbrowser import interfaces
 from zope.testbrowser._compat import httpclient, PYTHON2
@@ -313,8 +314,8 @@ class Browser(SetattrErrorsMixin):
 
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
-        qa = 'a' if id is None else 'a#%s' % id
-        qarea = 'area' if id is None else 'area#%s' % id
+        qa = 'a' if id is None else 'a#%s' % css_escape(id)
+        qarea = 'area' if id is None else 'area#%s' % css_escape(id)
         html = self._html
         links = html.select(qa)
         links.extend(html.select(qarea))

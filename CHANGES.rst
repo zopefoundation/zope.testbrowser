@@ -8,6 +8,10 @@ CHANGES
 - Fix a bug where clicking the selected radio button would unselect it.  See
   `issue 68 <https://github.com/zopefoundation/zope.testbrowser/issues/68>`_.
 
+- Fix another incompatibility with BeautifulSoup4 >= 4.7 that could result
+  in a SyntaxError from browser.getLink().  See `issue 61
+  <https://github.com/zopefoundation/zope.testbrowser/issues/61>`_.
+
 
 5.3.2 (2019-02-06)
 ------------------
