@@ -193,6 +193,12 @@ class Browser(SetattrErrorsMixin):
             raise BrowserStateError("no URL has yet been .open()ed")
 
         req = self._response.request
+        if req.method != 'GET':
+            raise BrowserStateError(
+                ".reload() of a %s request is not supported."
+                "  Consider browser.open(browser.url) instead."
+                % req.method
+            )
         with self._preparedRequest(self.url):
             resp = self.testapp.request(req)
             self._setResponse(resp)
