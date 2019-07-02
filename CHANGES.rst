@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.3.3 (unreleased)
+5.3.3 (2019-07-02)
 ------------------
 
 - Fix a bug where clicking the selected radio button would unselect it.  See
