@@ -309,6 +309,7 @@ def test_error_after_reload():
     which is what the tests in fixed-bugs.txt get, but what I actually get
     instead is
 
+    >>> browser.reload()
     Traceback (most recent call last):
       ...
     webtest.app.AppError: Bad response: 403 Forbidden
