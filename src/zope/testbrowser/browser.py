@@ -192,10 +192,10 @@ class Browser(SetattrErrorsMixin):
         if self._response is None:
             raise BrowserStateError("no URL has yet been .open()ed")
 
-        req = self._response.request
-        with self._preparedRequest(self.url):
-            resp = self.testapp.request(req)
-            self._setResponse(resp)
+        def make_request(args):
+            return self.testapp.request(self._response.request)
+
+        self._processRequest(self.url, make_request)
 
     def goBack(self, count=1):
         """See zope.testbrowser.interfaces.IBrowser"""

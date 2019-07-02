@@ -5,7 +5,9 @@ CHANGES
 5.3.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix a bug where browser.reload() would not follow redirects or raise
+  exceptions for bad HTTP statuses.  See `issue 75
+  <https://zopefoundation/zope.testbrowser/issue/75>`_.
 
 
 5.3.3 (2019-07-02)
