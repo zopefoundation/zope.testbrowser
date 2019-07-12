@@ -111,7 +111,7 @@ The problem is that e.g. a simple 403 status raises an exception.
 
 This is how it works with a simple open():
 
-    >>> browser.handleErrors=False
+    >>> browser.handleErrors = False
 
     >>> browser.open('http://localhost/set_status.html')
     >>> print(browser.contents)

@@ -240,10 +240,89 @@ def test_accept_language_header_non_us():
     """
 
 
+def test_redirect_after_reload():
+    r"""
+    When browser is redirected after a page reload, reload() will follow it
+
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> html = (b'''\
+    ... <html><body>
+    ...   Please wait, generating the thing
+    ... </body></html>
+    ... ''')
+    >>> content_type = ('Content-Type', 'text/html; charset=UTF-8')
+    >>> app.add_response(html, headers=[content_type])
+
+    >>> redirect = ('Location', 'http://localhost/the_thing')
+    >>> app.add_response(b"Moved", headers=[redirect],
+    ...                  status=302, reason='Found')
+    >>> app.add_response(b"The Thing", headers=[content_type])
+
+    Start conversation
+
+    >>> browser.open("http://localhost/")
+
+    After reload, expect the browser to be redirected
+
+    >>> browser.reload()
+    >>> browser.url
+    'http://localhost/the_thing'
+    >>> browser.contents
+    'The Thing'
+
+    """
+
+
+def test_error_after_reload():
+    r"""
+    When browser is redirected after a page reload, reload() will check
+    for bad HTTP status codes
+
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> browser.handleErrors = False
+    >>> html = (b'''\
+    ... <html><body>
+    ...   Please wait, generating the thing
+    ... </body></html>
+    ... ''')
+    >>> content_type = ('Content-Type', 'text/html; charset=UTF-8')
+    >>> app.add_response(html, headers=[content_type])
+
+    >>> app.add_response(b"These are not the droids you're looking for",
+    ...                  status=403, reason='Forbidden')
+
+    Start conversation
+
+    >>> browser.open("http://localhost/")
+
+    After reload, expect the error to be raised
+
+    XXX: I expected
+
+    ## >>> browser.reload()
+    ## Traceback (most recent call last):
+    ##   ...
+    ## HTTPError: HTTP Error 403: Forbidden
+
+    which is what the tests in fixed-bugs.txt get, but what I actually get
+    instead is
+
+    >>> browser.reload()
+    Traceback (most recent call last):
+      ...
+    webtest.app.AppError: Bad response: 403 Forbidden
+    (not 200 OK or 3xx redirect for http://localhost/)
+    These are not the droids you're looking for
+
+    """
+
+
 def test_reload_after_redirect():
     """
     When browser is redirected after form submit, reload() will not resubmit
-    oroginal form data.
+    original form data.
 
     >>> app = YetAnotherTestApp()
     >>> browser = Browser(wsgi_app=app)
@@ -1259,12 +1338,16 @@ def test_additional_hidden_element_with_by_label_search():
 
 
 def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTests([
+    optionflags = (
+        doctest.NORMALIZE_WHITESPACE
+        | doctest.ELLIPSIS
+        | doctest.IGNORE_EXCEPTION_DETAIL
+    )
+    suite = unittest.TestSuite([
         unittest.defaultTestLoader.loadTestsFromName(__name__),
         doctest.DocTestSuite(
             checker=zope.testbrowser.tests.helper.checker,
-            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS),
+            optionflags=optionflags),
     ])
     return suite
 
