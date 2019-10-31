@@ -14,7 +14,6 @@
 """Webtest-based Functional Doctest interfaces
 """
 
-import sys
 import re
 import time
 import io
@@ -1408,11 +1407,11 @@ class Timer(object):
     end_time = 0
 
     def _getTime(self):
-        if sys.platform.startswith('win'):
-            # Windows' time.clock gives us high-resolution wall-time
-            return time.clock()
+        if hasattr(time, 'perf_counter'):
+            # Python 3
+            return time.perf_counter()
         else:
-            # everyone else uses time.time
+            # Python 2
             return time.time()
 
     def start(self):
