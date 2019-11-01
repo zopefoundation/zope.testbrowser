@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.3.4 (unreleased)
+5.4.0 (2019-11-01)
 ------------------
 
 - Fix a bug where browser.reload() would not follow redirects or raise
