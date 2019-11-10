@@ -150,6 +150,16 @@ class IBrowser(zope.interface.Interface):
         default=True,
         required=True)
 
+    followRedirects = zope.schema.Bool(
+        title=u"Follow Redirects",
+        description=(u"Describes whether the browser follows redirects. If "
+                     u"set to ``True``, it will automatically issue ``GET`` "
+                     u"requests for redirect responses; if set to ``False``, "
+                     u"it will return redirect responses directly, allowing "
+                     u"the caller to make assertions about them."),
+        default=True,
+        required=True)
+
     def addHeader(key, value):
         """Adds a header to each HTTP request.
 
