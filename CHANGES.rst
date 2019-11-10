@@ -5,7 +5,9 @@ CHANGES
 5.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix a bug where ``browser.goBack()`` did not invalidate caches, so
+  subsequent queries could use data from the wrong response.  See `issue 83
+  <https://github.com/zopefoundation/zope.testbrowser/issues/83>`_.
 
 
 5.4.0 (2019-11-01)
