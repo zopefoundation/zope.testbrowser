@@ -425,6 +425,52 @@ def test_reload_after_post():
     """
 
 
+def test_goBack_changes_cached_html(self):
+    """
+    goBack() causes the browser to clear its cached parsed HTML, so queries
+    that rely on that use the correct response.
+
+    >>> app = TestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.set_next_response(b'''\
+    ... <html>
+    ...   <head><title>First page</title></head>
+    ...   <body><a href="foo">link</a></body>
+    ... </html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> browser.title
+    'First page'
+    >>> browser.getLink('link').url
+    'http://localhost/foo'
+
+    >>> app.set_next_response(b'''\
+    ... <html>
+    ...   <head><title>Second page</title></head>
+    ...   <body><a href="bar">link</a></body>
+    ... </html>
+    ... ''')
+    >>> browser.open('http://localhost/')
+    GET / HTTP/1.1
+    ...
+    >>> browser.title
+    'Second page'
+    >>> browser.getLink('link').url
+    'http://localhost/bar'
+
+    After going back, queries once again return answers based on the first
+    response.
+
+    >>> browser.goBack()
+    >>> browser.title
+    'First page'
+    >>> browser.getLink('link').url
+    'http://localhost/foo'
+    """
+
+
 def test_button_without_name(self):
     """
     This once blew up.

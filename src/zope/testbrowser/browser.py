@@ -310,6 +310,7 @@ class Browser(SetattrErrorsMixin):
 
     def _setResponse(self, response):
         self._response = response
+        self._changed()
 
     def getLink(self, text=None, url=None, id=None, index=0):
         """See zope.testbrowser.interfaces.IBrowser"""
@@ -475,7 +476,6 @@ class Browser(SetattrErrorsMixin):
         self._contents = None
         self._controls = {}
         self.__html = None
-        self._req_content_type = None
 
     @contextmanager
     def _preparedRequest(self, url):
@@ -510,7 +510,7 @@ class Browser(SetattrErrorsMixin):
 
         yield kwargs
 
-        self._changed()
+        self._req_content_type = None
         self.timer.stop()
 
     def _absoluteUrl(self, url):
