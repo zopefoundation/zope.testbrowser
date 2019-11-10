@@ -9,6 +9,10 @@ CHANGES
   subsequent queries could use data from the wrong response.  See `issue 83
   <https://github.com/zopefoundation/zope.testbrowser/issues/83>`_.
 
+- Support telling the browser not to follow redirects by setting
+  ``Browser.follow_redirects`` to False.  See `issue 79
+  <https://github.com/zopefoundation/zope.testbrowser/issues/79>`_.
+
 
 5.4.0 (2019-11-01)
 ------------------
