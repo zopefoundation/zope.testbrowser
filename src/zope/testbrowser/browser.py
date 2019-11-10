@@ -143,6 +143,7 @@ class Browser(SetattrErrorsMixin):
         self.timer = Timer()
         self.raiseHttpErrors = True
         self.handleErrors = True
+        self.followRedirects = True
 
         if wsgi_app is None:
             self.testapp = TestbrowserApp(TransparentProxy())
@@ -273,13 +274,15 @@ class Browser(SetattrErrorsMixin):
         with self._preparedRequest(url) as reqargs:
             self._history.add(self._response)
             resp = make_request(reqargs)
-            remaining_redirects = 100  # infinite loops protection
-            while resp.status_int in REDIRECTS and remaining_redirects:
-                remaining_redirects -= 1
-                url = urlparse.urljoin(url, resp.headers['location'])
-                with self._preparedRequest(url) as reqargs:
-                    resp = self.testapp.get(url, **reqargs)
-            assert remaining_redirects > 0, "redirects chain looks infinite"
+            if self.followRedirects:
+                remaining_redirects = 100  # infinite loops protection
+                while resp.status_int in REDIRECTS and remaining_redirects:
+                    remaining_redirects -= 1
+                    url = urlparse.urljoin(url, resp.headers['location'])
+                    with self._preparedRequest(url) as reqargs:
+                        resp = self.testapp.get(url, **reqargs)
+                assert remaining_redirects > 0, (
+                    "redirects chain looks infinite")
             self._setResponse(resp)
             self._checkStatus()
 

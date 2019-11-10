@@ -208,6 +208,25 @@ def test_relative_redirect(self):
     """
 
 
+def test_disable_following_redirects(self):
+    """
+    If followRedirects is False, the browser does not follow redirects.
+
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> redirect = ('Location', 'http://localhost/the_thing')
+    >>> app.add_response(b"Moved", headers=[redirect],
+    ...                  status=302, reason='Found')
+
+    >>> browser.followRedirects = False
+    >>> browser.open('http://localhost/')
+    >>> browser.headers['Status']
+    '302 Found'
+    >>> browser.headers['Location']
+    'http://localhost/the_thing'
+    """
+
+
 def test_relative_open_allowed_after_non_html_page(self):
     """
     >>> app = YetAnotherTestApp()
