@@ -27,10 +27,10 @@ CHANGES
 
 - Fix a bug where browser.reload() would not follow redirects or raise
   exceptions for bad HTTP statuses.  See `issue 75
-  <https://zopefoundation/zope.testbrowser/issue/75>`_.
+  <https://github.com/zopefoundation/zope.testbrowser/issues/75>`_.
 
 - Add Python 3.8 support.  See `issue 80
-  <https://github.com/zopefoundation/zope.testbrowser/issue/80>`_.
+  <https://github.com/zopefoundation/zope.testbrowser/issues/80>`_.
 
 
 5.3.3 (2019-07-02)
