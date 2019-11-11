@@ -136,6 +136,7 @@ class Browser(SetattrErrorsMixin):
     _response = None
     _req_headers = None
     _req_content_type = None
+    _req_referrer = None
     _history = None
     __html = None
 
@@ -195,6 +196,8 @@ class Browser(SetattrErrorsMixin):
         def make_request(args):
             return self.testapp.request(self._response.request)
 
+        # _req_referrer is left intact, so will be the referrer (if any) of
+        # the request being reloaded.
         self._processRequest(self.url, make_request)
 
     def goBack(self, count=1):
@@ -239,7 +242,7 @@ class Browser(SetattrErrorsMixin):
             raise ValueError('cookies are already set in `cookies` attribute')
         self._req_headers[key] = value
 
-    def open(self, url, data=None):
+    def open(self, url, data=None, referrer=None):
         """See zope.testbrowser.interfaces.IBrowser"""
         url = self._absoluteUrl(url)
         if data is not None:
@@ -249,11 +252,13 @@ class Browser(SetattrErrorsMixin):
             def make_request(args):
                 return self.testapp.get(url, **args)
 
+        self._req_referrer = referrer
         self._processRequest(url, make_request)
 
-    def post(self, url, data, content_type=None):
+    def post(self, url, data, content_type=None, referrer=None):
         if content_type is not None:
             self._req_content_type = content_type
+        self._req_referrer = referrer
         return self.open(url, data)
 
     def _clickSubmit(self, form, control=None, coord=None):
@@ -268,6 +273,7 @@ class Browser(SetattrErrorsMixin):
             def make_request(args):
                 return self._submit(form, coord=coord, **args)
 
+        self._req_referrer = self.url
         self._processRequest(url, make_request)
 
     def _processRequest(self, url, make_request):
@@ -278,6 +284,7 @@ class Browser(SetattrErrorsMixin):
                 remaining_redirects = 100  # infinite loops protection
                 while resp.status_int in REDIRECTS and remaining_redirects:
                     remaining_redirects -= 1
+                    self._req_referrer = url
                     url = urlparse.urljoin(url, resp.headers['location'])
                     with self._preparedRequest(url) as reqargs:
                         resp = self.testapp.get(url, **reqargs)
@@ -485,8 +492,8 @@ class Browser(SetattrErrorsMixin):
         self.timer.start()
 
         headers = {}
-        if self.url:
-            headers['Referer'] = self.url
+        if self._req_referrer is not None:
+            headers['Referer'] = self._req_referrer
 
         if self._req_content_type:
             headers['Content-Type'] = self._req_content_type
@@ -606,7 +613,7 @@ class Link(SetattrErrorsMixin):
     def click(self):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
-        self.browser.open(self.url)
+        self.browser.open(self.url, referrer=self.browser.url)
 
     @property
     def url(self):
