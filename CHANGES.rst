@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.4.1 (unreleased)
+5.5.0 (2019-11-11)
 ------------------
 
 - Fix a bug where ``browser.goBack()`` did not invalidate caches, so

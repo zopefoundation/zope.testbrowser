@@ -27,7 +27,7 @@ tests_require = ['zope.testing', 'mock']
 
 setup(
     name='zope.testbrowser',
-    version='5.4.1.dev0',
+    version='5.5.0',
     url='https://github.com/zopefoundation/zope.testbrowser',
     license='ZPL 2.1',
     project_urls={
