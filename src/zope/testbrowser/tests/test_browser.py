@@ -189,6 +189,27 @@ class TestMechRepr(unittest.TestCase):
         self.assertEqual(mech_repr, '<SubmitControl(sub1=Yës)>')
 
 
+def test_open_no_referrer(self):
+    """
+    Successive calls to open() do not send a referrer.
+
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.add_response(b'foo')
+    >>> app.add_response(b'bar')
+    >>> browser.open('http://localhost/')
+    >>> browser.contents
+    'foo'
+    >>> 'HTTP_REFERER' in app.last_environ
+    False
+    >>> browser.open('http://localhost/')
+    >>> browser.contents
+    'bar'
+    >>> 'HTTP_REFERER' in app.last_environ
+    False
+    """
+
+
 def test_relative_redirect(self):
     """
     >>> app = YetAnotherTestApp()
@@ -205,6 +226,8 @@ def test_relative_redirect(self):
     'found_it'
     >>> browser.url
     'https://localhost/foo/foundit'
+    >>> app.last_environ['HTTP_REFERER']
+    'https://localhost/foo/bar'
     """
 
 
@@ -224,6 +247,8 @@ def test_disable_following_redirects(self):
     '302 Found'
     >>> browser.headers['Location']
     'http://localhost/the_thing'
+    >>> 'HTTP_REFERER' in app.last_environ
+    False
     """
 
 
@@ -289,6 +314,8 @@ def test_redirect_after_reload():
     'http://localhost/the_thing'
     >>> browser.contents
     'The Thing'
+    >>> app.last_environ['HTTP_REFERER']
+    'http://localhost/'
 
     """
 
@@ -374,6 +401,8 @@ def test_reload_after_redirect():
     'Processed'
     >>> app.last_environ['REQUEST_METHOD']
     'GET'
+    >>> app.last_environ['HTTP_REFERER']
+    'http://localhost/submit'
     >>> print(app.last_input)
     <BLANKLINE>
 
@@ -385,6 +414,8 @@ def test_reload_after_redirect():
     'Reloaded'
     >>> app.last_environ['REQUEST_METHOD']
     'GET'
+    >>> app.last_environ['HTTP_REFERER']
+    'http://localhost/submit'
     >>> print(app.last_input)
     <BLANKLINE>
     """
@@ -1296,6 +1327,31 @@ def test_links_with_complicated_id(self):
     ...
     >>> browser.getLink(id='form.foo').url
     'http://localhost/foo'
+    """
+
+
+def test_link_click_sends_referrer(self):
+    """
+    Clicking on a link sends the previous URL as the referrer.
+
+    >>> app = YetAnotherTestApp()
+    >>> browser = Browser(wsgi_app=app)
+    >>> app.add_response(b'''\
+    ... <html><body>
+    ...   <a href="/foo">Foo</a>
+    ... </body</html>
+    ... ''')
+    >>> app.add_response(b'foo')
+    >>> browser.open('http://localhost/')
+    >>> 'HTTP_REFERER' in app.last_environ
+    False
+    >>> browser.getLink(url='/foo').click()
+    >>> browser.contents
+    'foo'
+    >>> browser.url
+    'http://localhost/foo'
+    >>> app.last_environ['HTTP_REFERER']
+    'http://localhost/'
     """
 
 

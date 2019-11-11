@@ -5,7 +5,9 @@ CHANGES
 5.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Stop sending a ``Referer`` header when ``browser.open`` or
+  ``browser.post`` is called directly.  See `issue 87
+  <https://github.com/zopefoundation/zope.testbrowser/issues/87>`_.
 
 
 5.5.0 (2019-11-11)
