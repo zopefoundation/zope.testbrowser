@@ -20,7 +20,11 @@ import io
 import doctest
 import unittest
 
-from zope.testbrowser.browser import Browser
+from zope.testbrowser.browser import (
+    Browser,
+    ItemCountError,
+    ItemNotFoundError,
+)
 import zope.testbrowser.tests.helper
 
 
@@ -130,6 +134,18 @@ class TestDisplayValue(unittest.TestCase):
         self.assertEqual(self.control.displayValue, ['Turn'])
         self.control.displayValue = []
         self.assertEqual(self.control.displayValue, [])
+
+    def test_displayValue_set_missing_value(self):
+        self.assertEqual(self.control.displayValue, ['Turn'])
+        self.assertRaises(
+            ItemNotFoundError, setattr, self.control, 'displayValue',
+            ['Missing'])
+
+    def test_displayValue_set_too_many_values(self):
+        self.assertEqual(self.control.displayValue, ['Turn'])
+        self.assertRaises(
+            ItemCountError, setattr, self.control, 'displayValue',
+            ['Turn', 'Alternative'])
 
 
 class TestMechRepr(unittest.TestCase):

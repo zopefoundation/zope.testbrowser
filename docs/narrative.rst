@@ -844,6 +844,10 @@ These fields have four other attributes and an additional method:
     ['Un', 'Deux']
     >>> ctrl.value
     ['1', '2']
+    >>> ctrl.displayValue = ['Quatre']
+    Traceback (most recent call last):
+    ...
+    ItemNotFoundError: Quatre
 
 - 'controls' gives you a list of the subcontrol objects in the control
   (subcontrols are discussed below).
@@ -1074,6 +1078,14 @@ Selection Control (Single-Valued)
     ['Third']
     >>> ctrl.value
     ['3']
+    >>> ctrl.displayValue = ['Quatre']
+    Traceback (most recent call last):
+    ...
+    ItemNotFoundError: Quatre
+    >>> ctrl.displayValue = ['Uno', 'Dos']
+    Traceback (most recent call last):
+    ...
+    ItemCountError: single selection list, must set sequence of length 0 or 1
 
 Selection Control (Multi-Valued)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1124,6 +1136,10 @@ Checkbox Control (Single-Valued; Unvalued)
     >>> browser.getControl(
     ...     name='single-disabled-unvalued-checkbox-value').disabled
     True
+    >>> ctrl.displayValue = ['Nonsense']
+    Traceback (most recent call last):
+    ...
+    ItemNotFoundError: Nonsense
 
 Checkbox Control (Single-Valued, Valued)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1166,6 +1182,10 @@ Checkbox Control (Single-Valued, Valued)
     False
     >>> ctrl.displayValue
     []
+    >>> ctrl.displayValue = ['Nonsense']
+    Traceback (most recent call last):
+    ...
+    ItemNotFoundError: Nonsense
 
   - Checkbox Control (Multi-Valued)
 
@@ -1209,6 +1229,10 @@ Checkbox Control (Single-Valued, Valued)
     >>> browser.getControl('Three').selected = False
     >>> ctrl.value
     []
+    >>> ctrl.displayValue = ['Four']
+    Traceback (most recent call last):
+    ...
+    ItemNotFoundError: Four
 
 Radio Control
 ~~~~~~~~~~~~~
@@ -1271,6 +1295,14 @@ This is just unit testing:
     ['1']
     >>> ctrl.displayValue
     ['Ein']
+    >>> ctrl.displayValue = ['Vier']
+    Traceback (most recent call last):
+    ...
+    ItemNotFoundError: Vier
+    >>> ctrl.displayValue = ['Ein', 'Zwei']
+    Traceback (most recent call last):
+    ...
+    ItemCountError: single selection list, must set sequence of length 0 or 1
 
 The radio control subcontrols were illustrated above.
 
