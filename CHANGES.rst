@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.5.1 (unreleased)
+5.5.1 (2019-11-12)
 ------------------
 
 - Stop sending a ``Referer`` header when ``browser.open`` or
