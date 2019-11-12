@@ -721,7 +721,7 @@ class Control(SetattrErrorsMixin):
     def add_file(self, file, content_type, filename):
         if self.type != 'file':
             raise TypeError("Can't call add_file on %s controls"
-                            % self.mech_control.type)
+                            % self.type)
 
         if hasattr(file, 'read'):
             contents = file.read()
