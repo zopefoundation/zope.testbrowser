@@ -877,12 +877,19 @@ class ListControl(Control):
 
         if isinstance(value, string_types):
             value = [value]
+        if not self.multiple and len(value) > 1:
+            raise ItemCountError(
+                "single selection list, must set sequence of length 0 or 1")
         values = []
+        found = set()
         for key, titles in self._getOptions():
-            if any(v in t
-                   for t in titles
-                   for v in value):
+            matches = set(v for t in titles for v in value if v in t)
+            if matches:
                 values.append(key)
+                found.update(matches)
+        for v in value:
+            if v not in found:
+                raise ItemNotFoundError(v)
         self.value = values
 
     @property
@@ -999,8 +1006,14 @@ class CheckboxListControl(SetattrErrorsMixin):
 
     @displayValue.setter
     def displayValue(self, value):
+        found = set()
         for c in self.controls:
-            c.selected = any(v in c.labels for v in value)
+            matches = set(v for v in value if v in c.labels)
+            c.selected = bool(matches)
+            found.update(matches)
+        for v in value:
+            if v not in found:
+                raise ItemNotFoundError(v)
 
     @property
     def multiple(self):
@@ -1488,4 +1501,12 @@ class BrowserStateError(Exception):
 
 
 class LinkNotFoundError(IndexError):
+    pass
+
+
+class ItemCountError(ValueError):
+    pass
+
+
+class ItemNotFoundError(ValueError):
     pass

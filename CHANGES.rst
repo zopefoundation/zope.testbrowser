@@ -9,6 +9,14 @@ CHANGES
   ``browser.post`` is called directly.  See `issue 87
   <https://github.com/zopefoundation/zope.testbrowser/issues/87>`_.
 
+- Add error checking to the setters for ``ListControl.displayValue`` and
+  ``CheckboxListControl.displayValue``: in line with the old
+  ``mechanize``-based implementation, these will now raise
+  ``ItemNotFoundError`` if any of the given values are not found, or
+  ``ItemCountError`` on trying to set more than one value on a single-valued
+  control.  See `issue 44
+  <https://github.com/zopefoundation/zope.testbrowser/issues/44>`_.
+
 
 5.5.0 (2019-11-11)
 ------------------
