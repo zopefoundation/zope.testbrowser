@@ -17,6 +17,8 @@ CHANGES
   control.  See `issue 44
   <https://github.com/zopefoundation/zope.testbrowser/issues/44>`_.
 
+- Fix AttributeError in `add_file` when trying to add to a control which is
+  not a file upload.
 
 5.5.0 (2019-11-11)
 ------------------
