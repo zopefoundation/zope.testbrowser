@@ -5,7 +5,7 @@ CHANGES
 5.5.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Ensure all objects have consistent resolution orders.
 
 
 5.5.1 (2019-11-12)
