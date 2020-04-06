@@ -8,7 +8,7 @@ include bootstrap.py
 include buildout.cfg
 include tox.ini
 
-exclude MANITEST.in
+exclude MANIFEST.in
 
 recursive-include docs *.bat
 recursive-include docs *.py
