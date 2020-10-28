@@ -5,8 +5,8 @@
         :target: https://pypi.org/project/zope.testbrowser/
         :alt: Latest Version
 
-.. image:: https://travis-ci.org/zopefoundation/zope.testbrowser.svg?branch=master
-        :target: https://travis-ci.org/zopefoundation/zope.testbrowser
+.. image:: https://travis-ci.com/zopefoundation/zope.testbrowser.svg?branch=master
+        :target: https://travis-ci.com/zopefoundation/zope.testbrowser
 
 .. image:: https://readthedocs.org/projects/zopetestbrowser/badge/?version=latest
         :target: http://zopetestbrowser.readthedocs.org/en/latest/
