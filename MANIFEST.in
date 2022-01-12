@@ -11,3 +11,8 @@ recursive-include docs *.txt
 recursive-include docs Makefile
 
 recursive-include src *.py
+recursive-include docs *.bat
+recursive-include src *.gif
+recursive-include src *.html
+recursive-include src *.txt
+prune docs/_build

@@ -5,7 +5,6 @@ template = "pure-python"
 commit-id = "c357f8a1f38a841754e07e03d24b9eb526063372"
 
 [python]
-with-appveyor = false
 with-windows = false
 with-pypy = false
 with-future-python = false
