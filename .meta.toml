@@ -18,3 +18,12 @@ use-flake8 = true
 
 [coverage]
 fail-under = 70
+
+[manifest]
+additional-rules = [
+    "recursive-include docs *.bat",
+    "recursive-include src *.gif",
+    "recursive-include src *.html",
+    "recursive-include src *.txt",
+    "prune docs/_build",
+    ]
