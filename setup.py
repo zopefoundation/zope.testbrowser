@@ -72,6 +72,11 @@ setup(
         'six',
     ],
     extras_require={
+        'docs': [
+            'Sphinx',
+            'sphinx_rtd_theme',
+            'repoze.sphinx.autointerface',
+        ],
         'test': tests_require,
         'test_bbb': [
             'zope.testbrowser [test]',
