@@ -6,7 +6,7 @@ commit-id = "c357f8a1f38a841754e07e03d24b9eb526063372"
 
 [python]
 with-windows = false
-with-pypy = false
+with-pypy = true
 with-future-python = false
 with-legacy-python = true
 with-docs = true
