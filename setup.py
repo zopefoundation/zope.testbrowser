@@ -64,7 +64,7 @@ setup(
         'zope.interface',
         'zope.schema',
         'zope.cachedescriptors',
-        'pytz > dev',
+        'pytz',
         'WebTest >= 2.0.30',
         'BeautifulSoup4',
         'SoupSieve >= 1.9.0',
