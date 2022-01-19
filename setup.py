@@ -78,6 +78,7 @@ setup(
             'Sphinx',
             'sphinx_rtd_theme',
             'repoze.sphinx.autointerface',
+            'zope.app.wsgi',
         ],
         'test': tests_require,
         'test_bbb': [
