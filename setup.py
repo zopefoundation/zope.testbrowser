@@ -23,7 +23,7 @@ with open('CHANGES.rst') as f:
 
 long_description = (README + '\n\n' + CHANGES)
 
-tests_require = ['zope.testing', 'mock']
+tests_require = ['zope.testing', 'mock', 'zope.testrunner']
 
 setup(
     name='zope.testbrowser',
@@ -48,6 +48,8 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Testing',
@@ -64,7 +66,7 @@ setup(
         'zope.interface',
         'zope.schema',
         'zope.cachedescriptors',
-        'pytz > dev',
+        'pytz',
         'WebTest >= 2.0.30',
         'BeautifulSoup4',
         'SoupSieve >= 1.9.0',
@@ -72,6 +74,12 @@ setup(
         'six',
     ],
     extras_require={
+        'docs': [
+            'Sphinx',
+            'sphinx_rtd_theme',
+            'repoze.sphinx.autointerface',
+            'zope.app.wsgi',
+        ],
         'test': tests_require,
         'test_bbb': [
             'zope.testbrowser [test]',

@@ -431,8 +431,8 @@ class Browser(SetattrErrorsMixin):
             control = getattr(wtcontrol, 'control', wtcontrol)
             if control.type == 'hidden':
                 continue
-            for l in wtcontrol.labels:
-                if matches(l):
+            for label in wtcontrol.labels:
+                if matches(label):
                     found.append(wtcontrol)
                     break
         return found
@@ -742,8 +742,8 @@ class Control(SetattrErrorsMixin):
 
     @Lazy
     def labels(self):
-        return [self.browser.toStr(l)
-                for l in getControlLabels(self._elem, self._form.html)]
+        return [self.browser.toStr(label)
+                for label in getControlLabels(self._elem, self._form.html)]
 
     @property
     def controls(self):
@@ -789,7 +789,7 @@ class SubmitControl(Control):
         labels.append(self._control.value_if_submitted())
         if self._elem.text:
             labels.append(normalizeWhitespace(self._elem.text))
-        return [l for l in labels if l]
+        return [label for label in labels if label]
 
     def mechRepr(self):
         name = self.name if self.name is not None else "<None>"
@@ -1165,8 +1165,8 @@ class RadioItemControl(ItemControl):
 
     @Lazy
     def labels(self):
-        return [self.browser.toStr(l)
-                for l in getControlLabels(self._elem, self._form.html)]
+        return [self.browser.toStr(label)
+                for label in getControlLabels(self._elem, self._form.html)]
 
     def __repr__(self):
         return (
@@ -1225,8 +1225,8 @@ class CheckboxItemControl(ItemControl):
 
     @Lazy
     def labels(self):
-        return [self.browser.toStr(l)
-                for l in getControlLabels(self._elem, self._form.html)]
+        return [self.browser.toStr(label)
+                for label in getControlLabels(self._elem, self._form.html)]
 
     def __repr__(self):
         return (
@@ -1374,7 +1374,8 @@ def getControl(controls, label=None, value=None, index=None):
 
     if label is not None:
         options = [c for c in controls
-                   if any(isMatching(l, label) for l in c.labels)]
+                   if any(isMatching(control_label, label)
+                          for control_label in c.labels)]
         msg = 'label %r' % label
     elif value is not None:
         options = [c for c in controls if isMatching(c.value, value)]
@@ -1396,9 +1397,9 @@ def getControlLabels(celem, html):
     controlid = celem.attrs.get('id')
     if controlid:
         forlbls = html.select('label[for="%s"]' % controlid)
-        labels.extend([normalizeWhitespace(l.text) for l in forlbls])
+        labels.extend([normalizeWhitespace(label.text) for label in forlbls])
 
-    return [l for l in labels if l is not None]
+    return [label for label in labels if label is not None]
 
 
 def normalizeWhitespace(string):

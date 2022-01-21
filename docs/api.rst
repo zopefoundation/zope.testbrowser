@@ -44,3 +44,14 @@ Exceptions
 
   .. autoexception:: ExpiredError
 
+
+:mod:`zope.testbrowser.browser`
+-------------------------------
+
+.. automodule:: zope.testbrowser.browser
+
+Classes
+~~~~~~~
+
+    .. autoclass:: Browser
+       :members:
