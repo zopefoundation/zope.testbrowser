@@ -5,7 +5,7 @@ CHANGES
 5.5.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add support for Python 3.9 and 3.10.
 
 
 5.5.1 (2019-11-12)
