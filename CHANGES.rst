@@ -7,6 +7,8 @@ CHANGES
 
 - Ensure all objects have consistent resolution orders.
 
+- Add support for Python 3.9 and 3.10.
+
 
 5.5.1 (2019-11-12)
 ------------------
