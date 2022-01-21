@@ -927,7 +927,6 @@ class ListControl(Control):
         return "<SelectControl(%s=[*, ambiguous])>" % self.name
 
 
-@implementer(interfaces.IListControl)
 class RadioListControl(ListControl):
 
     _elems = None

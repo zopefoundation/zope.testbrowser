@@ -5,6 +5,8 @@ CHANGES
 5.5.2 (unreleased)
 ------------------
 
+- Ensure all objects have consistent resolution orders.
+
 - Add support for Python 3.9 and 3.10.
 
 
