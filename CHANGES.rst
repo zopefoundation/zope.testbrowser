@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-5.6.1 (unreleased)
+5.6.1 (2022-01-21)
 ------------------
 
 - Ensure all objects have consistent resolution orders.
