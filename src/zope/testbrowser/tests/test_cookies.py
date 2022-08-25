@@ -13,11 +13,12 @@
 #
 ##############################################################################
 
-import unittest
 import datetime
 import locale
+import unittest
 
 import pytz
+
 from zope.testbrowser.cookies import expiration_string
 
 

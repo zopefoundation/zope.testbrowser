@@ -16,31 +16,33 @@
 
 import sys
 
+
 PYTHON3 = sys.version_info[0] == 3
 PYTHON2 = sys.version_info[0] == 2
 
 HAVE_MECHANIZE = False
 
 if PYTHON2:
-    import Cookie as httpcookies
-    import urlparse
+    from base64 import encodestring as base64_encodebytes
+    from cgi import escape as html_escape
     from urllib import quote as url_quote
+    from urllib import urlencode
+
+    import Cookie as httpcookies
     import httplib as httpclient
     import urllib2 as urllib_request
-    from cgi import escape as html_escape
-    from urllib import urlencode
-    from base64 import encodestring as base64_encodebytes
+    import urlparse
 else:
-    import http.cookies as httpcookies  # noqa
-    import urllib.parse as urlparse  # noqa
-    from urllib.parse import quote as url_quote  # noqa
-    import urllib.request as urllib_request  # noqa
-    from urllib.parse import urlencode  # noqa
-    import http.client as httpclient  # noqa
-    from html import escape as html_escape  # noqa
-    from base64 import encodebytes as base64_encodebytes  # noqa
+    import http.client as httpclient
+    import http.cookies as httpcookies
+    import urllib.parse as urlparse
+    import urllib.request as urllib_request
+    from base64 import encodebytes as base64_encodebytes
+    from html import escape as html_escape
+    from urllib.parse import quote as url_quote
+    from urllib.parse import urlencode
 
 try:
-    from collections.abc import MutableMapping # noqa
+    from collections.abc import MutableMapping
 except ImportError:
-    from collections import MutableMapping # noqa
+    from collections import MutableMapping

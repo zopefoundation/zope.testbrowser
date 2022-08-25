@@ -14,13 +14,15 @@
 ##############################################################################
 
 import contextlib
-import mock
 import unittest
 
+import mock
+
 import zope.testbrowser.wsgi
+from zope.testbrowser._compat import url_quote
+from zope.testbrowser._compat import urlencode
 from zope.testbrowser.ftests.wsgitestapp import WSGITestApplication
 from zope.testbrowser.testing import demo_app
-from zope.testbrowser._compat import urlencode, url_quote
 
 
 class SimpleLayer(zope.testbrowser.wsgi.Layer):

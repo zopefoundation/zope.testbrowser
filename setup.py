@@ -13,7 +13,9 @@
 ##############################################################################
 """Setup for zope.testbrowser package
 """
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
+
 
 with open('README.rst') as f:
     README = f.read()

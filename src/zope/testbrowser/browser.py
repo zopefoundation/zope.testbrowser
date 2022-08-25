@@ -14,26 +14,28 @@
 """Webtest-based Functional Doctest interfaces
 """
 
+import io
 import re
 import time
-import io
 from contextlib import contextmanager
 
-from six.moves import urllib_robotparser
 from six import string_types
-
-from zope.interface import implementer
-from zope.cachedescriptors.property import Lazy
-from wsgiproxy.proxies import TransparentProxy
-from bs4 import BeautifulSoup
-from soupsieve import escape as css_escape
-
-from zope.testbrowser import interfaces
-from zope.testbrowser._compat import httpclient, PYTHON2
-from zope.testbrowser._compat import urllib_request, urlparse
-import zope.testbrowser.cookies
+from six.moves import urllib_robotparser
 
 import webtest
+from bs4 import BeautifulSoup
+from soupsieve import escape as css_escape
+from wsgiproxy.proxies import TransparentProxy
+from zope.cachedescriptors.property import Lazy
+from zope.interface import implementer
+
+import zope.testbrowser.cookies
+from zope.testbrowser import interfaces
+from zope.testbrowser._compat import PYTHON2
+from zope.testbrowser._compat import httpclient
+from zope.testbrowser._compat import urllib_request
+from zope.testbrowser._compat import urlparse
+
 
 __docformat__ = "reStructuredText"
 

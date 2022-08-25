@@ -15,8 +15,8 @@
 """
 
 import zope.interface
-import zope.schema
 import zope.interface.common.mapping
+import zope.schema
 
 
 __docformat__ = "reStructuredText"
