@@ -17,9 +17,8 @@
 import re
 
 import zope.testbrowser.browser
-
-from zope.testbrowser.browser import HostNotAllowed  # noqa BBB
 from zope.testbrowser._compat import base64_encodebytes
+from zope.testbrowser.browser import HostNotAllowed  # noqa BBB
 
 
 class Browser(zope.testbrowser.browser.Browser):

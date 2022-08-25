@@ -15,12 +15,19 @@
 import datetime
 import time
 
-from zope.testbrowser._compat import (httpcookies, urlparse, url_quote,
-                                      MutableMapping, urllib_request)
 import six
+
 import pytz
 import zope.interface
-from zope.testbrowser import interfaces, utils
+
+from zope.testbrowser import interfaces
+from zope.testbrowser import utils
+from zope.testbrowser._compat import MutableMapping
+from zope.testbrowser._compat import httpcookies
+from zope.testbrowser._compat import url_quote
+from zope.testbrowser._compat import urllib_request
+from zope.testbrowser._compat import urlparse
+
 
 # Cookies class helpers
 

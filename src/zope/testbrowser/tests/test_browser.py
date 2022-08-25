@@ -16,16 +16,14 @@
 """
 from __future__ import print_function
 
-import io
 import doctest
+import io
 import unittest
 
-from zope.testbrowser.browser import (
-    Browser,
-    ItemCountError,
-    ItemNotFoundError,
-)
 import zope.testbrowser.tests.helper
+from zope.testbrowser.browser import Browser
+from zope.testbrowser.browser import ItemCountError
+from zope.testbrowser.browser import ItemNotFoundError
 
 
 class TestApp(object):

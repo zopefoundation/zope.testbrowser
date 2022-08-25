@@ -13,11 +13,12 @@
 ##############################################################################
 """A minimal WSGI application used as a test fixture."""
 
-import os
 import mimetypes
+import os
 from datetime import datetime
 
-from webob import Request, Response
+from webob import Request
+from webob import Response
 
 from zope.testbrowser._compat import html_escape
 
