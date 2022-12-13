@@ -1679,12 +1679,21 @@ Handling Errors
 Often WSGI middleware or the application itself gracefully handle application
 errors, such as invalid URLs:
 
+**Caution:** Because of https://github.com/python/cpython/issues/90113 we
+currently are not able to demonstrate this feature here as it breaks on Python
+3.11.
+
 .. doctest::
 
+    >>> # Work around https://github.com/python/cpython/issues/90113
+    >>> browser.raiseHttpErrors = False
+
+    >>> # Without the workaround we would see a traceback for the next call:
     >>> browser.open('http://localhost/invalid')
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 404: Not Found
+    >>> browser.headers['status']
+    '404 Not Found'
+    >>> # Reset work around:
+    >>> browser.raiseHttpErrors = True
 
 Note that the above error was thrown by ``mechanize`` and not by the
 application.  For debugging purposes, however, it can be very useful to see the
@@ -1802,4 +1811,3 @@ correctly on the request:
     'https'
 
 see http://www.python.org/dev/peps/pep-3333/ for details.
-

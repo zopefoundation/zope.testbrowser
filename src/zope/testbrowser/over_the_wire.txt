@@ -16,11 +16,7 @@ on zope.i18n locale-based formatting or a similar approach.
 
 The browser can `open` web pages:
 
-    >>> # This is tricky, since in Germany I am forwarded to google.de usually;
-    >>> # The `ncr` forces to really go to google.com.
-    >>> browser.open('http://google.com/ncr')
-    Traceback (most recent call last):
-    ...
-    RobotExclusionError: HTTP Error 403: request disallowed by robots.txt
-
-Oops!  Google doesn't let robots use their search engine.  Oh well.
+    >>> browser.open('https://www.w3.org')
+    >>> print(browser.contents)
+    <!DOCTYPE html ...
+    ...The World Wide Web Consortium (W3C) is an international community...
