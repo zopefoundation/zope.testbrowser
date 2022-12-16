@@ -5,7 +5,7 @@ CHANGES
 5.6.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Do not break in ``mechRepr`` when using ``<input type="date">``.
 
 
 5.6.1 (2022-01-21)

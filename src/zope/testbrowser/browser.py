@@ -772,7 +772,7 @@ class Control(SetattrErrorsMixin):
                 clname, toStr(ctrl.name), toStr(ctrl.value),
                 ' (%s)' % (', '.join(infos)) if infos else '')
 
-        if isinstance(ctrl, webtest.forms.File):
+        if isinstance(ctrl, (webtest.forms.File, webtest.forms.Field)):
             return repr(ctrl) + "<-- unknown"
         raise NotImplementedError(str((self, ctrl)))
 
