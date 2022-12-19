@@ -7,6 +7,8 @@ CHANGES
 
 - Add support for Python 3.11.
 
+- Do not break in ``mechRepr`` when using ``<input type="date">``.
+
 
 5.6.1 (2022-01-21)
 ------------------
