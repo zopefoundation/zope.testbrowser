@@ -1259,9 +1259,6 @@ def test_non_ascii_in_input_field(self):
 
     >>> browser.open('http://localhost/')
     >>> non_ascii = browser.getControl(name='text').value
-    >>> from .. import _compat
-    >>> if _compat.PYTHON2:
-    ...     non_ascii = non_ascii.decode('utf-8')
     >>> non_ascii == UNICODE_TEST
     True
 

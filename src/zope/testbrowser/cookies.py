@@ -13,20 +13,18 @@
 ##############################################################################
 
 import datetime
+import http.cookies
 import time
-
-import six
+import urllib.parse
+import urllib.request
+from collections.abc import MutableMapping
+from urllib.parse import quote as url_quote
 
 import pytz
 import zope.interface
 
 from zope.testbrowser import interfaces
 from zope.testbrowser import utils
-from zope.testbrowser._compat import MutableMapping
-from zope.testbrowser._compat import httpcookies
-from zope.testbrowser._compat import url_quote
-from zope.testbrowser._compat import urllib_request
-from zope.testbrowser._compat import urlparse
 
 
 # Cookies class helpers
@@ -117,7 +115,7 @@ class Cookies(MutableMapping):
 
     @property
     def _request(self):
-        return urllib_request.Request(self._url)
+        return urllib.request.Request(self._url)
 
     @property
     def header(self):
@@ -297,7 +295,7 @@ class Cookies(MutableMapping):
                 'cookie for this url (%s)' % (self.url,))
 
     def _verifyPath(self, path, ck):
-        self_path = urlparse.urlparse(self.url)[2]
+        self_path = urllib.parse.urlparse(self.url)[2]
         if not self_path.startswith(path):
             raise ValueError('current url must start with path, if given')
         if ck is not None and ck.path != path and ck.path.startswith(path):
@@ -322,17 +320,17 @@ class Cookies(MutableMapping):
             else:
                 protocol = 'http'
             url = '%s://%s%s' % (protocol, tmp_domain, path or '/')
-            request = urllib_request.Request(url)
+            request = urllib.request.Request(url)
         else:
             request = self._request
             if request is None:
                 # TODO: fix exception
                 raise BrowserStateError(
                     'cannot create cookie without request or domain')
-        c = httpcookies.SimpleCookie()
+        c = http.cookies.SimpleCookie()
         name = str(name)
         # Cookie value must be native string
-        c[name] = value.encode('utf8') if not six.PY3 else value
+        c[name] = value
         if secure:
             c[name]['secure'] = True
         if domain:
@@ -381,7 +379,7 @@ class Cookies(MutableMapping):
                     return True
             elif value <= dnow:
                 return True
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             if datetime.datetime.fromtimestamp(
                     utils.http2time(value), pytz.UTC) <= dnow:
                 return True

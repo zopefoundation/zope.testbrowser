@@ -13,14 +13,13 @@
 ##############################################################################
 """A minimal WSGI application used as a test fixture."""
 
+import html
 import mimetypes
 import os
 from datetime import datetime
 
 from webob import Request
 from webob import Response
-
-from zope.testbrowser._compat import html_escape
 
 
 class NotFound(Exception):
@@ -79,7 +78,7 @@ class ParamsWrapper(object):
 
     def __getitem__(self, key):
         if key in self.params:
-            return html_escape(self.params[key])
+            return html.escape(self.params[key])
         return ''
 
 

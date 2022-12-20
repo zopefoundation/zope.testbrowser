@@ -14,13 +14,14 @@
 """Webtest-based Functional Doctest interfaces
 """
 
+import http.client
 import io
 import re
 import time
+import urllib.parse
+import urllib.request
+import urllib.robotparser
 from contextlib import contextmanager
-
-from six import string_types
-from six.moves import urllib_robotparser
 
 import webtest
 from bs4 import BeautifulSoup
@@ -31,15 +32,11 @@ from zope.interface import implementer
 
 import zope.testbrowser.cookies
 from zope.testbrowser import interfaces
-from zope.testbrowser._compat import PYTHON2
-from zope.testbrowser._compat import httpclient
-from zope.testbrowser._compat import urllib_request
-from zope.testbrowser._compat import urlparse
 
 
 __docformat__ = "reStructuredText"
 
-HTTPError = urllib_request.HTTPError
+HTTPError = urllib.request.HTTPError
 RegexType = type(re.compile(''))
 _compress_re = re.compile(r"\s+")
 
@@ -67,7 +64,7 @@ class TestbrowserApp(webtest.TestApp):
     restricted = False
 
     def _assertAllowed(self, url):
-        parsed = urlparse.urlparse(url)
+        parsed = urllib.parse.urlparse(url)
         if self.restricted:
             # We are in restricted mode, check host part only
             host = parsed.netloc.partition(':')[0]
@@ -80,9 +77,9 @@ class TestbrowserApp(webtest.TestApp):
             raise HostNotAllowed(url)
         else:
             # Unrestricted mode: retrieve robots.txt and check against it
-            robotsurl = urlparse.urlunsplit((parsed.scheme, parsed.netloc,
-                                             '/robots.txt', '', ''))
-            rp = urllib_robotparser.RobotFileParser()
+            robotsurl = urllib.parse.urlunsplit(
+                (parsed.scheme, parsed.netloc, '/robots.txt', '', ''))
+            rp = urllib.robotparser.RobotFileParser()
             rp.set_url(robotsurl)
             rp.read()
             if not rp.can_fetch("*", url):
@@ -105,7 +102,7 @@ class TestbrowserApp(webtest.TestApp):
         # assuming it is called on every request and therefore _last_fragment
         # will not get outdated. ``getRequestUrlWithFragment()`` will
         # reconstruct url with fragment for the last request.
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
+        scheme, netloc, path, query, fragment = urllib.parse.urlsplit(url)
         self._last_fragment = fragment
         return super(TestbrowserApp, self)._remove_fragment(url)
 
@@ -225,10 +222,7 @@ class Browser(SetattrErrorsMixin):
 
         inp = '\n'.join(resptxt)
         stream = io.BytesIO(inp.encode('latin1'))
-        if PYTHON2:
-            return httpclient.HTTPMessage(stream)
-        else:
-            return httpclient.parse_headers(stream)
+        return http.client.parse_headers(stream)
 
     @property
     def cookies(self):
@@ -287,7 +281,7 @@ class Browser(SetattrErrorsMixin):
                 while resp.status_int in REDIRECTS and remaining_redirects:
                     remaining_redirects -= 1
                     self._req_referrer = url
-                    url = urlparse.urljoin(url, resp.headers['location'])
+                    url = urllib.parse.urljoin(url, resp.headers['location'])
                     with self._preparedRequest(url) as reqargs:
                         resp = self.testapp.get(url, **reqargs)
                 assert remaining_redirects > 0, (
@@ -315,8 +309,8 @@ class Browser(SetattrErrorsMixin):
         if form.method.upper() != "GET":
             args.setdefault("content_type", form.enctype)
         else:
-            parsed = urlparse.urlparse(url)._replace(query='', fragment='')
-            url = urlparse.urlunparse(parsed)
+            parsed = urllib.parse.urlparse(url)._replace(query='', fragment='')
+            url = urllib.parse.urlunparse(parsed)
         return form.response.goto(url, method=form.method,
                                   params=fields, **args)
 
@@ -501,7 +495,7 @@ class Browser(SetattrErrorsMixin):
             headers['Content-Type'] = self._req_content_type
 
         headers['Connection'] = 'close'
-        headers['Host'] = urlparse.urlparse(url).netloc
+        headers['Host'] = urllib.parse.urlparse(url).netloc
         headers['User-Agent'] = 'Python-urllib/2.4'
 
         headers.update(self._req_headers)
@@ -534,7 +528,7 @@ class Browser(SetattrErrorsMixin):
             raise BrowserStateError(
                 "can't fetch relative reference: not viewing any document")
 
-        return str(urlparse.urljoin(self._getBaseUrl(), url))
+        return str(urllib.parse.urljoin(self._getBaseUrl(), url))
 
     def toStr(self, s):
         """Convert possibly unicode object to native string using response
@@ -549,9 +543,7 @@ class Browser(SetattrErrorsMixin):
             if isinstance(s, tuple):
                 return tuple(subs)
             return subs
-        if PYTHON2 and not isinstance(s, bytes):
-            return s.encode(self._response.charset)
-        if not PYTHON2 and isinstance(s, bytes):
+        if isinstance(s, bytes):
             return s.decode(self._response.charset)
         return s
 
@@ -877,7 +869,7 @@ class ListControl(Control):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
 
-        if isinstance(value, string_types):
+        if isinstance(value, str):
             value = [value]
         if not self.multiple and len(value) > 1:
             raise ItemCountError(
@@ -1432,12 +1424,7 @@ class Timer(object):
     end_time = 0
 
     def _getTime(self):
-        if hasattr(time, 'perf_counter'):
-            # Python 3
-            return time.perf_counter()
-        else:
-            # Python 2
-            return time.time()
+        return time.perf_counter()
 
     def start(self):
         """Begin a timing period"""
