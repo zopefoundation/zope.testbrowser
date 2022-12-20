@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/pure-python
 [meta]
 template = "pure-python"
-commit-id = "200573eb414d2228d463da3de7d71a6d6335a704"
+commit-id = "1ef8b9b8"
 
 [python]
 with-windows = false
@@ -29,11 +29,4 @@ additional-rules = [
     "recursive-include src *.html",
     "recursive-include src *.txt",
     "prune docs/_build",
-    ]
-
-[flake8]
-additional-config = [
-    "# F401 imported but unused",
-    "per-file-ignores =",
-    "    src/zope/testbrowser/_compat.py: F401",
     ]

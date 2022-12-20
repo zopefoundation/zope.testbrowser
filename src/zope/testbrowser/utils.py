@@ -18,9 +18,8 @@ Mostly ported from mechanize soruces for backwards compatibility.
 
 import re
 import time
+import urllib.parse
 from calendar import timegm
-
-from zope.testbrowser._compat import urlparse
 
 
 strict_re = re.compile(r"^[SMTWF][a-z][a-z], (\d\d) ([JFMASOND][a-z][a-z]) "
@@ -215,7 +214,7 @@ def request_host(request):
 
     """
     url = request.get_full_url()
-    host = urlparse.urlsplit(url)[1]
+    host = urllib.parse.urlsplit(url)[1]
     if host is None:
         host = request.get_header("Host", "")
     # remove port, if present

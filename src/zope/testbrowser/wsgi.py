@@ -14,10 +14,10 @@
 """WSGI-specific testing code
 """
 
+import base64
 import re
 
 import zope.testbrowser.browser
-from zope.testbrowser._compat import base64_encodebytes
 from zope.testbrowser.browser import HostNotAllowed  # noqa BBB
 
 
@@ -47,7 +47,7 @@ def auth_header(header):
         if p is None:
             p = ''
         plain = '%s:%s' % (u, p)
-        auth = base64_encodebytes(plain.encode('utf-8'))
+        auth = base64.encodebytes(plain.encode('utf-8'))
         return 'Basic %s' % str(auth.rstrip().decode('latin1'))
     return header
 

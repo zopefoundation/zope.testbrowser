@@ -29,7 +29,7 @@ tests_require = ['zope.testing', 'mock', 'zope.testrunner']
 
 setup(
     name='zope.testbrowser',
-    version='5.7.dev0',
+    version='6.0.dev0',
     url='https://github.com/zopefoundation/zope.testbrowser',
     license='ZPL 2.1',
     project_urls={
@@ -43,11 +43,7 @@ setup(
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Zope Public License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -74,7 +70,6 @@ setup(
         'BeautifulSoup4',
         'SoupSieve >= 1.9.0',
         'WSGIProxy2',
-        'six',
     ],
     extras_require={
         'docs': [
