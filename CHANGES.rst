@@ -2,8 +2,10 @@
 CHANGES
 =======
 
-5.6.2 (unreleased)
-------------------
+5.7 (unreleased)
+----------------
+
+- Add support for Python 3.11.
 
 - Do not break in ``mechRepr`` when using ``<input type="date">``.
 

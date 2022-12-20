@@ -112,15 +112,16 @@ The problem is that e.g. a simple 403 status raises an exception.
 This is how it works with a simple open():
 
     >>> browser.handleErrors = False
+    >>> # Work around https://github.com/python/cpython/issues/90113
+    >>> browser.raiseHttpErrors = False
 
     >>> browser.open('http://localhost/set_status.html')
     >>> print(browser.contents)
     Everything fine
 
     >>> browser.open('http://localhost/set_status.html?status=403')
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 403: Forbidden
+    >>> browser.headers['status']
+    '403 Forbidden'
 
     >>> print(browser.contents)
     Just set a status of 403
@@ -135,9 +136,8 @@ A link:
     <html>...
 
     >>> browser.getLink('403').click()
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 403: Forbidden
+    >>> browser.headers['status']
+    '403 Forbidden'
 
     >>> print(browser.contents)
     Just set a status of 403
@@ -150,9 +150,8 @@ A submit button:
 
     >>> browser.getControl(name='status').value = '404'
     >>> browser.getControl('Submit This').click()
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 404: Not Found
+    >>> browser.headers['status']
+    '404 Not Found'
 
     >>> print(browser.contents)
     Just set a status of 404
@@ -165,9 +164,8 @@ A submit image control:
 
     >>> browser.getControl(name='status').value = '403'
     >>> browser.getControl(name='image-value').click()
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 403: Forbidden
+    >>> browser.headers['status']
+    '403 Forbidden'
 
     >>> print(browser.contents)
     Just set a status of 403
@@ -180,9 +178,8 @@ A javascript-ish form submit:
 
     >>> browser.getControl(name='status').value = '404'
     >>> browser.getForm(name='theform').submit()
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 404: Not Found
+    >>> browser.headers['status']
+    '404 Not Found'
 
     >>> print(browser.contents)
     Just set a status of 404
@@ -195,9 +192,8 @@ A non-javascript-ish form submit:
 
     >>> browser.getControl(name='status').value = '403'
     >>> browser.getForm(name='theform').submit(name='submit-value')
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 403: Forbidden
+    >>> browser.headers['status']
+    '403 Forbidden'
 
     >>> print(browser.contents)
     Just set a status of 403
