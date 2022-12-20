@@ -17,7 +17,7 @@
 from wsgiref.simple_server import demo_app as wsgiref_demo_app
 
 
-class Browser(object):
+class Browser:
     """zope.testbrowser.testing.Browser is no longer supported.
 
     Please use zope.testbrowser.wsgi.Browser() in conjuction with

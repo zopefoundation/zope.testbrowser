@@ -111,7 +111,7 @@ def http2time(text):
     text = wkday_re.sub("", text, 1)  # Useless weekday
 
     # tz is time zone specifier string
-    day, mon, yr, hr, min, sec, tz = [None]*7
+    day, mon, yr, hr, min, sec, tz = [None] * 7
 
     # loose regexp parse
     m = loose_http_re.search(text)
@@ -147,7 +147,7 @@ def _str2time(day, mon, yr, hr, min, sec, tz):
     # translate month name to number
     # month numbers start with 1 (January)
     try:
-        mon = months_lower.index(mon.lower())+1
+        mon = months_lower.index(mon.lower()) + 1
     except ValueError:
         # maybe it's already a number
         try:

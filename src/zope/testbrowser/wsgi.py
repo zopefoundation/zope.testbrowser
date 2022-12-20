@@ -28,7 +28,7 @@ class Browser(zope.testbrowser.browser.Browser):
         if wsgi_app is None:
             raise AssertionError("wsgi_app not provided or "
                                  "zope.testbrowser.wsgi.Layer not setup")
-        super(Browser, self).__init__(url, wsgi_app)
+        super().__init__(url, wsgi_app)
 
 
 basicre = re.compile('Basic (.+)?:(.+)?$')
@@ -46,7 +46,7 @@ def auth_header(header):
             u = ''
         if p is None:
             p = ''
-        plain = '%s:%s' % (u, p)
+        plain = '{}:{}'.format(u, p)
         auth = base64.encodebytes(plain.encode('utf-8'))
         return 'Basic %s' % str(auth.rstrip().decode('latin1'))
     return header
@@ -59,7 +59,7 @@ def is_wanted_header(header):
     return key.lower() not in ('x-content-type-warning', 'x-powered-by')
 
 
-class AuthorizationMiddleware(object):
+class AuthorizationMiddleware:
     """This middleware makes the WSGI application compatible with the
     HTTPCaller behavior defined in zope.app.testing.functional:
     - It modifies the HTTP Authorization header to encode user and
@@ -80,14 +80,13 @@ class AuthorizationMiddleware(object):
             headers = [h for h in headers if is_wanted_header(h)]
             start_response(status, headers)
 
-        for entry in self.wsgi_stack(environ, application_start_response):
-            yield entry
+        yield from self.wsgi_stack(environ, application_start_response)
 
 
 _APP_UNDER_TEST = None  # setup and torn down by the Layer class
 
 
-class Layer(object):
+class Layer:
     """Test layer which sets up WSGI app for use with WebTest/testbrowser.
 
     Inherit from this layer and overwrite `make_wsgi_app` for setup.
@@ -110,7 +109,7 @@ class Layer(object):
 
     def cooperative_super(self, method_name):
         # Calling `super` for multiple inheritance:
-        method = getattr(super(Layer, self), method_name, None)
+        method = getattr(super(), method_name, None)
         if method is not None:
             method()
 
@@ -127,7 +126,7 @@ class Layer(object):
         self.cooperative_super('tearDown')
 
 
-class TestBrowserLayer(object):
+class TestBrowserLayer:
     """Test layer which sets up WSGI app for use with WebTest/testbrowser.
 
     This layer is intended for use cases, where `make_wsgi_app` is implemented
@@ -148,14 +147,14 @@ class TestBrowserLayer(object):
 
     def cooperative_super(self, method_name):
         # Calling `super` for multiple inheritance:
-        method = getattr(super(TestBrowserLayer, self), method_name, None)
+        method = getattr(super(), method_name, None)
         if method is not None:
             return method()
 
     def make_wsgi_app(self):
-        if not hasattr(super(TestBrowserLayer, self), 'make_wsgi_app'):
+        if not hasattr(super(), 'make_wsgi_app'):
             raise NotImplementedError
-        return super(TestBrowserLayer, self).make_wsgi_app()
+        return super().make_wsgi_app()
 
     def testSetUp(self):
         self.cooperative_super('testSetUp')

@@ -47,13 +47,13 @@ class HostNotAllowed(Exception):
 
 class RobotExclusionError(HTTPError):
     def __init__(self, *args):
-        super(RobotExclusionError, self).__init__(*args)
+        super().__init__(*args)
 
 
 # RFC 2606
-_allowed_2nd_level = set(['example.com', 'example.net', 'example.org'])
+_allowed_2nd_level = {'example.com', 'example.net', 'example.org'}
 
-_allowed = set(['localhost', '127.0.0.1'])
+_allowed = {'localhost', '127.0.0.1'}
 _allowed.update(_allowed_2nd_level)
 
 REDIRECTS = (301, 302, 303, 307)
@@ -89,8 +89,8 @@ class TestbrowserApp(webtest.TestApp):
     def do_request(self, req, status, expect_errors):
         self._assertAllowed(req.url)
 
-        response = super(TestbrowserApp, self).do_request(req, status,
-                                                          expect_errors)
+        response = super().do_request(req, status,
+                                      expect_errors)
         # Store _last_fragment in response to preserve fragment for history
         # (goBack() will not lose fragment).
         response._last_fragment = self._last_fragment
@@ -104,16 +104,16 @@ class TestbrowserApp(webtest.TestApp):
         # reconstruct url with fragment for the last request.
         scheme, netloc, path, query, fragment = urllib.parse.urlsplit(url)
         self._last_fragment = fragment
-        return super(TestbrowserApp, self)._remove_fragment(url)
+        return super()._remove_fragment(url)
 
     def getRequestUrlWithFragment(self, response):
         url = response.request.url
         if not self._last_fragment:
             return url
-        return "%s#%s" % (url, response._last_fragment)
+        return "{}#{}".format(url, response._last_fragment)
 
 
-class SetattrErrorsMixin(object):
+class SetattrErrorsMixin:
     _enable_setattr_errors = False
 
     def __setattr__(self, name, value):
@@ -218,7 +218,7 @@ class Browser(SetattrErrorsMixin):
         resptxt = []
         resptxt.append('Status: %s' % self._response.status)
         for h, v in sorted(self._response.headers.items()):
-            resptxt.append(str("%s: %s" % (h, v)))
+            resptxt.append(str("{}: {}".format(h, v)))
 
         inp = '\n'.join(resptxt)
         stream = io.BytesIO(inp.encode('latin1'))
@@ -626,10 +626,10 @@ class Link(SetattrErrorsMixin):
     @property
     def attrs(self):
         toStr = self.browser.toStr
-        return dict((toStr(k), toStr(v)) for k, v in self._link.attrs.items())
+        return {toStr(k): toStr(v) for k, v in self._link.attrs.items()}
 
     def __repr__(self):
-        return "<%s text='%s' url='%s'>" % (
+        return "<{} text='{}' url='{}'>".format(
             self.__class__.__name__, normalizeWhitespace(self.text), self.url)
 
 
@@ -731,7 +731,7 @@ class Control(SetattrErrorsMixin):
         self.value = None
 
     def __repr__(self):
-        return "<%s name='%s' type='%s'>" % (
+        return "<{} name='{}' type='{}'>".format(
             self.__class__.__name__, self.name, self.type)
 
     @Lazy
@@ -760,7 +760,7 @@ class Control(SetattrErrorsMixin):
                           'email': "EMailControl",
                           }
             clname = classnames.get(tp, "TextControl")
-            return "<%s(%s=%s)%s>" % (
+            return "<{}({}={}){}>".format(
                 clname, toStr(ctrl.name), toStr(ctrl.value),
                 ' (%s)' % (', '.join(infos)) if infos else '')
 
@@ -779,7 +779,7 @@ class SubmitControl(Control):
 
     @Lazy
     def labels(self):
-        labels = super(SubmitControl, self).labels
+        labels = super().labels
         labels.append(self._control.value_if_submitted())
         if self._elem.text:
             labels.append(normalizeWhitespace(self._elem.text))
@@ -792,14 +792,14 @@ class SubmitControl(Control):
         # Mechanize explicitly told us submit controls were readonly, as
         # if they could be any other way.... *sigh*  Let's take this
         # opportunity and strip that off.
-        return "<SubmitControl(%s=%s)%s>" % (name, value, extra)
+        return "<SubmitControl({}={}){}>".format(name, value, extra)
 
 
 @implementer(interfaces.IListControl)
 class ListControl(Control):
 
     def __init__(self, control, form, elem, browser):
-        super(ListControl, self).__init__(control, form, elem, browser)
+        super().__init__(control, form, elem, browser)
         # HACK: set default value of a list control and then forget about
         # initial default values. Otherwise webtest will not allow to set None
         # as a value of select and radio controls.
@@ -877,7 +877,7 @@ class ListControl(Control):
         values = []
         found = set()
         for key, titles in self._getOptions():
-            matches = set(v for t in titles for v in value if v in t)
+            matches = {v for t in titles for v in value if v in t}
             if matches:
                 values.append(key)
                 found.update(matches)
@@ -926,7 +926,7 @@ class RadioListControl(ListControl):
     _elems = None
 
     def __init__(self, control, form, elems, browser):
-        super(RadioListControl, self).__init__(
+        super().__init__(
             control, form, elems[0], browser)
         self._elems = elems
 
@@ -1001,7 +1001,7 @@ class CheckboxListControl(SetattrErrorsMixin):
     def displayValue(self, value):
         found = set()
         for c in self.controls:
-            matches = set(v for v in value if v in c.labels)
+            matches = {v for v in value if v in c.labels}
             c.selected = bool(matches)
             found.update(matches)
         for v in value:
@@ -1171,7 +1171,7 @@ class RadioItemControl(ItemControl):
         # Radio buttons cannot be unselected by clicking on them, see
         # https://github.com/zopefoundation/zope.testbrowser/issues/68
         if not self.selected:
-            super(RadioItemControl, self).click()
+            super().click()
 
     def mechRepr(self):
         toStr = self.browser.toStr
@@ -1190,16 +1190,16 @@ class RadioItemControl(ItemControl):
         props.append(('value', value))
         props.append(('id', id))
 
-        propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
-        return "<Item name='%s' id='%s' %s>" % (value, id, propstr)
+        propstr = ' '.join('{}={!r}'.format(pk, pv) for pk, pv in props)
+        return "<Item name='{}' id='{}' {}>".format(value, id, propstr)
 
 
 class CheckboxItemControl(ItemControl):
     _control = None
 
     def __init__(self, parent, wtcontrol, elem, form, browser, index):
-        super(CheckboxItemControl, self).__init__(parent, elem, form, browser,
-                                                  index)
+        super().__init__(parent, elem, form, browser,
+                         index)
         self._control = wtcontrol
 
     @property
@@ -1244,8 +1244,8 @@ class CheckboxItemControl(ItemControl):
         props.append(('id', id))
         props.append(('value', value))
 
-        propstr = ' '.join('%s=%r' % (pk, pv) for pk, pv in props)
-        return "<Item name='%s' id='%s' %s>" % (value, id, propstr)
+        propstr = ' '.join('{}={!r}'.format(pk, pv) for pk, pv in props)
+        return "<Item name='{}' id='{}' {}>".format(value, id, propstr)
 
 
 @implementer(interfaces.IForm)
@@ -1309,7 +1309,7 @@ class Form(SetattrErrorsMixin):
         if self._browser_counter != self.browser._counter:
             raise interfaces.ExpiredError
         intermediate, msg, available = self.browser._getAllControls(
-                        label, name, [self._form], include_subcontrols=True)
+            label, name, [self._form], include_subcontrols=True)
         return disambiguate(intermediate, msg, index,
                             controlFormTupleRepr, available)
 
@@ -1325,8 +1325,8 @@ def disambiguate(intermediate, msg, index, choice_repr=None, available=None):
             if len(intermediate) > 1:
                 if choice_repr:
                     msg += ' matches:' + ''.join([
-                                '\n  %s' % choice_repr(choice)
-                                for choice in intermediate])
+                        '\n  %s' % choice_repr(choice)
+                        for choice in intermediate])
                 raise AmbiguityError(msg)
             else:
                 return intermediate[0]
@@ -1419,7 +1419,7 @@ def isMatching(string, expr):
         return normalizeWhitespace(expr) in normalizeWhitespace(string)
 
 
-class Timer(object):
+class Timer:
     start_time = 0
     end_time = 0
 
@@ -1461,6 +1461,7 @@ class History:
     Though this will become public, the implied interface is not yet stable.
 
     """
+
     def __init__(self):
         self._history = []  # LIFO
 

@@ -29,7 +29,7 @@ class NotFound(Exception):
 _HERE = os.path.dirname(__file__)
 
 
-class WSGITestApplication(object):
+class WSGITestApplication:
 
     def __init__(self):
         self.request_log = []
@@ -71,7 +71,7 @@ def handle_notfound(req):
     raise NotFound(req.path_info)
 
 
-class ParamsWrapper(object):
+class ParamsWrapper:
 
     def __init__(self, params):
         self.params = params
@@ -113,8 +113,8 @@ def get_cookie(req):
 
 def set_cookie(req):
     cookie_parms = {'path': None}
-    cookie_parms.update(dict((str(k), str(v))
-                             for k, v in req.params.items()))
+    cookie_parms.update({str(k): str(v)
+                         for k, v in req.params.items()})
     name = cookie_parms.pop('name')
     value = cookie_parms.pop('value')
     if 'max-age' in cookie_parms:
@@ -129,7 +129,7 @@ def set_cookie(req):
 
 def set_header(req):
     resp = Response()
-    body = [u"Set Headers:"]
+    body = ["Set Headers:"]
     for k, v in sorted(req.params.items()):
         if not isinstance(k, str):
             k = k.encode('latin1')
@@ -137,7 +137,7 @@ def set_header(req):
             v = v.encode('latin1')
         body.extend([k, v])
         resp.headers.add(k, v)
-    resp.unicode_body = u'\n'.join(body)
+    resp.unicode_body = '\n'.join(body)
     return resp
 
 
@@ -157,7 +157,7 @@ def echo(req):
         v = req.environ.get(k, None)
         if v is None:
             continue
-        items.append('%s: %s' % (k, v))
+        items.append('{}: {}'.format(k, v))
     items.extend('%s: %s' % x for x in sorted(req.params.items()))
     if (req.method == 'POST' and
             req.content_type == 'application/x-www-form-urlencoded'):

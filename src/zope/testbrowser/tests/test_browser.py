@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2004 Zope Foundation and Contributors.
@@ -14,7 +13,6 @@
 ##############################################################################
 """Real test for file-upload and beginning of a better internal test framework
 """
-from __future__ import print_function
 
 import doctest
 import io
@@ -26,7 +24,7 @@ from zope.testbrowser.browser import ItemCountError
 from zope.testbrowser.browser import ItemNotFoundError
 
 
-class TestApp(object):
+class TestApp:
     next_response_body = None
     next_response_headers = None
     next_response_status = '200'
@@ -49,19 +47,19 @@ class TestApp(object):
 
     def __call__(self, environ, start_response):
         qs = environ.get('QUERY_STRING')
-        self.print("%s %s%s HTTP/1.1" % (environ['REQUEST_METHOD'],
-                                         environ['PATH_INFO'],
-                                         ('?' + qs) if qs else ""
-                                         ))
+        self.print("{} {}{} HTTP/1.1".format(environ['REQUEST_METHOD'],
+                                             environ['PATH_INFO'],
+                                             ('?' + qs) if qs else ""
+                                             ))
         # print all the headers
         for ek, ev in sorted(environ.items()):
             if ek.startswith('HTTP_'):
-                self.print("%s: %s" % (ek[5:].title(), ev))
+                self.print("{}: {}".format(ek[5:].title(), ev))
         self.print()
         inp = environ['wsgi.input'].input.getvalue()
         self.print(inp.decode('utf8'))
-        status = '%s %s' % (self.next_response_status,
-                            self.next_response_reason)
+        status = '{} {}'.format(self.next_response_status,
+                                self.next_response_reason)
         start_response(status, self.next_response_headers)
         return [self.next_response_body]
 
@@ -70,7 +68,7 @@ class QuietTestApp(TestApp):
     verbose = False
 
 
-class YetAnotherTestApp(object):
+class YetAnotherTestApp:
 
     def __init__(self):
         self.requests = []
@@ -91,7 +89,9 @@ class YetAnotherTestApp(object):
         self.last_environ = environ
         self.last_input = environ[
             'wsgi.input'].input.getvalue().decode('utf-8')
-        status = '%s %s' % (next_response['status'], next_response['reason'])
+        status = '{} {}'.format(
+            next_response['status'],
+            next_response['reason'])
         start_response(status, next_response['headers'])
         return [next_response['body']]
 
@@ -100,7 +100,7 @@ class TestDisplayValue(unittest.TestCase):
     """Testing ..browser.Browser.displayValue."""
 
     def setUp(self):
-        super(TestDisplayValue, self).setUp()
+        super().setUp()
         app = QuietTestApp()
         app.set_next_response(b'''\
             <html>
@@ -150,9 +150,9 @@ class TestMechRepr(unittest.TestCase):
     """Testing ..browser.*.mechRepr()."""
 
     def setUp(self):
-        super(TestMechRepr, self).setUp()
+        super().setUp()
         app = QuietTestApp()
-        app.set_next_response(u'''\
+        app.set_next_response('''\
             <html>
               <body>
                 <form>
@@ -165,7 +165,7 @@ class TestMechRepr(unittest.TestCase):
                   <input name="sub1" type="submit" value="Yës" />
                 </form>
               </body>
-            </html>'''.encode('utf-8'))
+            </html>'''.encode())
         self.browser = Browser(wsgi_app=app)
         self.browser.open('https://localhost')
 
@@ -1234,7 +1234,7 @@ def test_radio_buttons_cannot_be_unselected():
     """
 
 
-UNICODE_TEST = u'\u4e2d\u6587\u7dad'  # unicode in doctests is hard!
+UNICODE_TEST = '\u4e2d\u6587\u7dad'  # unicode in doctests is hard!
 
 
 def test_non_ascii_in_input_field(self):

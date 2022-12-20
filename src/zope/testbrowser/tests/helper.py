@@ -16,7 +16,7 @@ import re
 import zope.testing.renormalizing
 
 
-class win32CRLFtransformer(object):
+class win32CRLFtransformer:
     def sub(self, replacement, text):
         return text.replace(r'\r', '')
 
@@ -67,4 +67,4 @@ checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'<http.client.HTTPMessage object'),
      '<httplib.HTTPMessage instance'),
     # (re.compile(r''), ''),
-    ])
+])

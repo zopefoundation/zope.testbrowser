@@ -32,13 +32,13 @@ class ICookies(zope.interface.common.mapping.IExtendedReadMapping,
     """A mapping of cookies for a given url"""
 
     url = zope.schema.URI(
-        title=u"URL",
-        description=u"The URL the mapping is currently exposing.",
+        title="URL",
+        description="The URL the mapping is currently exposing.",
         required=True)
 
     header = zope.schema.TextLine(
-        title=u"Header",
-        description=u"The current value for the Cookie header for the URL",
+        title="Header",
+        description="The current value for the Cookie header for the URL",
         required=True)
 
     def forURL(url):
@@ -111,52 +111,52 @@ class IBrowser(zope.interface.Interface):
     """A Programmatic Web Browser."""
 
     cookies = zope.schema.Field(
-        title=u"Cookies",
-        description=(u"An ICookies mapping for the browser's current URL."),
+        title="Cookies",
+        description=("An ICookies mapping for the browser's current URL."),
         required=True)
 
     url = zope.schema.URI(
-        title=u"URL",
-        description=u"The URL the browser is currently showing.",
+        title="URL",
+        description="The URL the browser is currently showing.",
         required=True)
 
     headers = zope.schema.Field(
-        title=u"Headers",
-        description=(u"Headers of the HTTP response; a "
+        title="Headers",
+        description=("Headers of the HTTP response; a "
                      "``httplib.HTTPMessage``."),
         required=True)
 
     contents = zope.schema.Text(
-        title=u"Contents",
-        description=u"The complete response body of the HTTP request.",
+        title="Contents",
+        description="The complete response body of the HTTP request.",
         required=True)
 
     isHtml = zope.schema.Bool(
-        title=u"Is HTML",
-        description=u"Tells whether the output is HTML or not.",
+        title="Is HTML",
+        description="Tells whether the output is HTML or not.",
         required=True)
 
     title = zope.schema.TextLine(
-        title=u"Title",
-        description=u"Title of the displayed page",
+        title="Title",
+        description="Title of the displayed page",
         required=False)
 
     handleErrors = zope.schema.Bool(
-        title=u"Handle Errors",
-        description=(u"Describes whether server-side errors will be handled "
-                     u"by the publisher. If set to ``False``, the error will "
-                     u"progress all the way to the test, which is good for "
-                     u"debugging."),
+        title="Handle Errors",
+        description=("Describes whether server-side errors will be handled "
+                     "by the publisher. If set to ``False``, the error will "
+                     "progress all the way to the test, which is good for "
+                     "debugging."),
         default=True,
         required=True)
 
     followRedirects = zope.schema.Bool(
-        title=u"Follow Redirects",
-        description=(u"Describes whether the browser follows redirects. If "
-                     u"set to ``True``, it will automatically issue ``GET`` "
-                     u"requests for redirect responses; if set to ``False``, "
-                     u"it will return redirect responses directly, allowing "
-                     u"the caller to make assertions about them."),
+        title="Follow Redirects",
+        description=("Describes whether the browser follows redirects. If "
+                     "set to ``True``, it will automatically issue ``GET`` "
+                     "requests for redirect responses; if set to ``False``, "
+                     "it will return redirect responses directly, allowing "
+                     "the caller to make assertions about them."),
         default=True,
         required=True)
 
@@ -212,9 +212,9 @@ class IBrowser(zope.interface.Interface):
         """
 
     lastRequestSeconds = zope.schema.Field(
-        title=u"Seconds to Process Last Request",
+        title="Seconds to Process Last Request",
         description=(
-            u"""Return how many seconds (or fractions) the last request took.
+            """Return how many seconds (or fractions) the last request took.
 
         The values returned have the same resolution as the results from
         ``time.clock``.
@@ -266,33 +266,33 @@ class IControl(zope.interface.Interface):
     """A control (input field) of a page."""
 
     name = zope.schema.TextLine(
-        title=u"Name",
-        description=u"The name of the control.",
+        title="Name",
+        description="The name of the control.",
         required=True)
 
     value = zope.schema.Field(
-        title=u"Value",
-        description=u"The value of the control",
+        title="Value",
+        description="The value of the control",
         default=None,
         required=True)
 
     type = zope.schema.Choice(
-        title=u"Type",
-        description=u"The type of the control",
+        title="Type",
+        description="The type of the control",
         values=['text', 'password', 'hidden', 'submit', 'checkbox', 'select',
                 'radio', 'image', 'file'],
         required=True)
 
     disabled = zope.schema.Bool(
-        title=u"Disabled",
-        description=u"Describes whether a control is disabled.",
+        title="Disabled",
+        description="Describes whether a control is disabled.",
         default=False,
         required=False)
 
     multiple = zope.schema.Bool(
-        title=u"Multiple",
+        title="Multiple",
         description=(
-            u"Describes whether this control can hold multiple values."),
+            "Describes whether this control can hold multiple values."),
         default=False,
         required=False)
 
@@ -304,22 +304,22 @@ class IListControl(IControl):
     """A radio button, checkbox, or select control"""
 
     options = zope.schema.List(
-        title=u"Options",
-        description=u"""\
+        title="Options",
+        description="""\
         A list of possible values for the control.""",
         required=True)
 
     displayOptions = zope.schema.List(
         # TODO: currently only implemented for select
-        title=u"Options",
-        description=u"""\
+        title="Options",
+        description="""\
         A list of possible display values for the control.""",
         required=True)
 
     displayValue = zope.schema.Field(
         # TODO: currently only implemented for select
-        title=u"Value",
-        description=u"The value of the control, as rendered by the display",
+        title="Value",
+        description="The value of the control, as rendered by the display",
         default=None,
         required=True)
 
@@ -351,26 +351,26 @@ class IItemControl(zope.interface.Interface):
     """a radio button or checkbox within a larger multiple-choice control"""
 
     control = zope.schema.Object(
-        title=u"Control",
-        description=(u"The parent control element."),
+        title="Control",
+        description=("The parent control element."),
         schema=IControl,
         required=True)
 
     disabled = zope.schema.Bool(
-        title=u"Disabled",
-        description=u"Describes whether a subcontrol is disabled.",
+        title="Disabled",
+        description="Describes whether a subcontrol is disabled.",
         default=False,
         required=False)
 
     selected = zope.schema.Bool(
-        title=u"Selected",
-        description=u"Whether the subcontrol is selected",
+        title="Selected",
+        description="Whether the subcontrol is selected",
         default=None,
         required=True)
 
     optionValue = zope.schema.TextLine(
-        title=u"Value",
-        description=u"The value of the subcontrol",
+        title="Value",
+        description="The value of the subcontrol",
         default=None,
         required=False)
 
@@ -381,23 +381,23 @@ class ILink(zope.interface.Interface):
         """click the link, going to the URL referenced"""
 
     url = zope.schema.TextLine(
-        title=u"URL",
-        description=u"The normalized URL of the link",
+        title="URL",
+        description="The normalized URL of the link",
         required=False)
 
     attrs = zope.schema.Dict(
-        title=u'Attributes',
-        description=u'The attributes of the link tag',
+        title='Attributes',
+        description='The attributes of the link tag',
         required=False)
 
     text = zope.schema.TextLine(
-        title=u'Text',
-        description=u'The contained text of the link',
+        title='Text',
+        description='The contained text of the link',
         required=False)
 
     tag = zope.schema.TextLine(
-        title=u'Tag',
-        description=u'The tag name of the link (a or area, typically)',
+        title='Tag',
+        description='The tag name of the link (a or area, typically)',
         required=True)
 
 
@@ -405,31 +405,31 @@ class IForm(zope.interface.Interface):
     """An HTML form of the page."""
 
     action = zope.schema.TextLine(
-        title=u"Action",
-        description=u"The action (or URI) that is opened upon submittance.",
+        title="Action",
+        description="The action (or URI) that is opened upon submittance.",
         required=True)
 
     method = zope.schema.Choice(
-        title=u"Method",
-        description=u"The method used to submit the form.",
+        title="Method",
+        description="The method used to submit the form.",
         values=['post', 'get', 'put'],
         required=True)
 
     enctype = zope.schema.TextLine(
-        title=u"Encoding Type",
-        description=u"The type of encoding used to encode the form data.",
+        title="Encoding Type",
+        description="The type of encoding used to encode the form data.",
         required=True)
 
     name = zope.schema.TextLine(
-        title=u"Name",
-        description=u"The value of the `name` attribute in the form tag, "
-                    u"if specified.",
+        title="Name",
+        description="The value of the `name` attribute in the form tag, "
+                    "if specified.",
         required=True)
 
     id = zope.schema.TextLine(
-        title=u"Id",
-        description=u"The value of the `id` attribute in the form tag, "
-                    u"if specified.",
+        title="Id",
+        description="The value of the `id` attribute in the form tag, "
+                    "if specified.",
         required=True)
 
     def getControl(label=None, name=None, index=None):

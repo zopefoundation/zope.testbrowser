@@ -34,7 +34,7 @@ class BrowserStateError(Exception):
     pass
 
 
-class _StubHTTPMessage(object):
+class _StubHTTPMessage:
     def __init__(self, cookies):
         self._cookies = cookies
 
@@ -47,7 +47,7 @@ class _StubHTTPMessage(object):
     get_all = getheaders
 
 
-class _StubResponse(object):
+class _StubResponse:
     def __init__(self, cookies):
         self.message = _StubHTTPMessage(cookies)
 
@@ -135,7 +135,7 @@ class Cookies(MutableMapping):
 
     def __repr__(self):
         # get the cookies for the current url
-        return '<%s.%s object at %r for %s (%s)>' % (
+        return '<{}.{} object at {!r} for {} ({})>'.format(
             self.__class__.__module__, self.__class__.__name__,
             id(self), self.url, self.header)
 
@@ -319,7 +319,7 @@ class Cookies(MutableMapping):
                 protocol = 'https'
             else:
                 protocol = 'http'
-            url = '%s://%s%s' % (protocol, tmp_domain, path or '/')
+            url = '{}://{}{}'.format(protocol, tmp_domain, path or '/')
             request = urllib.request.Request(url)
         else:
             request = self._request
@@ -402,7 +402,7 @@ class Cookies(MutableMapping):
         """
         # Python3' MutableMapping doesn't offer pop() with variable arguments,
         # so we are reimplementing it here as defined in IExtendedWriteMapping
-        super(Cookies, self).pop(k, *args)
+        super().pop(k, *args)
 
     def itervalues(self):
         # Method, missing in Py3' MutableMapping, but required by
