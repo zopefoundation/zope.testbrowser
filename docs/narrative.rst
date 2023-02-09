@@ -96,8 +96,8 @@ the ``BrowserLayer`` in `zope.app.wsgi.testlayer`_:
 .. _`zope.app.wsgi.testlayer` : http://pypi.python.org/pypi/zope.app.wsgi
 
 
-Bowser Usage
-------------
+Browser Usage
+-------------
 
 We will test this browser against a WSGI test application:
 
