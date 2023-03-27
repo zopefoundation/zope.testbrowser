@@ -37,7 +37,7 @@ setup(
     },
     description='Programmable browser for functional black-box tests',
     author='Zope Corporation and Contributors',
-    author_email='zope-dev@zope.org',
+    author_email='zope-dev@zope.dev',
     long_description=long_description,
     classifiers=[
         'Environment :: Web Environment',
@@ -58,8 +58,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     namespace_packages=['zope'],
-    test_suite='zope.testbrowser.tests',
-    tests_require=tests_require,
+    python_requires='>=3.7',
     install_requires=[
         'setuptools',
         'zope.interface',
