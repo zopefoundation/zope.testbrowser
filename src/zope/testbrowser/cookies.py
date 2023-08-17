@@ -202,8 +202,6 @@ class Cookies(MutableMapping):
     def __iter__(self):
         return (ck.name for ck in self._get_cookies())
 
-    iterkeys = __iter__
-
     def iterinfo(self, key=None):
         return (self._getinfo(ck) for ck in self._get_cookies(key))
 
