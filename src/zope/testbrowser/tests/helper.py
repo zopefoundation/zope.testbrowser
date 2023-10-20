@@ -62,9 +62,10 @@ checker = zope.testing.renormalizing.RENormalizing([
     (re.compile(r'urllib.error.HTTPError'),
      'HTTPError'),
 
-
     # In py3 HTTPMessage class was moved and represented differently
     (re.compile(r'<http.client.HTTPMessage object'),
      '<httplib.HTTPMessage instance'),
-    # (re.compile(r''), ''),
+
+    # Ignore output returned by GHA for PyPy3
+    (re.compile('/etc/ssl/certs/ca-certificates.crt /etc/ssl/certs'), ''),
 ])
