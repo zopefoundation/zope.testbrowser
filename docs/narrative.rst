@@ -257,7 +257,7 @@ The headers can be accessed as a string:
     >>> print(browser.headers)
     ... # doctest: +NORMALIZE_WHITESPACE
     Status: 200 OK
-    Content-Length: 109
+    Content-Length: ...
     Content-Type: text/html; charset=UTF-8
 
 Or as a mapping:
@@ -380,7 +380,7 @@ When finding a link by its text, whitespace is normalized.
 .. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.contents
+    >>> browser.contents.replace(r'\r', '')
     '...> Link Text \n    with     Whitespace\tNormalization (and parens) </...'
     >>> link = browser.getLink('Link Text with Whitespace Normalization '
     ...                        '(and parens)')
@@ -1002,7 +1002,7 @@ Text Area Control
     <Control name='textarea-value' type='textarea'>
     >>> verifyObject(interfaces.IControl, ctrl)
     True
-    >>> ctrl.value
+    >>> ctrl.value.replace(r'\r', '')
     '        Text inside\n        area!\n      '
     >>> ctrl.value = 'A lot of\n text.'
     >>> ctrl.disabled
