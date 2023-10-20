@@ -380,7 +380,7 @@ When finding a link by its text, whitespace is normalized.
 .. doctest::
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
-    >>> browser.contents.replace(r'\r', '')
+    >>> browser.contents.replace('\r', '')
     '...> Link Text \n    with     Whitespace\tNormalization (and parens) </...'
     >>> link = browser.getLink('Link Text with Whitespace Normalization '
     ...                        '(and parens)')
@@ -1002,7 +1002,7 @@ Text Area Control
     <Control name='textarea-value' type='textarea'>
     >>> verifyObject(interfaces.IControl, ctrl)
     True
-    >>> ctrl.value.replace(r'\r', '')
+    >>> ctrl.value.replace('\r', '')
     '        Text inside\n        area!\n      '
     >>> ctrl.value = 'A lot of\n text.'
     >>> ctrl.disabled
