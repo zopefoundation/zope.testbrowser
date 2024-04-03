@@ -245,9 +245,9 @@ library):
 
 .. doctest::
 
-    >>> from six.moves import http_client
+    >>> import http.client
     >>> browser.open('http://localhost/@@/testbrowser/simple.html')
-    >>> isinstance(browser.headers, http_client.HTTPMessage)
+    >>> isinstance(browser.headers, http.client.HTTPMessage)
     True
 
 The headers can be accessed as a string:
