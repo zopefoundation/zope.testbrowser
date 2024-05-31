@@ -5,9 +5,12 @@
         :target: https://pypi.org/project/zope.testbrowser/
         :alt: Latest Version
 
+.. image:: https://img.shields.io/pypi/pyversions/zope.testbrowser.svg
+        :target: https://pypi.org/project/zope.testbrowser/
+        :alt: Supported Python versions
+
 .. image:: https://github.com/zopefoundation/zope.testbrowser/actions/workflows/tests.yml/badge.svg
         :target: https://github.com/zopefoundation/zope.testbrowser/actions/workflows/tests.yml
-
 
 .. image:: https://readthedocs.org/projects/zopetestbrowser/badge/?version=latest
         :target: http://zopetestbrowser.readthedocs.org/en/latest/
