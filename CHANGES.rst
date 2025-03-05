@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-7.1 (unreleased)
-----------------
+7.0.1 (2025-03-05)
+------------------
 
 - Fix test ``src/zope/testbrowser/over_the_wire.txt``.
 
