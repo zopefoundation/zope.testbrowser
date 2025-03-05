@@ -17,6 +17,6 @@ on zope.i18n locale-based formatting or a similar approach.
 The browser can `open` web pages:
 
     >>> browser.open('https://www.w3.org')
-    >>> print(browser.contents)
+    >>> print(browser.contents.lower())
     <!doctype html>
-    ...<h1>Making the Web work</h1>...
+    ...<h1>making the web work</h1>...

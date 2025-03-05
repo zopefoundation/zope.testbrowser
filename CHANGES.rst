@@ -5,6 +5,7 @@ CHANGES
 7.1 (unreleased)
 ----------------
 
+- Fix test ``src/zope/testbrowser/over_the_wire.txt``.
 
 7.0 (2024-05-31)
 ----------------

@@ -41,7 +41,7 @@ extensions = [
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext'}
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'zope.testbrowser'
-copyright = '2015, Zope Foundation and Contributors'
+copyright = '2015-2025, Zope Foundation and Contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
