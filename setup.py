@@ -31,12 +31,12 @@ setup(
     name='zope.testbrowser',
     version='7.1.dev0',
     url='https://github.com/zopefoundation/zope.testbrowser',
-    license='ZPL 2.1',
+    license='ZPL-2.1',
     project_urls={
         'Documentation': 'https://zopetestbrowser.readthedocs.io/',
     },
     description='Programmable browser for functional black-box tests',
-    author='Zope Corporation and Contributors',
+    author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.dev',
     long_description=long_description,
     classifiers=[
@@ -44,7 +44,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Zope Public License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
@@ -59,7 +58,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     namespace_packages=['zope'],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     install_requires=[
         'setuptools',
         'zope.interface',
