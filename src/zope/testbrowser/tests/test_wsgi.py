@@ -248,7 +248,7 @@ class TestLayer(unittest.TestCase):
     def test_app_property(self):
         # The layer has a .app property where the application under test is
         # available
-        self.assertTrue(SIMPLE_LAYER.get_app() is demo_app)
+        self.assertIs(SIMPLE_LAYER.get_app(), demo_app)
 
     def test_there_can_only_be_one(self):
         another_layer = SimpleLayer()
@@ -313,14 +313,16 @@ class TestAuthorizationMiddleware(unittest.TestCase):
                '?x-other=another&x-powered-by=zope&x-content-type-warning=bar')
         self.browser.open(url)
         self.assertEqual(self.browser.headers['x-other'], 'another')
-        self.assertTrue('x-other' in self.browser.headers)
-        self.assertFalse('x-powered-by' in self.browser.headers)
-        self.assertFalse('x-content-type-warning' in self.browser.headers)
+        self.assertIn('x-other', self.browser.headers)
+        self.assertNotIn('x-powered-by', self.browser.headers)
+        self.assertNotIn('x-content-type-warning', self.browser.headers)
         # make sure we are actually testing something
         self.unwrapped_browser.open(url)
-        self.assertTrue('x-powered-by' in self.unwrapped_browser.headers)
-        self.assertTrue('x-content-type-warning' in
-                        self.unwrapped_browser.headers)
+        self.assertIn('x-powered-by', self.unwrapped_browser.headers)
+        self.assertIn(
+            'x-content-type-warning',
+            self.unwrapped_browser.headers
+        )
 
     def test_authorization(self):
         # Basic authorization headers are encoded in base64
