@@ -5,7 +5,9 @@ CHANGES
 7.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Drop support for Python 3.8.
+
+- Add preliminary support for Python 3.14.
 
 
 7.0.1 (2025-03-05)
