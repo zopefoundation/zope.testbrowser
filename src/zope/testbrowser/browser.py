@@ -110,7 +110,7 @@ class TestbrowserApp(webtest.TestApp):
         url = response.request.url
         if not self._last_fragment:
             return url
-        return "{}#{}".format(url, response._last_fragment)
+        return f"{url}#{response._last_fragment}"
 
 
 class SetattrErrorsMixin:
@@ -218,7 +218,7 @@ class Browser(SetattrErrorsMixin):
         resptxt = []
         resptxt.append('Status: %s' % self._response.status)
         for h, v in sorted(self._response.headers.items()):
-            resptxt.append(str("{}: {}".format(h, v)))
+            resptxt.append(str(f"{h}: {v}"))
 
         inp = '\n'.join(resptxt)
         stream = io.BytesIO(inp.encode('latin1'))
@@ -792,7 +792,7 @@ class SubmitControl(Control):
         # Mechanize explicitly told us submit controls were readonly, as
         # if they could be any other way.... *sigh*  Let's take this
         # opportunity and strip that off.
-        return "<SubmitControl({}={}){}>".format(name, value, extra)
+        return f"<SubmitControl({name}={value}){extra}>"
 
 
 @implementer(interfaces.IListControl)
@@ -1190,8 +1190,8 @@ class RadioItemControl(ItemControl):
         props.append(('value', value))
         props.append(('id', id))
 
-        propstr = ' '.join('{}={!r}'.format(pk, pv) for pk, pv in props)
-        return "<Item name='{}' id='{}' {}>".format(value, id, propstr)
+        propstr = ' '.join(f'{pk}={pv!r}' for pk, pv in props)
+        return f"<Item name='{value}' id='{id}' {propstr}>"
 
 
 class CheckboxItemControl(ItemControl):
@@ -1244,8 +1244,8 @@ class CheckboxItemControl(ItemControl):
         props.append(('id', id))
         props.append(('value', value))
 
-        propstr = ' '.join('{}={!r}'.format(pk, pv) for pk, pv in props)
-        return "<Item name='{}' id='{}' {}>".format(value, id, propstr)
+        propstr = ' '.join(f'{pk}={pv!r}' for pk, pv in props)
+        return f"<Item name='{value}' id='{id}' {propstr}>"
 
 
 @implementer(interfaces.IForm)

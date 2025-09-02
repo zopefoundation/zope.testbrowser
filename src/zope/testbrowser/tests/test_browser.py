@@ -54,7 +54,7 @@ class TestApp:
         # print all the headers
         for ek, ev in sorted(environ.items()):
             if ek.startswith('HTTP_'):
-                self.print("{}: {}".format(ek[5:].title(), ev))
+                self.print(f"{ek[5:].title()}: {ev}")
         self.print()
         inp = environ['wsgi.input'].input.getvalue()
         self.print(inp.decode('utf8'))

@@ -157,7 +157,7 @@ def echo(req):
         v = req.environ.get(k, None)
         if v is None:
             continue
-        items.append('{}: {}'.format(k, v))
+        items.append(f'{k}: {v}')
     items.extend('%s: %s' % x for x in sorted(req.params.items()))
     if (req.method == 'POST' and
             req.content_type == 'application/x-www-form-urlencoded'):
