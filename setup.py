@@ -13,7 +13,6 @@
 ##############################################################################
 """Setup for zope.testbrowser package
 """
-from setuptools import find_packages
 from setuptools import setup
 
 
@@ -25,11 +24,11 @@ with open('CHANGES.rst') as f:
 
 long_description = (README + '\n\n' + CHANGES)
 
-tests_require = ['zope.testing', 'mock', 'zope.testrunner']
+tests_require = ['zope.testing', 'mock', 'zope.testrunner >= 6.4']
 
 setup(
     name='zope.testbrowser',
-    version='7.1.dev0',
+    version='8.0.dev0',
     url='https://github.com/zopefoundation/zope.testbrowser',
     license='ZPL-2.1',
     project_urls={
@@ -55,9 +54,6 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     keywords='headless browser functional tests WSGI HTTP HTML form',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    namespace_packages=['zope'],
     python_requires='>=3.9',
     install_requires=[
         'setuptools',
