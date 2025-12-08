@@ -404,11 +404,11 @@ class Cookies(MutableMapping):
         super().pop(k, *args)
 
     def itervalues(self):
-        # Method, missing in Py3' MutableMapping, but required by
+        # Method, missing in MutableMapping, but required by
         # IIterableMapping
         return self.values()
 
     def iterkeys(self):
-        # Method, missing in Py3' MutableMapping, but required by
+        # Method, missing in MutableMapping, but required by
         # IIterableMapping
         return self.keys()
