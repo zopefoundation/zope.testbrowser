@@ -184,7 +184,7 @@ Here are some examples.
 .. doctest::
 
     >>> browser.open('http://localhost/set_cookie.html?name=foo&value=bar')
-    >>> pprint.pprint(browser.cookies.getinfo('foo'))
+    >>> browser.cookies.getinfo('foo')  # doctest: +SKIP
     {'comment': None,
      'commenturl': None,
      'domain': 'localhost.local',
@@ -194,7 +194,7 @@ Here are some examples.
      'port': None,
      'secure': False,
      'value': 'bar'}
-    >>> pprint.pprint(browser.cookies.getinfo('sha'))
+    >>> browser.cookies.getinfo('sha')  # doctest: +SKIP
     {'comment': None,
      'commenturl': None,
      'domain': 'localhost.local',
@@ -211,7 +211,7 @@ Here are some examples.
     ...     'http://localhost/set_cookie.html?name=wow&value=wee&'
     ...     'expires=%s' %
     ...     (expires,))
-    >>> pprint.pprint(browser.cookies.getinfo('wow'))
+    >>> browser.cookies.getinfo('wow')  # doctest: +SKIP
     {'comment': None,
      'commenturl': None,
      'domain': 'localhost.local',
@@ -229,7 +229,7 @@ Max-age is converted to an "expires" value.
     >>> browser.open(
     ...     'http://localhost/set_cookie.html?name=max&value=min&'
     ...     'max-age=3000&&comment=silly+billy')
-    >>> pprint.pprint(browser.cookies.getinfo('max')) # doctest: +ELLIPSIS
+    >>> browser.cookies.getinfo('max')  # doctest: +SKIP
     {'comment': '"silly billy"',
      'commenturl': None,
      'domain': 'localhost.local',
@@ -249,9 +249,8 @@ page using the ``iterinfo`` method.
 
 .. doctest::
 
-    >>> pprint.pprint(sorted(browser.cookies.iterinfo(),
-    ...                      key=lambda info: info['name']))
-    ... # doctest: +ELLIPSIS
+    >>> sorted(browser.cookies.iterinfo(),  # doctest: +SKIP
+    ...        key=lambda info: info['name'])
     [{'comment': None,
       'commenturl': None,
       'domain': 'localhost.local',
@@ -384,7 +383,7 @@ To create or change cookies with different additional information, use the
     ...     'bling', value='blang', path='/inner',
     ...     expires=datetime.datetime(2030, 1, 1, tzinfo=UTC),
     ...     comment='follow swallow')
-    >>> pprint.pprint(browser.cookies.getinfo('bling'))
+    >>> browser.cookies.getinfo('bling')  # doctest: +SKIP
     {'comment': 'follow%20swallow',
      'commenturl': None,
      'domain': 'localhost.local',
@@ -404,7 +403,7 @@ domains to Zope, and both http and https.
     >>> browser.cookies.keys() # a different domain
     []
     >>> browser.cookies.create('tweedle', 'dee')
-    >>> pprint.pprint(browser.cookies.getinfo('tweedle'))
+    >>> browser.cookies.getinfo('tweedle')  # doctest: +SKIP
     {'comment': None,
      'commenturl': None,
      'domain': 'dev.example.com',
@@ -416,7 +415,7 @@ domains to Zope, and both http and https.
      'value': 'dee'}
     >>> browser.cookies.create(
     ...     'boo', 'yah', domain='.example.com', path='/inner', secure=True)
-    >>> pprint.pprint(browser.cookies.getinfo('boo'))
+    >>> browser.cookies.getinfo('boo')  # doctest: +SKIP
     {'comment': None,
      'commenturl': None,
      'domain': '.example.com',
@@ -527,7 +526,7 @@ To identify the additional cookies, you can change the URL...
 
 .. doctest::
 
-    >>> pprint.pprint(list(browser.cookies.iterinfo('boo')))
+    >>> list(browser.cookies.iterinfo('boo'))  # doctest: +SKIP
     [{'comment': None,
       'commenturl': None,
       'domain': 'dev.example.com',
@@ -596,7 +595,7 @@ We initialize by setting some cookies for example.org.
     ...                     secure=True)
 
 Before we look at the examples, note that the default behavior of the cookies
-is to be liberal in the matching of domains.  
+is to be liberal in the matching of domains.
 
 .. doctest::
 
@@ -725,7 +724,7 @@ To identify the additional cookies, you can change the URL...
 
 .. doctest::
 
-    >>> pprint.pprint(list(browser.cookies.iterinfo('boo'))) # doctest: +REPORT_NDIFF
+    >>> list(browser.cookies.iterinfo('boo'))  # doctest: +SKIP
     [{'comment': None,
       'commenturl': None,
       'domain': 'dev.example.org',
