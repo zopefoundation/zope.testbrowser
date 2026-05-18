@@ -9,6 +9,10 @@ CHANGES
 
 - Drop support for Python 3.9.
 
+- Fix ``pprint``-based doctests in ``cookies.rst`` for Python 3.15 by
+  converting them to unit tests because of the change in how pprint formats
+  dictionaries in Python 3.15.
+
 
 8.0 (2025-09-12)
 ----------------
