@@ -871,8 +871,8 @@ The ``clearAll`` removes all cookies for the browser.
 
 Note that explicitly setting a Cookie header is an error if the ``cookies``
 mapping has any values; and adding a new cookie to the ``cookies`` mapping
-is an error if the Cookie header is already set.  This is to prevent hard-to-
-diagnose intermittent errors when one header or the other wins.
+is an error if the Cookie header is already set.  This is to prevent
+hard-to-diagnose intermittent errors when one header or the other wins.
 
     >>> browser.cookies['boo'] = 'yah'
     >>> browser.addHeader('Cookie', 'gee=gaw')
