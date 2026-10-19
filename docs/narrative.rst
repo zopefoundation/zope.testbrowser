@@ -381,7 +381,7 @@ When finding a link by its text, whitespace is normalized.
 
     >>> browser.open('http://localhost/@@/testbrowser/navigate.html')
     >>> browser.contents.replace('\r', '')
-    '...> Link Text \n    with     Whitespace\tNormalization (and parens) </...'
+    '...> Link Text\n    with     Whitespace\tNormalization (and parens) </...'
     >>> link = browser.getLink('Link Text with Whitespace Normalization '
     ...                        '(and parens)')
     >>> link
