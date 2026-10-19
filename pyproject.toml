@@ -7,6 +7,77 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+
+[project]
+name = "zope.testbrowser"
+version = "8.2.dev0"
+description = "Programmable browser for functional black-box tests"
+license = "ZPL-2.1"
+classifiers = [
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Internet :: WWW/HTTP",
+]
+dynamic = ["readme"]
+requires-python = ">=3.11"
+authors = [
+    {name = "Zope Foundation and contributors",email = "zope-dev@zope.dev"},
+]
+maintainers = [
+    {name = "Plone Foundation and contributors",email = "zope-dev@zope.dev"},
+]
+dependencies = [
+    "setuptools",
+    "zope.interface",
+    "zope.schema",
+    "zope.cachedescriptors",
+    "pytz",
+    "WebTest >= 2.0.30",
+    "BeautifulSoup4",
+    "SoupSieve >= 1.9.0",
+    "WSGIProxy2",
+    "legacy-cgi; python_version > \"3.12\"",
+]
+keywords = [
+    "headless",
+    "browser",
+    "functional",
+    "tests",
+    "WSGI",
+    "HTTP",
+    "HTML",
+    "form",
+]
+
+[project.optional-dependencies]
+docs = [
+    "Sphinx",
+    "sphinx_rtd_theme",
+    "repoze.sphinx.autointerface",
+    "zope.app.wsgi",
+]
+test = [
+    "zope.testing",
+    "mock",
+    "zope.testrunner >= 6.4",
+]
+
+[project.urls]
+Documentation = "https://zopetestbrowser.readthedocs.io/"
+Source = "https://github.com/zopefoundation/zope.testbrowser"
+Issues = "https://github.com/zopefoundation/zope.testbrowser/issues"
+Changelog = "https://raw.githubusercontent.com/zopefoundation/zope.testbrowser/master/CHANGES.rst"
+
+
 [tool.coverage.run]
 branch = true
 source = ["zope.testbrowser"]
@@ -34,3 +105,7 @@ directory = "parts/htmlcov"
 create-wheel = false
 extra-message = ""
 upload-pypi = false
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "CHANGES.rst"]}
+
