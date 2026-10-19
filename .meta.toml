@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/src/zope/meta/pure-python
 [meta]
 template = "pure-python"
-commit-id = "f63da99d"
+commit-id = "5530e9ea"
 
 [python]
 with-windows = true
@@ -30,3 +30,6 @@ additional-rules = [
     "recursive-include src *.txt",
     "prune docs/_build",
     ]
+
+[pypi]
+trusted-publishing = true
