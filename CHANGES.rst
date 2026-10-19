@@ -7,6 +7,11 @@ CHANGES
 
 - Move package metadata from setup.py to pyproject.toml.
 
+- Drop install extras:
+
+  + ``wsgi`` (no additional dependencies)
+  + ``test_bbb`` (deprecated)
+
 
 8.1 (2026-10-19)
 ----------------
