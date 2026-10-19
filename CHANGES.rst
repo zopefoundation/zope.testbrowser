@@ -5,13 +5,9 @@ CHANGES
 8.1 (unreleased)
 ----------------
 
-- Add support for Python 3.15.
+- Add support for Python 3.14, 3.15.
 
-- Drop support for Python 3.10.
-
-- Add support for Python 3.14.
-
-- Drop support for Python 3.9.
+- Drop support for Python 3.9, 3.10.
 
 - Fix ``pprint``-based doctests in ``cookies.rst`` for Python 3.15 by
   converting them to unit tests because of the change in how pprint formats
